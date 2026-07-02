@@ -17,11 +17,12 @@ SECRET_KEY = os.getenv('SECRET_KEY')
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = os.getenv('DEBUG', 'False') == 'True'
 
-ALLOWED_HOSTS = [
-    # Adiciona os hosts de desenvolvimento padrão se DEBUG=True
-    '127.0.0.1',
-    'localhost',
-]
+allowed_hosts_env = os.getenv('ALLOWED_HOSTS', os.getenv('ALLOWED_HOST', '127.0.0.1,localhost'))
+ALLOWED_HOSTS = [host.strip() for host in allowed_hosts_env.split(',') if host.strip()]
+
+render_host = os.getenv('RENDER_EXTERNAL_HOSTNAME')
+if render_host:
+    ALLOWED_HOSTS.append(render_host)
 
 
 # Application definition
