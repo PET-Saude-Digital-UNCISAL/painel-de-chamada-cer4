@@ -21,4 +21,5 @@ from core import views # Importa a view do app 'core'
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('', views.home_view, name='home'),
+   path('perdeu-chamada/', views.perdeu_chamada_view, name='perdeu_chamada'),
 ]
