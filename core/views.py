@@ -6,8 +6,17 @@ from core.dev_builders import build_fake_screen_list, build_mocked_screen_payloa
 from core.services import get_screen_context, list_team_screens
 
 def perdeu_chamada_view(request):
-    html_content = "<h1>Tela de Pacientes que Perderam a Chamada</h1><p>Em breve a listagem aqui!</p>"
-    return HttpResponse(html_content)
+    """Renderiza a tela de aviso de senha perdida para o paciente."""
+    # Criamos um dicionário simulando o que viria do builder/banco
+    context = {
+        "page_title": "Senha Perdida",
+        "atendimento": {
+            "senha": "A-104",
+            "setor": "Recepção Central",
+            "horario_chamada": "14:32"
+        }
+    }
+    return render(request, "core/perdeu_chamada.html", context)
 
 def home_view(request):
     """Thin view: render dashboard with links for each isolated screen."""
