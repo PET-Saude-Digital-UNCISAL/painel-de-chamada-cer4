@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="utf-8">
+    <title>{{ title }}</title>
+    <style>
+        body { font-family: sans-serif; margin: 2rem; }
+        .grid { display: grid; gap: 0.8rem; max-width: 680px; }
+        .card { border: 1px solid #ddd; padding: 0.8rem; border-radius: 8px; }
+    </style>
+</head>
+<body>
+    <h1>{{ title }}</h1>
+    <p>Acesse cada tela diretamente por rota isolada.</p>
+    <div class="grid">
+        {% for screen in screens %}
+            <div class="card">
+                <strong>{{ screen.title }}</strong><br>
+                Owner: {{ screen.owner }}<br>
+                Status: {{ screen.status }}<br>
+                <a href="{{ screen.path }}">Abrir {{ screen.slug }}</a>
+            </div>
+        {% endfor %}
+    </div>
+
+    <p style="margin-top: 1.2rem;">
+        DEBUG: use <a href="/__dev__/mocks/">/__dev__/mocks/</a> para mock data.
+    </p>
+</body>
+</html>

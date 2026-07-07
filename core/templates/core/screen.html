@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="utf-8">
+    <title>{{ title }}</title>
+</head>
+<body>
+    <h1>{{ header }}</h1>
+    <p><strong>Responsável:</strong> {{ owner }}</p>
+    <p><strong>Status:</strong> {{ status }}</p>
+
+    <ul>
+        {% for item in items %}
+            <li>{{ item.label }}: {{ item.value }}</li>
+        {% endfor %}
+    </ul>
+
+    <a href="/">Voltar ao dashboard</a>
+</body>
+</html>

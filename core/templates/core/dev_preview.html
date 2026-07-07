@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="utf-8">
+    <title>{{ title }}</title>
+</head>
+<body>
+    <h1>{{ title }}</h1>
+    <p>Ambiente oculto para desenvolvimento com dados fake.</p>
+
+    <ul>
+        {% for card in cards %}
+            <li>
+                {{ card.title }} - {{ card.owner }}
+                (<a href="{{ card.path }}">abrir mock</a>)
+            </li>
+        {% endfor %}
+    </ul>
+</body>
+</html>
