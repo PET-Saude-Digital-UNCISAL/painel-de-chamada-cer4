@@ -1,5 +1,5 @@
 from django.conf import settings
-from django.http import Http404, HttpResponse  # <-- Adicionado HttpResponse aqui
+from django.http import Http404
 from django.shortcuts import render
 
 from core.dev_builders import build_fake_screen_list, build_mocked_screen_payload
