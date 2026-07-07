@@ -8,7 +8,7 @@ class IsolatedScreenSetupTests(SimpleTestCase):
 	def test_direct_screen_route_works(self):
 		response = self.client.get("/telas/pacientes-listagem/")
 		self.assertEqual(response.status_code, 200)
-		self.assertContains(response, "Tela de Pacientes")
+		self.assertContains(response, "Listagem de Pacientes")
 
 	@override_settings(DEBUG=True)
 	def test_debug_hidden_route_enabled(self):
@@ -32,7 +32,7 @@ class IsolatedScreenSetupTests(SimpleTestCase):
 
 	def test_list_team_screens_has_expected_size(self):
 		screens = list_team_screens()
-		self.assertEqual(len(screens), 6) # 1 grupo + 5 telas individuais
+		self.assertEqual(len(screens), 7) # 1 grupo + 6 telas individuais
 
 	def test_fake_screen_list_builder(self):
 		cards = build_fake_screen_list(quantity=3)
