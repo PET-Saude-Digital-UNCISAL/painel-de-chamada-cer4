@@ -6,7 +6,7 @@ from core.services import get_screen_context, list_team_screens
 
 class IsolatedScreenSetupTests(SimpleTestCase):
 	def test_direct_screen_route_works(self):
-		response = self.client.get("/telas/dev1/")
+		response = self.client.get("/telas/pacientes-listagem/")
 		self.assertEqual(response.status_code, 200)
 		self.assertContains(response, "Tela de Pacientes")
 
@@ -32,7 +32,7 @@ class IsolatedScreenSetupTests(SimpleTestCase):
 
 	def test_list_team_screens_has_expected_size(self):
 		screens = list_team_screens()
-		self.assertEqual(len(screens), 6)
+		self.assertEqual(len(screens), 6) # 1 grupo + 5 telas individuais
 
 	def test_fake_screen_list_builder(self):
 		cards = build_fake_screen_list(quantity=3)

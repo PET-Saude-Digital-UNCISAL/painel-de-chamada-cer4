@@ -5,8 +5,10 @@
     <title>{{ title }}</title>
     <style>
         body { font-family: sans-serif; margin: 2rem; }
-        .grid { display: grid; gap: 0.8rem; max-width: 680px; }
+        .grid { display: grid; gap: 0.8rem; max-width: 760px; }
         .card { border: 1px solid #ddd; padding: 0.8rem; border-radius: 8px; }
+        .sublist { margin: 0.6rem 0 0; padding-left: 1.2rem; }
+        .muted { color: #666; font-size: 0.9rem; }
     </style>
 </head>
 <body>
@@ -18,7 +20,19 @@
                 <strong>{{ screen.title }}</strong><br>
                 Owner: {{ screen.owner }}<br>
                 Status: {{ screen.status }}<br>
-                <a href="{{ screen.path }}">Abrir {{ screen.slug }}</a>
+
+                {% if screen.is_group %}
+                    <ul class="sublist">
+                        {% for item in screen.screens %}
+                            <li>
+                                <a href="{{ item.path }}">Abrir {{ item.slug }}</a>
+                                <span class="muted">- {{ item.title }}</span>
+                            </li>
+                        {% endfor %}
+                    </ul>
+                {% else %}
+                    <a href="{{ screen.path }}">Abrir {{ screen.slug }}</a>
+                {% endif %}
             </div>
         {% endfor %}
     </div>
