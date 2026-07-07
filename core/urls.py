@@ -5,6 +5,11 @@ from core import views
 
 urlpatterns = [
     path("", views.home_view, name="home"),
+    path(
+        "telas/auditoria-percurso-seguranca/",
+        views.auditoria_percurso_seguranca_view,
+        name="screen-auditoria-percurso-seguranca",
+    ),
 
     # Direct isolated routes for each team screen.
     path("telas/pacientes-listagem/", views.screen_view, {"screen_slug": "pacientes-listagem"}, name="screen-pacientes-listagem"),
