@@ -23,7 +23,7 @@ class ScreenDefinition:
  
 SCREEN_DEFINITIONS = [
     # Telas individuais que aparecerão em seus próprios cards
-    ScreenDefinition("pacientes-listagem", "Listagem de Pacientes", "Dev 1", "em desenvolvimento"),
+    ScreenDefinition("em desenvolvimento", "em desenvolvimento", "Dev 1", "em desenvolvimento"),
     ScreenDefinition("dev2", "Tela de Triagem", "Dev 2", "em desenvolvimento"),
     ScreenDefinition("dev3", "Tela de Chamadas", "Dev 3", "em desenvolvimento"),
     ScreenDefinition("dev4", "Tela de Presença", "Dev 4", "em desenvolvimento"),
