@@ -64,3 +64,17 @@ http://127.0.0.1:8000/
 ## Observações
 
 Este projeto ainda está em fase inicial de estruturação e configuração.
+
+## Deploy no Render
+
+O processo web deve aplicar as migrations antes de iniciar o Gunicorn. O
+`render.yaml` já configura esse fluxo. Em um serviço criado manualmente no
+Render, use o seguinte Start Command:
+
+```bash
+bash start.sh
+```
+
+No painel do serviço web, configure `DATABASE_URL` com a **Internal Database
+URL** do PostgreSQL do Render. Não use `localhost` em `DB_HOST` no ambiente de
+produção.
