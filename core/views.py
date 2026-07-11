@@ -12,6 +12,11 @@ def dashboard_monitoramento_view(request):
     """Renderiza o dashboard de monitoramento com dados fictícios."""
     return render(request, "core/dashboard_monitoramento.html")
 
+
+def configuracoes_view(request):
+    """Render the access hierarchy prototype without persistence."""
+    return render(request, "core/configuracoes.html")
+
 def perdeu_chamada_view(request, **kwargs):
     """Renderiza a tela de aviso de senha perdida para o paciente."""
     # Criamos um dicionário simulando o que viria do builder/banco

@@ -80,6 +80,23 @@ class IsolatedScreenSetupTests(SimpleTestCase):
 			with self.subTest(path=path):
 				self.assertEqual(self.client.get(path).status_code, 200)
 
+	def test_configuracoes_route_and_development_card(self):
+		response = self.client.get("/configuracoes/")
+		self.assertEqual(response.status_code, 200)
+		self.assertContains(response, "Controle de Níveis de Acesso")
+		self.assertContains(response, 'data-profile="super-admin"')
+
+		self.assertIn(
+			{
+				"slug": "configuracoes",
+				"title": "Tela de Configurações",
+				"owner": "Daniely Vasconcelos",
+				"status": "Concluído",
+				"path": "/configuracoes/",
+			},
+			list_team_screens(),
+		)
+
 	def test_auditoria_route_works(self):
 		response = self.client.get("/telas/auditoria-percurso-seguranca/")
 		self.assertEqual(response.status_code, 200)

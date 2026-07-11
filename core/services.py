@@ -28,7 +28,6 @@ SCREEN_DEFINITIONS = [
     ScreenDefinition("dev3", "Tela de Chamadas", "Dev 3", "em desenvolvimento"),
     ScreenDefinition("dev4", "Tela de Presença", "Dev 4", "em desenvolvimento"),
     ScreenDefinition("dev5", "Tela de Relatórios", "Dev 5", "em desenvolvimento"),
-    ScreenDefinition("dev6", "Tela de Configurações", "Dev 6", "em desenvolvimento"),
     ScreenDefinition("perdeu-chamada", "Senha Perdida (Perdeu Chamada)", "Daniely Vasconcelos", "concluída"),
     ScreenDefinition(
         "auditoria-percurso-seguranca",
@@ -140,6 +139,16 @@ def list_team_screens() -> list[dict]:
             "owner": "Remany",
             "status": "em desenvolvimento",
             "path": "/dashboard-monitoramento/",
+        }
+    )
+
+    other_screens.append(
+        {
+            "slug": "configuracoes",
+            "title": "Tela de Configurações",
+            "owner": "Daniely Vasconcelos",
+            "status": "Concluído",
+            "path": "/configuracoes/",
         }
     )
 

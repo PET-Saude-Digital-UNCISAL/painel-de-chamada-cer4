@@ -5,6 +5,7 @@ from core import views
 
 urlpatterns = [
     path("", views.home_view, name="home"),
+    path("configuracoes/", views.configuracoes_view, name="configuracoes"),
     path(
         "dashboard-monitoramento/",
         views.dashboard_monitoramento_view,

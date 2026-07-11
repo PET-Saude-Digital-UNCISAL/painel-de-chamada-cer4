@@ -1,0 +1,137 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Hierarquia de Acesso ao Sistema | CER III</title>
+    <link rel="stylesheet" href="{% static 'core/css/configuracoes.css' %}">
+    <script src="https://unpkg.com/lucide@0.468.0/dist/umd/lucide.min.js" defer></script>
+</head>
+<body>
+    <div id="app-layout">
+        <aside class="drawer" aria-label="Navegação principal">
+            <div class="drawer-brand">CER III</div>
+            <a class="drawer-link" href="/"><img src="{% static 'core/icons/dasboard.svg' %}" alt="">Dashboard</a>
+            <a class="drawer-link" href="/telas/auditoria-percurso-seguranca/"><img src="{% static 'core/icons/auditoria-percurso.svg' %}" alt="">Auditoria</a>
+            <a class="drawer-link active" href="/configuracoes/"><img src="{% static 'core/icons/configuracoes.svg' %}" alt="">Configurações</a>
+            <a class="drawer-link" href="/telas/dev1/"><img src="{% static 'core/icons/meu-perfil.svg' %}" alt="">Meu Perfil</a>
+        </aside>
+        <button class="drawer-overlay" id="drawer-overlay" type="button" aria-label="Fechar menu"></button>
+
+        <header class="topbar">
+            <div class="brand-group">
+                <button class="icon-button drawer-toggle" id="drawer-toggle" type="button" aria-label="Abrir menu" aria-expanded="false"><i data-lucide="menu"></i></button>
+                <div class="brand">CER III <span>— Configurações</span></div>
+            </div>
+            <div class="topbar-actions">
+                <div class="clock"><strong>18:48</strong><small>05 de maio de 2026</small></div>
+                <div class="online">Sistema online</div>
+                <div class="user"><span class="avatar">F</span><div><strong>Funcionário</strong><small>Gestão da recepção</small></div></div>
+            </div>
+        </header>
+
+        <div class="workspace">
+            <nav class="settings-nav" aria-label="Seções de configurações">
+                <button class="settings-tab active" type="button"><i data-lucide="circle-user-round"></i>Controle de Níveis de Acesso</button>
+                <button class="settings-tab" type="button"><i data-lucide="chart-no-axes-column"></i>Gestão de Usuários</button>
+                <button class="settings-tab" type="button"><i data-lucide="shield-half"></i>Auditoria e Segurança</button>
+            </nav>
+
+            <main class="content">
+                <div class="content-head">
+                    <h1>Controle de Níveis de Acesso</h1>
+                    <p>Gerencie permissões e visibilidade de módulos para cada perfil institucional.</p>
+                </div>
+                <div class="hierarchy">
+                    <section aria-labelledby="profiles-title">
+                        <h2 class="eyebrow" id="profiles-title">PERFIS DISPONÍVEIS</h2>
+                        <div class="profile-list" role="tablist" aria-label="Níveis de acesso">
+                            <button class="profile active" type="button" role="tab" aria-selected="true" data-profile="recepcionista"><span class="profile-icon"><i data-lucide="user-round"></i></span><span><strong>Recepcionista</strong><small>Atendimento e Check-in</small></span></button>
+                            <button class="profile" type="button" role="tab" aria-selected="false" data-profile="coordenacao"><span class="profile-icon"><i data-lucide="panel-top"></i></span><span><strong>Coordenação</strong><small>Gestão de Fluxo e Relatórios</small></span></button>
+                            <button class="profile" type="button" role="tab" aria-selected="false" data-profile="super-admin"><span class="profile-icon"><i data-lucide="shield-check"></i></span><span><strong>Super Admin</strong><small>Acesso Total ao Sistema</small></span></button>
+                        </div>
+                        <div class="notice"><i data-lucide="info"></i><span>Alterações nestes níveis de acesso afetam imediatamente todos os usuários vinculados ao perfil selecionado.</span></div>
+                    </section>
+
+                    <section class="permissions" aria-labelledby="permissions-title">
+                        <div class="permissions-head">
+                            <div><h2 id="permissions-title">Permissões: Recepcionista</h2><p>Configure o que este perfil pode visualizar e operar.</p></div>
+                            <button class="save-button" id="save-button" type="button">Salvar Alterações</button>
+                        </div>
+                        <div class="permission-body">
+                            <section class="permission-group">
+                                <h3 class="group-title"><i data-lucide="briefcase-medical"></i>Módulo de Atendimento</h3>
+                                <div class="permission-list">
+                                    <div class="permission-row"><span class="permission-symbol"><i data-lucide="user-check"></i></span><span class="permission-copy"><strong>Módulo Check-in</strong><small>Permite realizar entrada de novos pacientes na fila.</small></span><label class="switch"><input type="checkbox" data-permission="checkin"><span></span></label></div>
+                                    <div class="permission-row is-restricted"><span class="permission-symbol"><i data-lucide="file-pen-line"></i></span><span class="permission-copy"><strong>Edição de Prontuário</strong><small>Editar informações clínicas e cadastrais.</small><span class="restricted">ACESSO RESTRITO</span></span><label class="switch"><input type="checkbox" data-permission="prontuario"><span></span></label></div>
+                                </div>
+                            </section>
+                            <section class="permission-group">
+                                <h3 class="group-title"><i data-lucide="chart-no-axes-combined"></i>Gestão &amp; Monitoramento</h3>
+                                <div class="permission-list">
+                                    <div class="permission-row"><span class="permission-symbol"><i data-lucide="chart-no-axes-column"></i></span><span class="permission-copy"><strong>Visualizar relatórios</strong><small>Visualização em tempo real de indicadores da clínica.</small></span><label class="switch"><input type="checkbox" data-permission="relatorios"><span></span></label></div>
+                                    <div class="permission-row"><span class="permission-symbol"><i data-lucide="users-round"></i></span><span class="permission-copy"><strong>Editar usuários</strong><small>Criar, editar e remover operadores do sistema.</small></span><label class="switch"><input type="checkbox" data-permission="usuarios"><span></span></label></div>
+                                </div>
+                            </section>
+                            <section class="permission-group">
+                                <h3 class="group-title"><i data-lucide="shield"></i>Segurança</h3>
+                                <div class="permission-list">
+                                    <div class="permission-row"><span class="permission-symbol"><i data-lucide="scroll-text"></i></span><span class="permission-copy"><strong>Auditoria de Logs</strong><small>Ver histórico detalhado de todas as ações no sistema.</small></span><label class="switch"><input type="checkbox" data-permission="auditoria"><span></span></label></div>
+                                    <div class="permission-row is-restricted"><span class="permission-symbol"><i data-lucide="trash-2"></i></span><span class="permission-copy"><strong>Deletar registros</strong><small>Excluir registros permanentemente do sistema.</small><span class="restricted">ACESSO RESTRITO</span></span><label class="switch"><input type="checkbox" data-permission="deletar"><span></span></label></div>
+                                </div>
+                            </section>
+                        </div>
+                    </section>
+                </div>
+            </main>
+        </div>
+    </div>
+    <div class="toast" id="toast" role="status">Alterações salvas no protótipo.</div>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", () => {
+            if (window.lucide) window.lucide.createIcons();
+            const profiles = {
+                recepcionista: { title: "Recepcionista", active: ["checkin"] },
+                coordenacao: { title: "Coordenação", active: ["checkin", "prontuario", "relatorios", "usuarios", "auditoria"] },
+                "super-admin": { title: "Super Admin", active: ["checkin", "prontuario", "relatorios", "usuarios", "auditoria", "deletar"] }
+            };
+            const profileButtons = document.querySelectorAll("[data-profile]");
+            const permissionInputs = document.querySelectorAll("[data-permission]");
+            const title = document.getElementById("permissions-title");
+            function selectProfile(key) {
+                const profile = profiles[key];
+                title.textContent = `Permissões: ${profile.title}`;
+                profileButtons.forEach((button) => {
+                    const selected = button.dataset.profile === key;
+                    button.classList.toggle("active", selected);
+                    button.setAttribute("aria-selected", String(selected));
+                });
+                permissionInputs.forEach((input) => { input.checked = profile.active.includes(input.dataset.permission); });
+            }
+            profileButtons.forEach((button) => button.addEventListener("click", () => selectProfile(button.dataset.profile)));
+            selectProfile("recepcionista");
+
+            const layout = document.getElementById("app-layout");
+            const drawerToggle = document.getElementById("drawer-toggle");
+            const overlay = document.getElementById("drawer-overlay");
+            function setDrawer(open) {
+                layout.classList.toggle("drawer-opened", open);
+                document.body.classList.toggle("drawer-open", open);
+                drawerToggle.setAttribute("aria-expanded", String(open));
+            }
+            drawerToggle.addEventListener("click", () => setDrawer(!layout.classList.contains("drawer-opened")));
+            overlay.addEventListener("click", () => setDrawer(false));
+            document.addEventListener("keydown", (event) => { if (event.key === "Escape") setDrawer(false); });
+
+            document.getElementById("save-button").addEventListener("click", () => {
+                // Future integration point: persist the selected profile permissions.
+                const toast = document.getElementById("toast");
+                toast.classList.add("visible");
+                window.setTimeout(() => toast.classList.remove("visible"), 2200);
+            });
+        });
+    </script>
+</body>
+</html>
