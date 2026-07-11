@@ -2,7 +2,7 @@ services:
   - type: web
     name: painel-de-chamada-cer4
     runtime: python
-    buildCommand: pip install -r requirements.txt
+    buildCommand: pip install -r requirements.txt && python manage.py collectstatic --noinput
     startCommand: bash start.sh
     healthCheckPath: /
     envVars:
