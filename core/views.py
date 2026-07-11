@@ -123,3 +123,5 @@ def dev_mock_screen_view(request, screen_slug):
     use_factory = request.GET.get("factory", "0") == "1"
     context = build_mocked_screen_payload(screen_slug=screen_slug, use_factory=use_factory)
     return render(request, "core/screen.html", context)
+def agendamento_nao_encontrado_view(request):
+    return render(request, 'core/agendamento_nao_encontrado.html')

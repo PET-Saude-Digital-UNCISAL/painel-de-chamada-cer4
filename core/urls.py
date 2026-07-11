@@ -27,4 +27,5 @@ urlpatterns = [
     # Generic route if a new screen slug is created.
     path("telas/<slug:screen_slug>/", views.screen_view, name="screen-dynamic"),
     path('perdeu-chamada/', views.perdeu_chamada_view, name='perdeu_chamada'),
+    path('agendamento-nao-encontrado/', views.agendamento_nao_encontrado_view, name='agendamento_nao_encontrado'),
 ]
