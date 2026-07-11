@@ -19,4 +19,5 @@ urlpatterns = [
     path('perdeu-chamada/', views.perdeu_chamada_view, name='perdeu_chamada'),
     path('agendamento-nao-encontrado/', views.agendamento_nao_encontrado_view, name='agendamento_nao_encontrado'),
     path('gestao-qualidade/', views.gestao_qualidade_view, name='gestao_qualidade'),
+    path('pesquisa-satisfacao/', views.pesquisa_satisfacao_view, name='pesquisa_satisfacao'),
 ]

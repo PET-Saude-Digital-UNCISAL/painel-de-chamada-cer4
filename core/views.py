@@ -60,3 +60,5 @@ def agendamento_nao_encontrado_view(request):
     return render(request, 'core/agendamento_nao_encontrado.html')
 def gestao_qualidade_view(request):
     return render(request, 'core/gestao_qualidade.html')
+def pesquisa_satisfacao_view(request):
+    return render(request, 'core/pesquisa_satisfacao.html')

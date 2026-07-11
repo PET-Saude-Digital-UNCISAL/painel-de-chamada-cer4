@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pesquisa de Satisfação - Monaliza</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body class="bg-slate-100 font-sans min-h-screen flex items-center justify-center p-4">
+
+    <!-- Container simulando o dispositivo móvel -->
+    <div class="bg-white w-full max-w-sm rounded-[32px] shadow-xl border border-slate-100 flex flex-col justify-between min-h-[640px] overflow-hidden relative p-6">
+        
+        <!-- Topo / Ícone de Configuração -->
+        <div class="flex justify-end text-slate-400 hover:text-slate-600 cursor-pointer text-lg mb-4">
+            <i class="fa-solid fa-gear"></i>
+        </div>
+
+        <!-- Bloco Principal Superior: Status -->
+        <div class="flex flex-col items-center text-center mt-2">
+            <div class="w-16 h-16 bg-emerald-50 text-emerald-500 rounded-full flex items-center justify-center text-3xl mb-4 border border-emerald-100 shadow-sm animate-bounce">
+                <i class="fa-solid fa-circle-check"></i>
+            </div>
+            <h1 class="text-2xl font-black text-blue-950 tracking-tight leading-tight">
+                Atendimento<br>finalizado
+            </h1>
+        </div>
+
+        <!-- Card Central da Pergunta e Estrelas -->
+        <div class="bg-white border border-slate-100 rounded-2xl p-5 shadow-sm my-6 flex flex-col items-center text-center">
+            <p class="text-blue-950 font-bold text-base px-2 leading-snug">
+                Em uma escala de 1 a 5 estrelas, como você avaliaria sua experiência?
+            </p>
+
+            <!-- Box tracejado das estrelas com cores idênticas ao protótipo -->
+            <div class="w-full border-2 border-dashed border-slate-200 bg-slate-50/50 rounded-xl py-6 px-2 mt-4 flex justify-center gap-1">
+                <!-- Estrela 1 (Vermelha) -->
+                <button class="text-red-600 hover:scale-110 transition text-3xl">
+                    <i class="fa-solid fa-star"></i>
+                </button>
+                <!-- Estrela 2 (Vermelha Escura/Média) -->
+                <button class="text-red-500 hover:scale-110 transition text-3xl">
+                    <i class="fa-solid fa-star"></i>
+                </button>
+                <!-- Estrela 3 (Laranja) -->
+                <button class="text-amber-500 hover:scale-110 transition text-3xl">
+                    <i class="fa-solid fa-star"></i>
+                </button>
+                <!-- Estrela 4 (Verde Claro) -->
+                <button class="text-lime-400 hover:scale-110 transition text-3xl">
+                    <i class="fa-solid fa-star"></i>
+                </button>
+                <!-- Estrela 5 (Verde Vibrante) -->
+                <button class="text-emerald-400 hover:scale-110 transition text-3xl">
+                    <i class="fa-solid fa-star"></i>
+                </button>
+            </div>
+        </div>
+
+        <!-- Botão de Ação -->
+        <div class="w-full px-2 mb-6">
+            <button class="w-full bg-blue-950 hover:bg-blue-900 text-white font-bold py-3.5 px-6 rounded-full flex items-center justify-center gap-2 shadow-lg transition active:scale-95">
+                <span>Enviar Avaliação</span>
+                <i class="fa-solid fa-arrow-right text-sm"></i>
+            </button>
+        </div>
+
+        <!-- Rodapé com Selos e Acessibilidade -->
+        <footer class="border-t border-slate-100 pt-4 flex justify-between items-center text-[10px] text-slate-400 font-medium px-1">
+            <div class="flex items-center gap-1">
+                <i class="fa-solid fa-lock text-[9px]"></i>
+                <span>LGPD Conforme</span>
+            </div>
+            <div class="flex items-center gap-1">
+                <i class="fa-solid fa-shield-halved text-[9px]"></i>
+                <span>Conexão Segura</span>
+            </div>
+            <div class="flex items-center gap-2 text-slate-500 text-xs">
+                <button class="hover:text-slate-800"><i class="fa-solid fa-circle-half-stroke"></i></button>
+                <button class="hover:text-slate-800"><i class="fa-solid fa-text-height"></i></button>
+            </div>
+        </footer>
+
+    </div>
+
+</body>
+</html>
