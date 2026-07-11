@@ -7,6 +7,11 @@ from django.shortcuts import render
 from core.dev_builders import build_fake_screen_list, build_mocked_screen_payload
 from core.services import get_auditoria_percurso_context, get_screen_context, list_team_screens
 
+
+def dashboard_monitoramento_view(request):
+    """Renderiza o dashboard de monitoramento com dados fictícios."""
+    return render(request, "core/dashboard_monitoramento.html")
+
 def perdeu_chamada_view(request, **kwargs):
     """Renderiza a tela de aviso de senha perdida para o paciente."""
     # Criamos um dicionário simulando o que viria do builder/banco
