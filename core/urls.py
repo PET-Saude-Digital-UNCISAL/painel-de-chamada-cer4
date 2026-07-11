@@ -6,6 +6,11 @@ from core import views
 urlpatterns = [
     path("", views.home_view, name="home"),
     path(
+        "dashboard-monitoramento/",
+        views.dashboard_monitoramento_view,
+        name="dashboard-monitoramento",
+    ),
+    path(
         "telas/auditoria-percurso-seguranca/",
         views.auditoria_percurso_seguranca_view,
         name="screen-auditoria-percurso-seguranca",

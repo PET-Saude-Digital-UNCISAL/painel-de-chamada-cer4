@@ -1,0 +1,602 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Monitoramento do Fluxo</title>
+  <link rel="stylesheet" href="{% static 'core/css/dashboard_monitoramento.css' %}">
+</head>
+<body>
+
+<div class="dashboard-container">
+  <!-- Header Section -->
+  <div class="header-wrapper">
+    <h1>Monitoramento do Fluxo</h1>
+    <div class="header-right">
+      <div class="time-block">
+        <div class="time">09:48</div>
+        <div class="date">05 de maio de 2026</div>
+      </div>
+      <div class="divider"></div>
+      <div class="status-badge">
+        <div class="dot"></div>
+        <span>Sistema online</span>
+      </div>
+      <div class="divider"></div>
+      <div class="user-profile">
+        <div class="avatar">F</div>
+        <div class="user-info">
+          <span class="name">Funcionário</span>
+          <span class="role">Gestão da recepção</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- KPI Grid -->
+  <div class="kpi-section">
+    <div class="kpi-grid">
+      <!-- 1. Check-ins -->
+      <div class="card primary">
+        <div class="card-header">
+          <span class="card-title">Check-ins recebidos</span>
+          <button type="button" class="card-icon" aria-label="Ver detalhes">
+            <svg class="icon" viewBox="0 0 24 24"><polyline points="7 17 17 7"/><polyline points="7 7 17 7 17 17"/></svg>
+          </button>
+        </div>
+        <div class="card-value-row">
+          <span class="card-value">142</span>
+          <span class="badge green">
+            <svg class="icon-sm" viewBox="0 0 24 24"><polyline points="7 17 17 7"/><polyline points="7 7 17 7 17 17"/></svg>
+            12%
+          </span>
+        </div>
+        <div class="card-footer">
+          TOTAL VALIDADO
+        </div>
+      </div>
+      
+      <!-- 2. Recepção 1 -->
+      <div class="card">
+        <div class="card-header">
+          <span class="card-title">Recepção 1</span>
+          <button type="button" class="card-icon" aria-label="Ver detalhes">
+            <svg class="icon" viewBox="0 0 24 24"><polyline points="7 17 17 7"/><polyline points="7 7 17 7 17 17"/></svg>
+          </button>
+        </div>
+        <div class="card-value-row">
+          <span class="card-value">12</span>
+          <span class="badge green">
+            <svg class="icon-sm" viewBox="0 0 24 24"><polyline points="7 17 17 7"/><polyline points="7 7 17 7 17 17"/></svg>
+            ESTÁVEL
+          </span>
+        </div>
+        <div class="card-footer">
+          pacientes em fluxo
+        </div>
+      </div>
+
+      <!-- 3. Recepção 2 -->
+      <div class="card">
+        <div class="card-header">
+          <span class="card-title">Recepção 2</span>
+          <button type="button" class="card-icon" aria-label="Ver detalhes">
+            <svg class="icon" viewBox="0 0 24 24"><polyline points="7 17 17 7"/><polyline points="7 7 17 7 17 17"/></svg>
+          </button>
+        </div>
+        <div class="card-value-row">
+          <span class="card-value">8</span>
+          <span class="badge green">
+            <svg class="icon-sm" viewBox="0 0 24 24"><polyline points="7 17 17 7"/><polyline points="7 7 17 7 17 17"/></svg>
+            ESTÁVEL
+          </span>
+        </div>
+        <div class="card-footer">
+          atendimentos ativos
+        </div>
+      </div>
+
+      <!-- 4. Pendências e retenções -->
+      <div class="card">
+        <div class="card-header">
+          <span class="card-title">Pendências e retenções</span>
+          <button type="button" class="card-icon" aria-label="Ver detalhes">
+            <svg class="icon" viewBox="0 0 24 24"><polyline points="7 17 17 7"/><polyline points="7 7 17 7 17 17"/></svg>
+          </button>
+        </div>
+        <div class="card-value-row">
+          <span class="card-value">8</span>
+          <span class="badge red">
+            <svg class="icon-sm" viewBox="0 0 24 24"><polyline points="17 7 7 17"/><polyline points="17 17 7 17 7 7"/></svg>
+            ALERTA
+          </span>
+        </div>
+        <div class="card-footer">
+          3 retidos • Média +25m
+        </div>
+      </div>
+
+      <!-- 5. Recepção 3 -->
+      <div class="card">
+        <div class="card-header">
+          <span class="card-title">Recepção 3</span>
+          <button type="button" class="card-icon" aria-label="Ver detalhes">
+            <svg class="icon" viewBox="0 0 24 24"><polyline points="7 17 17 7"/><polyline points="7 7 17 7 17 17"/></svg>
+          </button>
+        </div>
+        <div class="card-value-row">
+          <span class="card-value">5</span>
+          <span class="badge green">
+            <svg class="icon-sm" viewBox="0 0 24 24"><polyline points="7 17 17 7"/><polyline points="7 7 17 7 17 17"/></svg>
+            ESTÁVEL
+          </span>
+        </div>
+        <div class="card-footer">
+          pacientes aguardando
+        </div>
+      </div>
+
+      <!-- 6. Salas ativas -->
+      <div class="card">
+        <div class="card-header">
+          <span class="card-title">Salas ativas</span>
+          <button type="button" class="card-icon" aria-label="Ver detalhes">
+            <svg class="icon" viewBox="0 0 24 24"><polyline points="7 17 17 7"/><polyline points="7 7 17 7 17 17"/></svg>
+          </button>
+        </div>
+        <div class="card-value-row">
+          <span class="card-value">24</span>
+          <span class="badge green">
+            <span style="display:inline-block; width:6px; height:6px; background-color:currentColor; border-radius:50%; margin-right:4px;"></span>
+            NORMAL
+          </span>
+        </div>
+        <div class="card-footer">
+          24 em operação
+        </div>
+      </div>
+    </div>
+
+    <!-- Chart -->
+    <div class="card chart-card">
+      <div class="chart-header">
+        <div>
+          <div class="chart-title">Visão Geral do Fluxo</div>
+          <div class="chart-subtitle">Entrada de pacientes por dia</div>
+        </div>
+        <button type="button" class="chart-btn" aria-label="Ver detalhes do fluxo">
+          <svg class="icon" viewBox="0 0 24 24"><polyline points="7 17 17 7"/><polyline points="7 7 17 7 17 17"/></svg>
+        </button>
+      </div>
+      <div class="chart-bars">
+        <div class="bar-col">
+          <div class="bar-wrap"><div class="bar" style="height: 60%"></div></div>
+          <span class="bar-label">SEG</span>
+        </div>
+        <div class="bar-col">
+          <div class="bar-wrap"><div class="bar" style="height: 40%"></div></div>
+          <span class="bar-label">TER</span>
+        </div>
+        <div class="bar-col">
+          <div class="bar-wrap"><div class="bar" style="height: 70%"></div></div>
+          <span class="bar-label">QUA</span>
+        </div>
+        <div class="bar-col">
+          <div class="bar-wrap"><div class="bar" style="height: 45%"></div></div>
+          <span class="bar-label">QUI</span>
+        </div>
+        <div class="bar-col">
+          <div class="bar-wrap"><div class="bar" style="height: 85%"></div></div>
+          <span class="bar-label">SEX</span>
+        </div>
+        <div class="bar-col">
+          <div class="bar-wrap"><div class="bar" style="height: 30%"></div></div>
+          <span class="bar-label">SAB</span>
+        </div>
+        <div class="bar-col">
+          <div class="bar-wrap"><div class="bar" style="height: 25%"></div></div>
+          <span class="bar-label">DOM</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Encaixes -->
+  <div class="encaixes-section">
+    <div class="encaixes-header">
+      <div class="encaixes-header-left">
+        <div class="encaixes-title">Controle de encaixes</div>
+        <div class="encaixes-count">7 solicitações pendentes</div>
+      </div>
+      <div class="encaixes-header-right">
+        <div class="encaixes-chip">+4 solicitações</div>
+        <button type="button" class="encaixes-link">Ver todos <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg></button>
+      </div>
+    </div>
+    <div class="encaixes-list">
+      <div class="encaixe-item">
+        <div class="encaixe-info">
+          <div>
+            <div class="encaixe-name">Roberto Almeida</div>
+            <div class="encaixe-spec">Fonoaudiologia</div>
+          </div>
+          <div class="encaixe-time">
+            <svg class="icon-sm" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+            08:15
+          </div>
+        </div>
+        <div class="encaixe-actions">
+          <button type="button" class="action-btn approve">
+            <svg class="icon-sm" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
+            Aprovar
+          </button>
+          <button type="button" class="action-btn redirect">
+            <svg class="icon-sm" viewBox="0 0 24 24"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
+            Redirecionar
+          </button>
+        </div>
+      </div>
+      
+      <div class="encaixe-item">
+        <div class="encaixe-info">
+          <div>
+            <div class="encaixe-name">Marta Ribeiro</div>
+            <div class="encaixe-spec">Fonoaudiologia</div>
+          </div>
+          <div class="encaixe-time">
+            <svg class="icon-sm" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+            08:30
+          </div>
+        </div>
+        <div class="encaixe-actions">
+          <button type="button" class="action-btn approve">
+            <svg class="icon-sm" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
+            Aprovar
+          </button>
+          <button type="button" class="action-btn redirect">
+            <svg class="icon-sm" viewBox="0 0 24 24"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
+            Redirecionar
+          </button>
+        </div>
+      </div>
+
+      <div class="encaixe-item">
+        <div class="encaixe-info">
+          <div>
+            <div class="encaixe-name">José Fernando</div>
+            <div class="encaixe-spec">Fisioterapia</div>
+          </div>
+          <div class="encaixe-time">
+            <svg class="icon-sm" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+            08:30
+          </div>
+        </div>
+        <div class="encaixe-actions">
+          <button type="button" class="action-btn approve">
+            <svg class="icon-sm" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
+            Aprovar
+          </button>
+          <button type="button" class="action-btn redirect">
+            <svg class="icon-sm" viewBox="0 0 24 24"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
+            Redirecionar
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <!-- Kanban -->
+  <div class="kanban-board">
+    <!-- Validação -->
+    <div class="kanban-col">
+      <div class="col-header">
+        <span class="col-title">Validação</span>
+        <span class="col-count">8</span>
+      </div>
+
+      <div class="patient-card">
+        <div class="patient-header">
+          <div class="avatar light">J</div>
+          <div class="patient-details">
+            <div class="patient-name">João Pedro Alves</div>
+            <div class="patient-mother">Mãe: Renata Alves</div>
+          </div>
+          <button type="button" class="more-btn" aria-label="Mais opções"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="5" cy="12" r="1.5"/><circle cx="12" cy="12" r="1.5"/><circle cx="19" cy="12" r="1.5"/></svg></button>
+        </div>
+        <button type="button" class="patient-btn">Validar Check-in</button>
+        <div class="patient-history">Check-in: 08:05 • Aguardando validação</div>
+        <div class="patient-footer">
+          <div class="patient-status">
+            <div class="status-dot blue"></div>
+            <span class="status-text muted">Geral</span>
+            <span class="status-dot-separator" aria-hidden="true">•</span>
+            <span class="status-text muted">12m</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="patient-card overdue">
+        <div class="patient-header">
+          <div class="avatar red">M</div>
+          <div class="patient-details">
+            <div class="patient-name">Maria Silva Costa</div>
+            <div class="patient-mother">Mãe: Ana Costa</div>
+          </div>
+          <button type="button" class="more-btn" aria-label="Mais opções"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="5" cy="12" r="1.5"/><circle cx="12" cy="12" r="1.5"/><circle cx="19" cy="12" r="1.5"/></svg></button>
+        </div>
+        <div class="patient-warning">
+          <svg class="icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+          Falta RG Original
+        </div>
+        <button type="button" class="patient-btn">Validar Check-in</button>
+        <div class="patient-history">Pendência registrada às 08:12</div>
+        <div class="patient-footer">
+          <div class="patient-status">
+            <div class="status-dot orange"></div>
+            <span class="status-text muted">Atenção</span>
+            <span class="status-dot-separator" aria-hidden="true">•</span>
+            <span class="status-text red">59m • Atraso</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="patient-card overdue">
+        <div class="patient-header">
+          <div class="avatar red">C</div>
+          <div class="patient-details">
+            <div class="patient-name">Carmem Lucia Souza</div>
+            <div class="patient-mother">Mãe: Tereza Souza</div>
+          </div>
+          <button type="button" class="more-btn" aria-label="Mais opções"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="5" cy="12" r="1.5"/><circle cx="12" cy="12" r="1.5"/><circle cx="19" cy="12" r="1.5"/></svg></button>
+        </div>
+        <div class="patient-warning">
+          <svg class="icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+          Choque: Fisio + Fono
+        </div>
+        <button type="button" class="patient-btn">Validar Check-in</button>
+        <div class="patient-history">Pendência registrada às 08:12</div>
+        <div class="patient-footer">
+          <div class="patient-status">
+            <div class="status-dot red"></div>
+            <span class="status-text muted">Prior. 80+</span>
+            <span class="status-dot-separator" aria-hidden="true">•</span>
+            <span class="status-text red">45m • Atraso</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="kanban-footer">
+        <span>+5 pacientes na fila <span class="kanban-footer-separator" aria-hidden="true">·</span></span>
+        <button type="button" class="kanban-footer-link">Ver todos <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg></button>
+      </div>
+    </div>
+
+    <!-- Aguardando -->
+    <div class="kanban-col">
+      <div class="col-header">
+        <span class="col-title">Aguardando</span>
+        <span class="col-count">5</span>
+      </div>
+
+      <div class="patient-card">
+        <div class="patient-header">
+          <div class="avatar light">T</div>
+          <div class="patient-details">
+            <div class="patient-name">Tatiana Moreira</div>
+            <div class="patient-mother">Mãe: Lúcia Moreira</div>
+          </div>
+          <button type="button" class="more-btn" aria-label="Mais opções"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="5" cy="12" r="1.5"/><circle cx="12" cy="12" r="1.5"/><circle cx="19" cy="12" r="1.5"/></svg></button>
+        </div>
+        <div class="patient-history">Check-in: 07:52 • Aguardando atendimento</div>
+        <div class="patient-footer">
+          <div class="patient-status">
+            <div class="status-dot orange"></div>
+            <span class="status-text muted">Atenção</span>
+            <span class="status-dot-separator" aria-hidden="true">•</span>
+            <span class="status-text muted">18m</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="patient-card">
+        <div class="patient-header">
+          <div class="avatar light">J</div>
+          <div class="patient-details">
+            <div class="patient-name">José Carlos Santos</div>
+            <div class="patient-mother">Mãe: Maria Santos</div>
+          </div>
+          <button type="button" class="more-btn" aria-label="Mais opções"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="5" cy="12" r="1.5"/><circle cx="12" cy="12" r="1.5"/><circle cx="19" cy="12" r="1.5"/></svg></button>
+        </div>
+        <div class="patient-history">Check-in: 08:05 • Aguardando atendimento</div>
+        <div class="patient-footer">
+          <div class="patient-status">
+            <div class="status-dot blue"></div>
+            <span class="status-text muted">Geral</span>
+            <span class="status-dot-separator" aria-hidden="true">•</span>
+            <span class="status-text muted">5m</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="patient-card">
+        <div class="patient-header">
+          <div class="avatar light">A</div>
+          <div class="patient-details">
+            <div class="patient-name">Ana Beatriz Souza</div>
+            <div class="patient-mother">Mãe: Claudia Souza</div>
+          </div>
+          <button type="button" class="more-btn" aria-label="Mais opções"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="5" cy="12" r="1.5"/><circle cx="12" cy="12" r="1.5"/><circle cx="19" cy="12" r="1.5"/></svg></button>
+        </div>
+        <div class="patient-history">Check-in: 08:05 • Aguardando atendimento</div>
+        <div class="patient-footer">
+          <div class="patient-status">
+            <div class="status-dot blue"></div>
+            <span class="status-text muted">Geral</span>
+            <span class="status-dot-separator" aria-hidden="true">•</span>
+            <span class="status-text muted">2m</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="kanban-footer">
+        <span>+2 pacientes na fila <span class="kanban-footer-separator" aria-hidden="true">·</span></span>
+        <button type="button" class="kanban-footer-link">Ver todos <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg></button>
+      </div>
+    </div>
+
+    <!-- Em atendimento -->
+    <div class="kanban-col">
+      <div class="col-header">
+        <span class="col-title">Em atendimento</span>
+        <span class="col-count">5</span>
+      </div>
+
+      <div class="patient-card">
+        <div class="patient-header">
+          <div class="avatar light">M</div>
+          <div class="patient-details">
+            <div class="patient-name">Mariana Lima</div>
+            <div class="patient-mother">Mãe: Beatriz Lima</div>
+          </div>
+          <button type="button" class="more-btn" aria-label="Mais opções"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="5" cy="12" r="1.5"/><circle cx="12" cy="12" r="1.5"/><circle cx="19" cy="12" r="1.5"/></svg></button>
+        </div>
+        <div class="prof-info">
+          <span class="prof-name">Dra. Fernanda</span>
+          <span class="prof-room">Sala 02</span>
+        </div>
+        <div class="patient-history">Chamado: 08:30 • Entrou: 08:34</div>
+        <div class="patient-footer">
+          <div class="patient-status">
+            <div class="status-dot red"></div>
+            <span class="status-text muted">Prior. 80+</span>
+            <span class="status-dot-separator" aria-hidden="true">•</span>
+            <span class="status-text muted">15m</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="patient-card">
+        <div class="patient-header">
+          <div class="avatar light">L</div>
+          <div class="patient-details">
+            <div class="patient-name">Lucas Ferreira</div>
+            <div class="patient-mother">Mãe: Juliana Ferreira</div>
+          </div>
+          <button type="button" class="more-btn" aria-label="Mais opções"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="5" cy="12" r="1.5"/><circle cx="12" cy="12" r="1.5"/><circle cx="19" cy="12" r="1.5"/></svg></button>
+        </div>
+        <div class="prof-info">
+          <span class="prof-name">Dr. Alexandre</span>
+          <span class="prof-room">Sala 04</span>
+        </div>
+        <div class="patient-history">Chamado: 08:30 • Entrou: 08:34</div>
+        <div class="patient-footer">
+          <div class="patient-status">
+            <div class="status-dot blue"></div>
+            <span class="status-text muted">Geral</span>
+            <span class="status-dot-separator" aria-hidden="true">•</span>
+            <span class="status-text muted">30m</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="patient-card">
+        <div class="patient-header">
+          <div class="avatar light">C</div>
+          <div class="patient-details">
+            <div class="patient-name">Cláudia Martins</div>
+            <div class="patient-mother">Mãe: Vera Martins</div>
+          </div>
+          <button type="button" class="more-btn" aria-label="Mais opções"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="5" cy="12" r="1.5"/><circle cx="12" cy="12" r="1.5"/><circle cx="19" cy="12" r="1.5"/></svg></button>
+        </div>
+        <div class="prof-info">
+          <span class="prof-name">Dr. Renato</span>
+          <span class="prof-room">Sala 01</span>
+        </div>
+        <div class="patient-history">Chamado: 08:25 • Entrou: 08:28</div>
+        <div class="patient-footer">
+          <div class="patient-status">
+            <div class="status-dot blue"></div>
+            <span class="status-text muted">Geral</span>
+            <span class="status-dot-separator" aria-hidden="true">•</span>
+            <span class="status-text muted">22m</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="kanban-footer">
+        <span>+2 em atendimento <span class="kanban-footer-separator" aria-hidden="true">·</span></span>
+        <button type="button" class="kanban-footer-link">Ver todos <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg></button>
+      </div>
+    </div>
+
+    <!-- Finalizados -->
+    <div class="kanban-col">
+      <div class="col-header">
+        <span class="col-title">Finalizados</span>
+        <span class="col-count">4</span>
+      </div>
+
+      <div class="patient-card">
+        <div class="patient-header">
+          <div class="avatar light">R</div>
+          <div class="patient-details">
+            <div class="patient-name">Roberto Dias</div>
+            <div class="patient-mother">Mãe: Camila Dias</div>
+          </div>
+          <button type="button" class="more-btn" aria-label="Mais opções"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="5" cy="12" r="1.5"/><circle cx="12" cy="12" r="1.5"/><circle cx="19" cy="12" r="1.5"/></svg></button>
+        </div>
+        <div class="patient-footer">
+          <div class="patient-status">
+            <div class="status-dot green"></div>
+            <span class="finalizado-text">Finalizado</span>
+          </div>
+          <span class="patient-history">Concluído às 08:55</span>
+        </div>
+      </div>
+
+      <div class="patient-card">
+        <div class="patient-header">
+          <div class="avatar light">P</div>
+          <div class="patient-details">
+            <div class="patient-name">Patrícia Almeida</div>
+            <div class="patient-mother">Mãe: Glória Almeida</div>
+          </div>
+          <button type="button" class="more-btn" aria-label="Mais opções"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="5" cy="12" r="1.5"/><circle cx="12" cy="12" r="1.5"/><circle cx="19" cy="12" r="1.5"/></svg></button>
+        </div>
+        <div class="patient-footer">
+          <div class="patient-status">
+            <div class="status-dot green"></div>
+            <span class="finalizado-text">Finalizado</span>
+          </div>
+          <span class="patient-history">Concluído às 08:42</span>
+        </div>
+      </div>
+
+      <div class="patient-card">
+        <div class="patient-header">
+          <div class="avatar light">E</div>
+          <div class="patient-details">
+            <div class="patient-name">Eduardo Coelho</div>
+            <div class="patient-mother">Mãe: Silvia Coelho</div>
+          </div>
+          <button type="button" class="more-btn" aria-label="Mais opções"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="5" cy="12" r="1.5"/><circle cx="12" cy="12" r="1.5"/><circle cx="19" cy="12" r="1.5"/></svg></button>
+        </div>
+        <div class="patient-footer">
+          <div class="patient-status">
+            <div class="status-dot green"></div>
+            <span class="finalizado-text">Finalizado</span>
+          </div>
+          <span class="patient-history">Concluído às 08:31</span>
+        </div>
+      </div>
+
+      <div class="kanban-footer">
+        <span>+1 finalizado <span class="kanban-footer-separator" aria-hidden="true">·</span></span>
+        <button type="button" class="kanban-footer-link">Ver todos <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg></button>
+      </div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

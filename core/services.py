@@ -23,7 +23,7 @@ class ScreenDefinition:
  
 SCREEN_DEFINITIONS = [
     # Telas individuais que aparecerão em seus próprios cards
-    ScreenDefinition("em desenvolvimento", "em desenvolvimento", "Dev 1", "em desenvolvimento"),
+    ScreenDefinition("pacientes-listagem", "Listagem de Pacientes", "Dev 1", "em desenvolvimento"),
     ScreenDefinition("dev2", "Tela de Triagem", "Dev 2", "em desenvolvimento"),
     ScreenDefinition("dev3", "Tela de Chamadas", "Dev 3", "em desenvolvimento"),
     ScreenDefinition("dev4", "Tela de Presença", "Dev 4", "em desenvolvimento"),
@@ -135,7 +135,16 @@ def list_team_screens() -> list[dict]:
         for s in SCREEN_DEFINITIONS
         if s.slug not in ["pacientes-listagem", "perdeu-chamada"]
     ]
- 
+    other_screens.append(
+        {
+            "slug": "dashboard-monitoramento",
+            "title": "Dashboard de Monitoramento do Fluxo",
+            "owner": "Remany",
+            "status": "em desenvolvimento",
+            "path": "/dashboard-monitoramento/",
+        }
+    )
+
     return [pacientes_group] + other_screens
  
  

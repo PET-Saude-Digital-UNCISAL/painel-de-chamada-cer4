@@ -32,7 +32,17 @@ class IsolatedScreenSetupTests(SimpleTestCase):
 
 	def test_list_team_screens_has_expected_size(self):
 		screens = list_team_screens()
-		self.assertEqual(len(screens), 7) # 1 grupo + 6 telas individuais
+		self.assertEqual(len(screens), 8) # 1 grupo + 7 telas individuais
+		self.assertIn(
+			{
+				"slug": "dashboard-monitoramento",
+				"title": "Dashboard de Monitoramento do Fluxo",
+				"owner": "Remany",
+				"status": "em desenvolvimento",
+				"path": "/dashboard-monitoramento/",
+			},
+			screens,
+		)
 
 	def test_auditoria_route_works(self):
 		response = self.client.get("/telas/auditoria-percurso-seguranca/")
