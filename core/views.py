@@ -58,3 +58,5 @@ def dev_mock_screen_view(request, screen_slug):
     return render(request, "core/screen.html", context)
 def agendamento_nao_encontrado_view(request):
     return render(request, 'core/agendamento_nao_encontrado.html')
+def gestao_qualidade_view(request):
+    return render(request, 'core/gestao_qualidade.html')
