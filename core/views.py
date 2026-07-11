@@ -7,12 +7,17 @@ from django.shortcuts import get_object_or_404, redirect, render
 from core.dev_builders import build_fake_screen_list, build_mocked_screen_payload
 from core.forms import UsuarioSistemaForm
 from core.models import UsuarioSistema
-from core.services import get_auditoria_percurso_context, get_screen_context, list_team_screens
+from core.services import (
+    get_auditoria_percurso_context,
+    get_dashboard_monitoramento_context,
+    get_screen_context,
+    list_team_screens,
+)
 
 
 def dashboard_monitoramento_view(request):
     """Renderiza o dashboard de monitoramento com dados fictícios."""
-    return render(request, "core/dashboard_monitoramento.html")
+    return render(request, "core/dashboard_monitoramento.html", get_dashboard_monitoramento_context())
 
 
 def configuracoes_view(request):

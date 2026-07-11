@@ -1,7 +1,7 @@
 from django.test import TestCase, override_settings
 
 from core.dev_builders import build_fake_screen_list, build_mocked_screen_payload
-from core.services import get_screen_context, list_team_screens
+from core.services import get_dashboard_monitoramento_context, get_screen_context, list_team_screens
 from core.models import UsuarioSistema
 
 
@@ -30,6 +30,22 @@ class IsolatedScreenSetupTests(TestCase):
 		payload = build_mocked_screen_payload("dev2")
 		self.assertEqual(payload["screen_slug"], "dev2")
 		self.assertEqual(payload["status"], "mock-data")
+
+	def test_dashboard_monitoramento_context_has_expected_mock_data(self):
+		context = get_dashboard_monitoramento_context()
+		self.assertEqual(context["current_time"], "09:48")
+		self.assertEqual(len(context["kpis"]), 6)
+		self.assertEqual(len(context["chart"]["bars"]), 7)
+		self.assertEqual(len(context["encaixes"]["requests"]), 3)
+		self.assertEqual(len(context["kanban_columns"]), 4)
+		self.assertTrue(all(len(column["patients"]) == 3 for column in context["kanban_columns"]))
+
+	def test_dashboard_monitoramento_route_renders_context_data(self):
+		response = self.client.get("/dashboard-monitoramento/")
+		self.assertEqual(response.status_code, 200)
+		self.assertContains(response, "Monitoramento do Fluxo")
+		self.assertContains(response, "Roberto Almeida")
+		self.assertContains(response, "Concluído às 08:55")
 
 	def test_list_team_screens_has_expected_size(self):
 		screens = list_team_screens()
