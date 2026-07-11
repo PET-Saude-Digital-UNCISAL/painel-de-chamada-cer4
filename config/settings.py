@@ -1,10 +1,12 @@
 from pathlib import Path
 import os
 from urllib.parse import parse_qsl, unquote, urlparse
+
+from django.core.exceptions import ImproperlyConfigured
 from dotenv import load_dotenv
 
 # Carrega as variáveis de ambiente do arquivo .env
-load_dotenv(override=True)
+load_dotenv(override=False)
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -86,6 +88,8 @@ if database_url:
         }
     }
 else:
+    if os.getenv('RENDER') or os.getenv('RENDER_SERVICE_ID') or os.getenv('RENDER_EXTERNAL_HOSTNAME'):
+        raise ImproperlyConfigured('DATABASE_URL must be configured with the Render PostgreSQL internal URL.')
     DATABASES = {
         'default': {
             'ENGINE': 'django.db.backends.postgresql',
