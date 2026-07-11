@@ -74,3 +74,7 @@ Render, use o seguinte Start Command:
 ```bash
 bash start.sh
 ```
+
+No painel do serviço web, configure `DATABASE_URL` com a **Internal Database
+URL** do PostgreSQL do Render. Não use `localhost` em `DB_HOST` no ambiente de
+produção.
