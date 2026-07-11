@@ -44,6 +44,42 @@ class IsolatedScreenSetupTests(SimpleTestCase):
 			screens,
 		)
 
+	def test_patient_group_uses_completed_monaliza_screens(self):
+		patient_group = list_team_screens()[0]
+		self.assertEqual(
+			patient_group["screens"],
+			[
+				{
+					"slug": "agendamento-nao-encontrado",
+					"title": "Tela de Agendamento Não Encontrado",
+					"owner": "Monaliza",
+					"status": "Concluído",
+					"path": "/agendamento-nao-encontrado/",
+				},
+				{
+					"slug": "perdeu-chamada",
+					"title": "Tela de Senha Perdida",
+					"owner": "Monaliza",
+					"status": "Concluído",
+					"path": "/perdeu-chamada/",
+				},
+			],
+		)
+
+	def test_development_panel_links_to_requested_screens(self):
+		response = self.client.get("/")
+		self.assertContains(response, 'href="/agendamento-nao-encontrado/"')
+		self.assertContains(response, 'href="/perdeu-chamada/"')
+		self.assertContains(response, 'href="/dashboard-monitoramento/"')
+
+		for path in (
+			"/agendamento-nao-encontrado/",
+			"/perdeu-chamada/",
+			"/dashboard-monitoramento/",
+		):
+			with self.subTest(path=path):
+				self.assertEqual(self.client.get(path).status_code, 200)
+
 	def test_auditoria_route_works(self):
 		response = self.client.get("/telas/auditoria-percurso-seguranca/")
 		self.assertEqual(response.status_code, 200)

@@ -18,19 +18,21 @@
         {% for screen in screens %}
             <div class="card">
                 <strong>{{ screen.title }}</strong><br>
-                Owner: {{ screen.owner }}<br>
-                Status: {{ screen.status }}<br>
 
                 {% if screen.is_group %}
                     <ul class="sublist">
                         {% for item in screen.screens %}
                             <li>
                                 <a href="{{ item.path }}">Abrir {{ item.slug }}</a>
-                                <span class="muted">- {{ item.title }}</span>
+                                <span class="muted">- {{ item.title }}</span><br>
+                                Desenvolvido por {{ item.owner }}<br>
+                                Status: {{ item.status }}
                             </li>
                         {% endfor %}
                     </ul>
                 {% else %}
+                    Owner: {{ screen.owner }}<br>
+                    Status: {{ screen.status }}<br>
                     <a href="{{ screen.path }}">Abrir {{ screen.slug }}</a>
                 {% endif %}
             </div>
