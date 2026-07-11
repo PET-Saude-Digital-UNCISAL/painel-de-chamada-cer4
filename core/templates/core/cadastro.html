@@ -1,0 +1,183 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ page_title }} - Painel CER4</title>
+    <link rel="stylesheet" href="{% static 'core/css/login.css' %}">
+    <link rel="stylesheet" href="{% static 'core/css/cadastro.css' %}">
+    <script src="https://unpkg.com/lucide@0.468.0/dist/umd/lucide.min.js" defer></script>
+</head>
+<body>
+<div class="pagina-portal">
+
+    <header class="topo">
+        <div class="topo-esquerda">
+            <span class="badge-guiche">{{ guiche }}</span>
+            <span class="topo-data">{{ data_atual|date:"l, d \\d\\e F \\d\\e Y"|upper }}</span>
+        </div>
+
+        <div class="topo-logos">
+            <div class="logo logo-cer"><img src="{% static 'core/img/logo-cer.png' %}" alt="CER - Centro Especializado em Reabilitação" class="logo-imagem"></div>
+            <div class="logo logo-uncisal"><img src="{% static 'core/img/logo-uncisal.png' %}" alt="UNCISAL" class="logo-imagem"></div>
+            <div class="logo logo-sus"><img src="{% static 'core/img/logo-sus.png' %}" alt="SUS" class="logo-imagem"></div>
+        </div>
+
+        <div class="topo-direita">
+            <span class="relogio"><i data-lucide="clock"></i><span id="relogio-hora">{{ hora_atual }}</span></span>
+        </div>
+    </header>
+
+    <main class="conteudo-central">
+        <section class="cartao-cadastro" aria-labelledby="titulo-cadastro">
+
+            <div class="painel-destaque">
+                <div class="painel-destaque-texto">
+                    <h2>Sua jornada de saúde<br>começa aqui.</h2>
+                    <p>Tenha acesso ao seu histórico médico, agendamentos e suporte especializado em uma plataforma segura e intuitiva.</p>
+                    <ul class="painel-destaque-lista">
+                        <li><i data-lucide="shield-check"></i>Segurança de dados padrão bancário</li>
+                        <li><i data-lucide="zap"></i>Agendamento rápido e sem filas</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="painel-formulario">
+                <div class="formulario-cabecalho">
+                    <h1 id="titulo-cadastro">Criar sua conta</h1>
+                    <p>Insira seus dados para acessar o portal do paciente.</p>
+                </div>
+
+                <form method="post" class="formulario-cadastro" novalidate>
+                    {% csrf_token %}
+
+                    {% if form.non_field_errors %}
+                        <div class="mensagem-erro" role="alert">
+                            {% for erro in form.non_field_errors %}<p>{{ erro }}</p>{% endfor %}
+                        </div>
+                    {% endif %}
+
+                    <div class="campo-grupo">
+                        <label for="{{ form.nome_completo.id_for_label }}">Nome completo</label>
+                        {{ form.nome_completo }}
+                        {% if form.nome_completo.errors %}<p class="campo-erro">{{ form.nome_completo.errors.0 }}</p>{% endif %}
+                    </div>
+
+                    <div class="campo-linha">
+                        <div class="campo-grupo">
+                            <label for="id_cpf">CPF</label>
+                            {{ form.cpf }}
+                            {% if form.cpf.errors %}<p class="campo-erro">{{ form.cpf.errors.0 }}</p>{% endif %}
+                        </div>
+                        <div class="campo-grupo">
+                            <label for="{{ form.data_nascimento.id_for_label }}">Nascimento</label>
+                            {{ form.data_nascimento }}
+                            {% if form.data_nascimento.errors %}<p class="campo-erro">{{ form.data_nascimento.errors.0 }}</p>{% endif %}
+                        </div>
+                    </div>
+
+                    <div class="campo-grupo">
+                        <label for="{{ form.email.id_for_label }}">E-mail</label>
+                        {{ form.email }}
+                        {% if form.email.errors %}<p class="campo-erro">{{ form.email.errors.0 }}</p>{% endif %}
+                    </div>
+
+                    <div class="campo-grupo">
+                        <label for="id_senha">Senha</label>
+                        <div class="campo-senha-wrapper">
+                            {{ form.senha }}
+                            <button type="button" class="botao-mostrar-senha" id="botao-mostrar-senha" aria-label="Mostrar senha" aria-pressed="false">
+                                <i data-lucide="eye" id="icone-olho"></i>
+                            </button>
+                        </div>
+                        {% if form.senha.errors %}<p class="campo-erro">{{ form.senha.errors.0 }}</p>{% endif %}
+                        <div class="medidor-senha" id="medidor-senha" data-nivel="0"><span></span><span></span><span></span></div>
+                        <p class="medidor-senha-legenda" id="medidor-senha-legenda">Senha fraca</p>
+                    </div>
+
+                    <button type="submit" class="botao-primario">Criar Conta <i data-lucide="arrow-right"></i></button>
+
+                    <p class="linha-login">Já possui uma conta? <a href="{% url 'login' %}">Fazer login</a></p>
+                    <p class="texto-termos">Ao continuar, você concorda com nossos <a href="#">Termos de Serviço</a> e <a href="#">Política de Privacidade</a>.</p>
+                </form>
+            </div>
+
+        </section>
+    </main>
+
+    <footer class="rodape-aviso">
+        <span class="rodape-etiqueta">AVISO</span>
+        <div class="rodape-ticker">
+            <p class="rodape-ticker-texto">
+                FIQUE ATENTO AO SINAL SONORO DA CHAMADA&nbsp;&nbsp;•&nbsp;&nbsp;
+                RESPEITE A ORDEM DAS FILAS&nbsp;&nbsp;•&nbsp;&nbsp;
+                EM CASO DE DÚVIDA, PROCURE A RECEPÇÃO&nbsp;&nbsp;•&nbsp;&nbsp;
+                FIQUE ATENTO AO SINAL SONORO DA CHAMADA&nbsp;&nbsp;•&nbsp;&nbsp;
+                RESPEITE A ORDEM DAS FILAS&nbsp;&nbsp;•&nbsp;&nbsp;
+            </p>
+        </div>
+    </footer>
+
+</div>
+
+<script>
+    document.addEventListener("DOMContentLoaded", () => {
+        if (window.lucide) window.lucide.createIcons();
+
+        function atualizarRelogio() {
+            const el = document.getElementById("relogio-hora");
+            if (!el) return;
+            const agora = new Date();
+            el.textContent = String(agora.getHours()).padStart(2, "0") + ":" + String(agora.getMinutes()).padStart(2, "0");
+        }
+        setInterval(atualizarRelogio, 1000 * 15);
+
+        const campoCpf = document.getElementById("id_cpf");
+        if (campoCpf) {
+            campoCpf.addEventListener("input", () => {
+                let v = campoCpf.value.replace(/\D/g, "").slice(0, 11);
+                v = v.replace(/(\d{3})(\d)/, "$1.$2").replace(/(\d{3})(\d)/, "$1.$2").replace(/(\d{3})(\d{1,2})$/, "$1-$2");
+                campoCpf.value = v;
+            });
+        }
+
+        const botaoMostrarSenha = document.getElementById("botao-mostrar-senha");
+        const campoSenha = document.getElementById("id_senha");
+        if (botaoMostrarSenha && campoSenha) {
+            botaoMostrarSenha.addEventListener("click", () => {
+                const visivel = campoSenha.type === "text";
+                campoSenha.type = visivel ? "password" : "text";
+                botaoMostrarSenha.setAttribute("aria-pressed", String(!visivel));
+                const icone = document.getElementById("icone-olho");
+                if (icone && window.lucide) {
+                    icone.setAttribute("data-lucide", visivel ? "eye" : "eye-off");
+                    window.lucide.createIcons();
+                }
+            });
+        }
+
+        const medidor = document.getElementById("medidor-senha");
+        const legenda = document.getElementById("medidor-senha-legenda");
+        function calcularNivel(senha) {
+            if (!senha) return 0;
+            let pontos = 0;
+            if (senha.length >= 8) pontos += 1;
+            if (/[A-Z]/.test(senha) && /[a-z]/.test(senha)) pontos += 1;
+            if (/[0-9]/.test(senha) && /[^A-Za-z0-9]/.test(senha)) pontos += 1;
+            if (senha.length >= 12) pontos += 1;
+            return Math.min(pontos, 3);
+        }
+        if (campoSenha && medidor && legenda) {
+            const legendas = {0: "Senha fraca", 1: "Senha fraca", 2: "Senha média", 3: "Senha forte"};
+            campoSenha.addEventListener("input", () => {
+                const nivel = calcularNivel(campoSenha.value);
+                medidor.setAttribute("data-nivel", String(nivel));
+                legenda.setAttribute("data-nivel", String(nivel));
+                legenda.textContent = legendas[nivel];
+            });
+        }
+    });
+</script>
+</body>
+</html>

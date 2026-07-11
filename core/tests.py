@@ -2,7 +2,7 @@ from django.test import TestCase, override_settings
 
 from core.dev_builders import build_fake_screen_list, build_mocked_screen_payload
 from core.services import get_screen_context, list_team_screens
-from core.models import UsuarioSistema
+from core.models import Paciente, UsuarioSistema
 
 
 class IsolatedScreenSetupTests(TestCase):
@@ -33,7 +33,7 @@ class IsolatedScreenSetupTests(TestCase):
 
 	def test_list_team_screens_has_expected_size(self):
 		screens = list_team_screens()
-		self.assertEqual(len(screens), 8) # 1 grupo + 7 telas individuais
+		self.assertEqual(len(screens), 10) # 1 grupo + 9 telas individuais
 		self.assertIn(
 			{
 				"slug": "dashboard-monitoramento",
@@ -41,6 +41,26 @@ class IsolatedScreenSetupTests(TestCase):
 				"owner": "Remany",
 				"status": "em desenvolvimento",
 				"path": "/dashboard-monitoramento/",
+			},
+			screens,
+		)
+		self.assertIn(
+			{
+				"slug": "login",
+				"title": "Tela de Login (Acesso ao Portal)",
+				"owner": "Nathalia",
+				"status": "Concluído",
+				"path": "/login/",
+			},
+			screens,
+		)
+		self.assertIn(
+			{
+				"slug": "cadastro",
+				"title": "Tela de Cadastro (Criar Conta do Paciente)",
+				"owner": "Nathalia",
+				"status": "Concluído",
+				"path": "/cadastro/",
 			},
 			screens,
 		)
@@ -251,3 +271,86 @@ class IsolatedScreenSetupTests(TestCase):
 		cards = build_fake_screen_list(quantity=3)
 		self.assertEqual(len(cards), 3)
 		self.assertEqual(cards[0]["slug"], "dev1")
+
+	def test_login_route_works(self):
+		response = self.client.get("/login/")
+		self.assertEqual(response.status_code, 200)
+		self.assertContains(response, "Acesso ao Portal")
+
+	def test_cadastro_route_works(self):
+		response = self.client.get("/cadastro/")
+		self.assertEqual(response.status_code, 200)
+		self.assertContains(response, "Criar sua conta")
+
+	def test_cadastro_creates_paciente_and_redirects_to_login(self):
+		response = self.client.post(
+			"/cadastro/",
+			{
+				"nome_completo": "Joao da Silva",
+				"cpf": "390.533.447-05",
+				"data_nascimento": "1990-05-10",
+				"email": "joao@example.com",
+				"senha": "SenhaForte123!",
+			},
+		)
+		self.assertRedirects(response, "/login/")
+		self.assertTrue(Paciente.objects.filter(cpf="39053344705").exists())
+		paciente = Paciente.objects.get(cpf="39053344705")
+		self.assertTrue(paciente.checar_senha("SenhaForte123!"))
+
+	def test_cadastro_rejects_duplicate_cpf(self):
+		paciente = Paciente(nome_completo="Existente", cpf="39053344705", email="a@a.com")
+		paciente.set_senha("SenhaForte123!")
+		paciente.save()
+
+		response = self.client.post(
+			"/cadastro/",
+			{
+				"nome_completo": "Outro Nome",
+				"cpf": "390.533.447-05",
+				"data_nascimento": "1990-05-10",
+				"email": "outro@example.com",
+				"senha": "OutraSenha123!",
+			},
+		)
+		self.assertEqual(response.status_code, 200)
+		self.assertEqual(Paciente.objects.count(), 1)
+		self.assertContains(response, "Já existe uma conta cadastrada com este CPF.")
+
+	def test_login_with_correct_credentials_redirects_to_area_paciente(self):
+		paciente = Paciente(nome_completo="Joao da Silva", cpf="39053344705", email="joao@example.com")
+		paciente.set_senha("SenhaForte123!")
+		paciente.save()
+
+		response = self.client.post(
+			"/login/", {"cpf": "390.533.447-05", "senha": "SenhaForte123!"}
+		)
+		self.assertRedirects(response, "/area-paciente/")
+
+		area_response = self.client.get("/area-paciente/")
+		self.assertEqual(area_response.status_code, 200)
+
+	def test_login_with_wrong_password_shows_error(self):
+		paciente = Paciente(nome_completo="Joao da Silva", cpf="39053344705", email="joao@example.com")
+		paciente.set_senha("SenhaForte123!")
+		paciente.save()
+
+		response = self.client.post(
+			"/login/", {"cpf": "390.533.447-05", "senha": "senha-errada"}
+		)
+		self.assertEqual(response.status_code, 200)
+		self.assertContains(response, "CPF ou senha inválidos")
+
+	def test_area_paciente_requires_login(self):
+		response = self.client.get("/area-paciente/")
+		self.assertRedirects(response, "/login/")
+
+	def test_logout_clears_session(self):
+		paciente = Paciente(nome_completo="Joao da Silva", cpf="39053344705", email="joao@example.com")
+		paciente.set_senha("SenhaForte123!")
+		paciente.save()
+		self.client.post("/login/", {"cpf": "390.533.447-05", "senha": "SenhaForte123!"})
+
+		self.client.post("/logout/")
+		response = self.client.get("/area-paciente/")
+		self.assertRedirects(response, "/login/")

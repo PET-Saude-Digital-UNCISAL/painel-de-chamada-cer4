@@ -29,4 +29,10 @@ urlpatterns = [
     path("telas/<slug:screen_slug>/", views.screen_view, name="screen-dynamic"),
     path('perdeu-chamada/', views.perdeu_chamada_view, name='perdeu_chamada'),
     path('agendamento-nao-encontrado/', views.agendamento_nao_encontrado_view, name='agendamento_nao_encontrado'),
+
+    # Portal do paciente: login e cadastro
+    path('login/', views.login_view, name='login'),
+    path('cadastro/', views.cadastro_view, name='cadastro'),
+    path('logout/', views.logout_view, name='logout'),
+    path('area-paciente/', views.area_paciente_view, name='area-paciente'),
 ]

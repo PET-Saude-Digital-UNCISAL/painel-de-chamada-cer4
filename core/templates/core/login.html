@@ -1,0 +1,133 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ page_title }} - Painel CER4</title>
+    <link rel="stylesheet" href="{% static 'core/css/login.css' %}">
+    <script src="https://unpkg.com/lucide@0.468.0/dist/umd/lucide.min.js" defer></script>
+</head>
+<body>
+<div class="pagina-portal">
+
+    <header class="topo">
+        <div class="topo-esquerda">
+            <span class="badge-guiche">{{ guiche }}</span>
+            <span class="topo-data">{{ data_atual|date:"l, d \\d\\e F \\d\\e Y"|upper }}</span>
+        </div>
+
+        <div class="topo-logos">
+            <div class="logo logo-cer"><img src="{% static 'core/img/logo-cer.png' %}" alt="CER - Centro Especializado em Reabilitação" class="logo-imagem"></div>
+            <div class="logo logo-uncisal"><img src="{% static 'core/img/logo-uncisal.png' %}" alt="UNCISAL" class="logo-imagem"></div>
+            <div class="logo logo-sus"><img src="{% static 'core/img/logo-sus.png' %}" alt="SUS" class="logo-imagem"></div>
+        </div>
+
+        <div class="topo-direita">
+            <span class="relogio"><i data-lucide="clock"></i><span id="relogio-hora">{{ hora_atual }}</span></span>
+        </div>
+    </header>
+
+    <main class="conteudo-central">
+        <section class="cartao-login" aria-labelledby="titulo-acesso">
+            <div class="cartao-cabecalho">
+                <h1 id="titulo-acesso">Acesso ao Portal</h1>
+                <p>Bem-vindo(a) ao sistema de atendimento digital da sua unidade de saúde.</p>
+            </div>
+
+            <form method="post" class="formulario-login" novalidate>
+                {% csrf_token %}
+
+                {% if form.non_field_errors %}
+                    <div class="mensagem-erro" role="alert">
+                        {% for erro in form.non_field_errors %}<p>{{ erro }}</p>{% endfor %}
+                    </div>
+                {% endif %}
+
+                <div class="campo-grupo">
+                    <label for="id_cpf">CPF</label>
+                    {{ form.cpf }}
+                    {% if form.cpf.errors %}<p class="campo-erro">{{ form.cpf.errors.0 }}</p>{% endif %}
+                </div>
+
+                <div class="campo-grupo">
+                    <label for="id_senha">Senha</label>
+                    <div class="campo-senha-wrapper">
+                        {{ form.senha }}
+                        <button type="button" class="botao-mostrar-senha" id="botao-mostrar-senha" aria-label="Mostrar senha" aria-pressed="false">
+                            <i data-lucide="eye" id="icone-olho"></i>
+                        </button>
+                    </div>
+                    {% if form.senha.errors %}<p class="campo-erro">{{ form.senha.errors.0 }}</p>{% endif %}
+                </div>
+
+                <div class="linha-esqueci"><a href="#">Esqueceu sua senha?</a></div>
+
+                <button type="submit" class="botao-primario">Entrar no Portal <i data-lucide="arrow-right"></i></button>
+
+                <div class="divisor"><span>ou</span></div>
+
+                <a href="{% url 'cadastro' %}" class="botao-secundario">Criar Nova Conta</a>
+            </form>
+
+            <p class="rodape-seguranca">
+                <i data-lucide="shield-check" style="width:12px;height:12px;vertical-align:-2px;"></i>
+                Seus dados estão protegidos conforme a LGPD. Nunca compartilhe sua senha com terceiros.
+            </p>
+        </section>
+    </main>
+
+    <footer class="rodape-aviso">
+        <span class="rodape-etiqueta">AVISO</span>
+        <div class="rodape-ticker">
+            <p class="rodape-ticker-texto">
+                FIQUE ATENTO AO SINAL SONORO DA CHAMADA&nbsp;&nbsp;•&nbsp;&nbsp;
+                RESPEITE A ORDEM DAS FILAS&nbsp;&nbsp;•&nbsp;&nbsp;
+                EM CASO DE DÚVIDA, PROCURE A RECEPÇÃO&nbsp;&nbsp;•&nbsp;&nbsp;
+                FIQUE ATENTO AO SINAL SONORO DA CHAMADA&nbsp;&nbsp;•&nbsp;&nbsp;
+                RESPEITE A ORDEM DAS FILAS&nbsp;&nbsp;•&nbsp;&nbsp;
+            </p>
+        </div>
+    </footer>
+
+</div>
+
+<script>
+    document.addEventListener("DOMContentLoaded", () => {
+        if (window.lucide) window.lucide.createIcons();
+
+        function atualizarRelogio() {
+            const el = document.getElementById("relogio-hora");
+            if (!el) return;
+            const agora = new Date();
+            el.textContent = String(agora.getHours()).padStart(2, "0") + ":" + String(agora.getMinutes()).padStart(2, "0");
+        }
+        setInterval(atualizarRelogio, 1000 * 15);
+
+        const campoCpf = document.getElementById("id_cpf");
+        if (campoCpf) {
+            campoCpf.addEventListener("input", () => {
+                let v = campoCpf.value.replace(/\D/g, "").slice(0, 11);
+                v = v.replace(/(\d{3})(\d)/, "$1.$2").replace(/(\d{3})(\d)/, "$1.$2").replace(/(\d{3})(\d{1,2})$/, "$1-$2");
+                campoCpf.value = v;
+            });
+        }
+
+        const botaoMostrarSenha = document.getElementById("botao-mostrar-senha");
+        const campoSenha = document.getElementById("id_senha");
+        if (botaoMostrarSenha && campoSenha) {
+            botaoMostrarSenha.addEventListener("click", () => {
+                const visivel = campoSenha.type === "text";
+                campoSenha.type = visivel ? "password" : "text";
+                botaoMostrarSenha.setAttribute("aria-pressed", String(!visivel));
+                const icone = document.getElementById("icone-olho");
+                if (icone && window.lucide) {
+                    icone.setAttribute("data-lucide", visivel ? "eye" : "eye-off");
+                    window.lucide.createIcons();
+                }
+            });
+        }
+    });
+</script>
+</body>
+</html>
