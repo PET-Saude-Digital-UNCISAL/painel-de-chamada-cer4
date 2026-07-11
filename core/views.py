@@ -2,9 +2,11 @@ import csv
 
 from django.conf import settings
 from django.http import Http404, HttpResponse
-from django.shortcuts import render
+from django.shortcuts import get_object_or_404, redirect, render
 
 from core.dev_builders import build_fake_screen_list, build_mocked_screen_payload
+from core.forms import UsuarioSistemaForm
+from core.models import UsuarioSistema
 from core.services import get_auditoria_percurso_context, get_screen_context, list_team_screens
 
 
@@ -14,8 +16,45 @@ def dashboard_monitoramento_view(request):
 
 
 def configuracoes_view(request):
-    """Render the access hierarchy prototype without persistence."""
-    return render(request, "core/configuracoes.html")
+    """Manage access settings and persist institutional users."""
+    form = UsuarioSistemaForm()
+    edit_form = None
+    edit_user = None
+    if request.method == "POST":
+        action = request.POST.get("action", "create")
+        user_id = request.POST.get("usuario_id")
+
+        if action == "create":
+            form = UsuarioSistemaForm(request.POST)
+            if form.is_valid():
+                form.save()
+                return redirect("/configuracoes/?modulo=usuarios&resultado=criado")
+        else:
+            edit_user = get_object_or_404(UsuarioSistema, pk=user_id)
+            if action == "update":
+                edit_form = UsuarioSistemaForm(request.POST, instance=edit_user)
+                if edit_form.is_valid():
+                    edit_form.save()
+                    return redirect("/configuracoes/?modulo=usuarios&resultado=atualizado")
+            elif action == "toggle":
+                edit_user.usuario_ativo = not edit_user.usuario_ativo
+                edit_user.save(update_fields=("usuario_ativo", "atualizado_em"))
+                return redirect("/configuracoes/?modulo=usuarios&resultado=status")
+            elif action == "delete":
+                edit_user.delete()
+                return redirect("/configuracoes/?modulo=usuarios&resultado=excluido")
+
+    usuarios = UsuarioSistema.objects.all()
+    context = {
+        "usuario_form": form,
+        "edit_form": edit_form,
+        "edit_user": edit_user,
+        "usuarios": usuarios,
+        "usuarios_ativos": usuarios.filter(usuario_ativo=True).count(),
+        "abrir_gestao_usuarios": request.GET.get("modulo") == "usuarios" or request.method == "POST",
+        "resultado": request.GET.get("resultado", ""),
+    }
+    return render(request, "core/configuracoes.html", context)
 
 def perdeu_chamada_view(request, **kwargs):
     """Renderiza a tela de aviso de senha perdida para o paciente."""

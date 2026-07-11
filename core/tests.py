@@ -1,10 +1,11 @@
-from django.test import SimpleTestCase, override_settings
+from django.test import TestCase, override_settings
 
 from core.dev_builders import build_fake_screen_list, build_mocked_screen_payload
 from core.services import get_screen_context, list_team_screens
+from core.models import UsuarioSistema
 
 
-class IsolatedScreenSetupTests(SimpleTestCase):
+class IsolatedScreenSetupTests(TestCase):
 	def test_direct_screen_route_works(self):
 		response = self.client.get("/telas/pacientes-listagem/")
 		self.assertEqual(response.status_code, 200)
@@ -85,6 +86,21 @@ class IsolatedScreenSetupTests(SimpleTestCase):
 		self.assertEqual(response.status_code, 200)
 		self.assertContains(response, "Controle de Níveis de Acesso")
 		self.assertContains(response, 'data-profile="super-admin"')
+		self.assertContains(response, "Gestão de Usuários")
+		self.assertContains(response, 'id="module-users"')
+		self.assertContains(response, 'id="module-audit"')
+		self.assertContains(response, "Auditoria de Acesso")
+		self.assertContains(response, "Integridade do Registro Ativa")
+		self.assertContains(response, 'id="activity-modal"')
+		self.assertContains(response, "Detalhes da Atividade")
+		self.assertContains(response, "LOG BRUTO (RAW)")
+		self.assertContains(response, 'id="clock-time"')
+		self.assertContains(response, 'id="clock-date"')
+		self.assertContains(response, 'id="user-modal"')
+		self.assertContains(response, 'name="nome_completo"')
+		self.assertContains(response, 'name="email_institucional"')
+		self.assertContains(response, 'name="cpf"')
+		self.assertContains(response, 'name="nivel_acesso"')
 
 		self.assertIn(
 			{
@@ -96,6 +112,87 @@ class IsolatedScreenSetupTests(SimpleTestCase):
 			},
 			list_team_screens(),
 		)
+
+	def test_new_system_user_is_persisted(self):
+		response = self.client.post(
+			"/configuracoes/",
+			{
+				"nome_completo": "Maria de Teste",
+				"email_institucional": "maria.teste@uncisal.com.br",
+				"cpf": "123.456.789-01",
+				"nivel_acesso": "coordenacao",
+				"usuario_ativo": "true",
+			},
+		)
+		self.assertRedirects(response, "/configuracoes/?modulo=usuarios&resultado=criado")
+		self.assertTrue(
+			UsuarioSistema.objects.filter(
+				email_institucional="maria.teste@uncisal.com.br",
+				cpf="123.456.789-01",
+			).exists()
+		)
+		list_response = self.client.get("/configuracoes/?modulo=usuarios")
+		self.assertContains(list_response, "Maria de Teste")
+		self.assertContains(list_response, "maria.teste@uncisal.com.br")
+		self.assertContains(list_response, "123.456.789-01")
+
+	def test_system_user_update_toggle_and_delete(self):
+		usuario = UsuarioSistema.objects.create(
+			nome_completo="Nome Original",
+			email_institucional="original@uncisal.com.br",
+			cpf="111.222.333-44",
+			nivel_acesso="recepcionista",
+			usuario_ativo=True,
+		)
+		update_response = self.client.post(
+			"/configuracoes/",
+			{
+				"action": "update",
+				"usuario_id": usuario.pk,
+				"nome_completo": "Nome Atualizado",
+				"email_institucional": "atualizado@uncisal.com.br",
+				"cpf": "111.222.333-44",
+				"nivel_acesso": "coordenacao",
+				"usuario_ativo": "true",
+			},
+		)
+		self.assertRedirects(update_response, "/configuracoes/?modulo=usuarios&resultado=atualizado")
+		usuario.refresh_from_db()
+		self.assertEqual(usuario.nome_completo, "Nome Atualizado")
+		self.assertEqual(usuario.nivel_acesso, "coordenacao")
+
+		toggle_response = self.client.post(
+			"/configuracoes/", {"action": "toggle", "usuario_id": usuario.pk}
+		)
+		self.assertRedirects(toggle_response, "/configuracoes/?modulo=usuarios&resultado=status")
+		usuario.refresh_from_db()
+		self.assertFalse(usuario.usuario_ativo)
+
+		delete_response = self.client.post(
+			"/configuracoes/", {"action": "delete", "usuario_id": usuario.pk}
+		)
+		self.assertRedirects(delete_response, "/configuracoes/?modulo=usuarios&resultado=excluido")
+		self.assertFalse(UsuarioSistema.objects.filter(pk=usuario.pk).exists())
+
+	def test_duplicate_system_user_is_not_persisted(self):
+		UsuarioSistema.objects.create(
+			nome_completo="Usuário Existente",
+			email_institucional="existente@uncisal.com.br",
+			cpf="987.654.321-00",
+			nivel_acesso="recepcionista",
+		)
+		response = self.client.post(
+			"/configuracoes/",
+			{
+				"nome_completo": "Usuário Duplicado",
+				"email_institucional": "existente@uncisal.com.br",
+				"cpf": "987.654.321-00",
+				"nivel_acesso": "super_admin",
+			},
+		)
+		self.assertEqual(response.status_code, 200)
+		self.assertEqual(UsuarioSistema.objects.count(), 1)
+		self.assertContains(response, "Revise os campos")
 
 	def test_auditoria_route_works(self):
 		response = self.client.get("/telas/auditoria-percurso-seguranca/")
