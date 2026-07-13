@@ -8,10 +8,15 @@ from core.dev_builders import build_fake_screen_list, build_mocked_screen_payloa
 from core.forms import CadastroPacienteForm, LoginPacienteForm, UsuarioSistemaForm
 from core.models import UsuarioSistema
 from core.services import (
+<<<<<<< HEAD
     autenticar_paciente,
     get_auditoria_percurso_context,
     get_cadastro_context,
     get_login_context,
+=======
+    get_auditoria_percurso_context,
+    get_dashboard_monitoramento_context,
+>>>>>>> origin/develop
     get_screen_context,
     list_team_screens,
 )
@@ -19,7 +24,7 @@ from core.services import (
 
 def dashboard_monitoramento_view(request):
     """Renderiza o dashboard de monitoramento com dados fictícios."""
-    return render(request, "core/dashboard_monitoramento.html")
+    return render(request, "core/dashboard_monitoramento.html", get_dashboard_monitoramento_context())
 
 
 def configuracoes_view(request):
@@ -63,9 +68,9 @@ def configuracoes_view(request):
     }
     return render(request, "core/configuracoes.html", context)
 
+
 def perdeu_chamada_view(request, **kwargs):
     """Renderiza a tela de aviso de senha perdida para o paciente."""
-    # Criamos um dicionário simulando o que viria do builder/banco
     context = {
         "page_title": "Senha Perdida",
         "atendimento": {
@@ -75,6 +80,7 @@ def perdeu_chamada_view(request, **kwargs):
         }
     }
     return render(request, "core/perdeu_chamada.html", context)
+
 
 def home_view(request):
     """Thin view: render dashboard with links for each isolated screen."""
@@ -174,10 +180,13 @@ def dev_mock_screen_view(request, screen_slug):
     use_factory = request.GET.get("factory", "0") == "1"
     context = build_mocked_screen_payload(screen_slug=screen_slug, use_factory=use_factory)
     return render(request, "core/screen.html", context)
+
+
 def agendamento_nao_encontrado_view(request):
     return render(request, 'core/agendamento_nao_encontrado.html')
 
 
+<<<<<<< HEAD
 def login_view(request):
     """Tela de Login (Acesso ao Portal), autenticação do paciente por CPF."""
     if request.session.get("paciente_id"):
@@ -220,3 +229,11 @@ def area_paciente_view(request):
 
     context = {"page_title": "Área do Paciente"}
     return render(request, "core/area_paciente.html", context)
+=======
+def gestao_qualidade_view(request):
+    return render(request, 'core/gestao_qualidade.html')
+
+
+def pesquisa_satisfacao_view(request):
+    return render(request, 'core/pesquisa_satisfacao.html')
+>>>>>>> origin/develop
