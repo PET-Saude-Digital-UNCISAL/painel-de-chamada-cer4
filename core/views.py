@@ -61,9 +61,9 @@ def configuracoes_view(request):
     }
     return render(request, "core/configuracoes.html", context)
 
+
 def perdeu_chamada_view(request, **kwargs):
     """Renderiza a tela de aviso de senha perdida para o paciente."""
-    # Criamos um dicionário simulando o que viria do builder/banco
     context = {
         "page_title": "Senha Perdida",
         "atendimento": {
@@ -73,6 +73,7 @@ def perdeu_chamada_view(request, **kwargs):
         }
     }
     return render(request, "core/perdeu_chamada.html", context)
+
 
 def home_view(request):
     """Thin view: render dashboard with links for each isolated screen."""
@@ -172,5 +173,15 @@ def dev_mock_screen_view(request, screen_slug):
     use_factory = request.GET.get("factory", "0") == "1"
     context = build_mocked_screen_payload(screen_slug=screen_slug, use_factory=use_factory)
     return render(request, "core/screen.html", context)
+
+
 def agendamento_nao_encontrado_view(request):
     return render(request, 'core/agendamento_nao_encontrado.html')
+
+
+def gestao_qualidade_view(request):
+    return render(request, 'core/gestao_qualidade.html')
+
+
+def pesquisa_satisfacao_view(request):
+    return render(request, 'core/pesquisa_satisfacao.html')
