@@ -11,6 +11,7 @@ from datetime import date, timedelta
 from typing import Optional
 
 from core.clock import SystemClock
+from core.models import Paciente
 
 
 @dataclass(frozen=True)
@@ -405,6 +406,26 @@ def list_team_screens() -> list[dict]:
         }
     )
 
+    other_screens.append(
+        {
+            "slug": "login",
+            "title": "Tela de Login (Acesso ao Portal)",
+            "owner": "Nathalia",
+            "status": "Concluído",
+            "path": "/login/",
+        }
+    )
+
+    other_screens.append(
+        {
+            "slug": "cadastro",
+            "title": "Tela de Cadastro (Criar Conta do Paciente)",
+            "owner": "Nathalia",
+            "status": "Concluído",
+            "path": "/cadastro/",
+        }
+    )
+
     return [pacientes_group] + other_screens
  
  
@@ -609,3 +630,42 @@ def get_auditoria_percurso_context(filtros_dict: Optional[dict] = None) -> dict:
         "pagina": 1,
         "total_paginas": 8,
     }
+
+
+def _cabecalho_recepcao_context(guiche: str = "RECEPÇÃO 3") -> dict:
+    """Contexto compartilhado pelo cabeçalho das telas de Login e Cadastro."""
+    now = SystemClock.now()
+    return {
+        "guiche": guiche,
+        "data_atual": now,
+        "hora_atual": now.strftime("%H:%M"),
+    }
+
+
+def get_login_context() -> dict:
+    """Contexto da tela de Login (Acesso ao Portal)."""
+    return {
+        "page_title": "Acesso ao Portal",
+        **_cabecalho_recepcao_context(),
+    }
+
+
+def get_cadastro_context() -> dict:
+    """Contexto da tela de Cadastro (Criar Conta do paciente)."""
+    return {
+        "page_title": "Criar Conta",
+        **_cabecalho_recepcao_context(),
+    }
+
+
+def autenticar_paciente(cpf: str, senha: str) -> Optional[Paciente]:
+    """Retorna o Paciente se CPF e senha conferem e a conta está ativa."""
+    try:
+        paciente = Paciente.objects.get(cpf=cpf, paciente_ativo=True)
+    except Paciente.DoesNotExist:
+        return None
+
+    if not paciente.checar_senha(senha):
+        return None
+
+    return paciente

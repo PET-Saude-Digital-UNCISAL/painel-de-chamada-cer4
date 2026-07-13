@@ -1,0 +1,9 @@
+Coloque aqui os arquivos de logo oficiais, com estes nomes exatos
+(referenciados em core/templates/core/login.html e cadastro.html):
+
+  logo-cer.png       -> Logo do CER (Centro Especializado em Reabilitação)
+  logo-uncisal.png   -> Logo da UNCISAL
+  logo-sus.png       -> Logo do SUS
+
+Recomendado: PNG com fundo transparente, altura mínima de ~120px
+(o CSS redimensiona para ~34px de altura no cabeçalho).

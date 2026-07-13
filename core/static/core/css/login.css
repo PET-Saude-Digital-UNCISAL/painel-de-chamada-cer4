@@ -1,0 +1,68 @@
+:root { --navy:#071d38; --blue:#005aa9; --soft-blue:#dbe9ff; --page:#f5f7fa; --line:#e6eaf0; --muted:#687180; --text:#171b22; --verde-sus:#00a651; --vermelho-sus:#d62828; }
+* { box-sizing:border-box; }
+body { margin:0; min-width:320px; min-height:100vh; background:var(--page); color:var(--text); font-family:"Segoe UI",Arial,sans-serif; }
+button { font:inherit; cursor:pointer; }
+a { color:inherit; }
+
+.pagina-portal { min-height:100vh; display:flex; flex-direction:column; }
+
+/* ---------- Cabeçalho ---------- */
+.topo { display:flex; align-items:center; justify-content:space-between; gap:16px; padding:14px 28px; background:#fff; border-bottom:1px solid var(--line); flex-wrap:wrap; }
+.topo-esquerda { display:flex; align-items:center; gap:14px; }
+.badge-guiche { background:var(--navy); color:#fff; font-weight:700; font-size:12px; letter-spacing:.03em; padding:8px 14px; border-radius:6px; }
+.topo-data { font-weight:700; font-size:12px; color:var(--text); }
+.topo-logos { display:flex; align-items:center; gap:26px; }
+.logo { display:flex; align-items:center; justify-content:center; gap:8px; height:34px; max-width:130px; overflow:hidden; }
+.logo-imagem { display:block; max-height:100%; max-width:100%; width:auto; height:auto; object-fit:contain; }
+.relogio { display:flex; align-items:center; gap:6px; background:var(--navy); color:#fff; font-weight:700; font-size:13px; padding:8px 14px; border-radius:20px; }
+.relogio svg,.relogio i { width:16px; height:16px; }
+
+/* ---------- Conteúdo central ---------- */
+.conteudo-central { flex:1; display:flex; align-items:center; justify-content:center; padding:32px 16px; }
+
+.cartao-login { width:100%; max-width:380px; background:#fff; border-radius:14px; box-shadow:0 10px 30px rgba(7,29,56,.12); overflow:hidden; }
+.cartao-cabecalho { background:var(--navy); color:#fff; padding:22px 26px; text-align:center; }
+.cartao-cabecalho h1 { margin:0 0 6px; font-size:21px; }
+.cartao-cabecalho p { margin:0; font-size:13px; color:#cfd8ea; }
+
+.formulario-login { padding:24px 26px 8px; }
+.campo-grupo { margin-bottom:16px; }
+.campo-grupo label { display:block; font-size:12px; font-weight:700; color:var(--muted); text-transform:uppercase; letter-spacing:.03em; margin-bottom:6px; }
+.campo-input { width:100%; padding:12px 14px; border:1.5px solid var(--line); border-radius:8px; font-size:15px; outline:none; transition:border-color .15s ease; }
+.campo-input:focus { border-color:var(--blue); }
+
+.campo-senha-wrapper { position:relative; }
+.campo-senha-wrapper .campo-input { padding-right:42px; }
+.botao-mostrar-senha { position:absolute; right:8px; top:50%; transform:translateY(-50%); background:none; border:none; padding:4px; display:flex; color:var(--muted); }
+.botao-mostrar-senha svg,.botao-mostrar-senha i { width:20px; height:20px; }
+
+.campo-erro { color:#c0392b; font-size:12px; margin:6px 0 0; }
+.mensagem-erro { background:#fdecea; border:1px solid #f5c2c0; color:#b03a2e; padding:10px 12px; border-radius:8px; font-size:13px; margin-bottom:16px; }
+.mensagem-erro p { margin:0; }
+
+.linha-esqueci { text-align:right; margin-bottom:18px; }
+.linha-esqueci a { color:var(--blue); font-size:13px; text-decoration:none; font-weight:600; }
+.linha-esqueci a:hover { text-decoration:underline; }
+
+.botao-primario { width:100%; background:var(--navy); color:#fff; border:none; border-radius:8px; padding:13px; font-size:15px; font-weight:700; display:flex; align-items:center; justify-content:center; gap:8px; transition:background .15s ease; }
+.botao-primario:hover { background:#04122a; }
+.botao-primario svg,.botao-primario i { width:18px; height:18px; }
+
+.divisor { display:flex; align-items:center; text-align:center; color:var(--muted); font-size:11px; text-transform:uppercase; margin:18px 0; }
+.divisor::before,.divisor::after { content:""; flex:1; border-bottom:1px solid var(--line); }
+.divisor span { padding:0 10px; }
+
+.botao-secundario { display:block; width:100%; text-align:center; background:#fff; color:var(--navy); border:1.5px solid var(--navy); border-radius:8px; padding:12px; font-weight:700; font-size:14px; text-decoration:none; box-sizing:border-box; }
+.botao-secundario:hover { background:#f1f4fa; }
+
+.rodape-seguranca { font-size:11px; color:var(--muted); text-align:center; padding:16px 26px 22px; margin:0; }
+
+/* ---------- Rodapé de avisos (marquee) ---------- */
+.rodape-aviso { display:flex; align-items:stretch; background:#14171c; color:#fff; overflow:hidden; }
+.rodape-etiqueta { background:var(--vermelho-sus); font-weight:800; font-size:12px; padding:10px 18px; display:flex; align-items:center; letter-spacing:.05em; }
+.rodape-ticker { flex:1; overflow:hidden; display:flex; align-items:center; }
+.rodape-ticker-texto { white-space:nowrap; font-size:12px; font-weight:600; letter-spacing:.02em; padding-left:100%; margin:10px 0; animation:rolar-ticker 22s linear infinite; }
+@keyframes rolar-ticker { from{transform:translateX(0);} to{transform:translateX(-100%);} }
+@media (prefers-reduced-motion: reduce) { .rodape-ticker-texto { animation:none; padding-left:16px; } }
+
+@media (max-width:720px) { .topo-logos { order:3; width:100%; justify-content:center; padding-top:8px; } }

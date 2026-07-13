@@ -5,11 +5,14 @@ from django.http import Http404, HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
 
 from core.dev_builders import build_fake_screen_list, build_mocked_screen_payload
-from core.forms import UsuarioSistemaForm
+from core.forms import CadastroPacienteForm, LoginPacienteForm, UsuarioSistemaForm
 from core.models import UsuarioSistema
 from core.services import (
+    autenticar_paciente,
     get_auditoria_percurso_context,
+    get_cadastro_context,
     get_dashboard_monitoramento_context,
+    get_login_context,
     get_screen_context,
     list_team_screens,
 )
@@ -177,6 +180,50 @@ def dev_mock_screen_view(request, screen_slug):
 
 def agendamento_nao_encontrado_view(request):
     return render(request, 'core/agendamento_nao_encontrado.html')
+
+
+def login_view(request):
+    """Tela de Login (Acesso ao Portal), autenticação do paciente por CPF."""
+    if request.session.get("paciente_id"):
+        return redirect("area-paciente")
+
+    form = LoginPacienteForm(request.POST or None)
+    if request.method == "POST" and form.is_valid():
+        paciente = autenticar_paciente(form.cleaned_data["cpf"], form.cleaned_data["senha"])
+        if paciente is None:
+            form.add_error(None, "CPF ou senha inválidos. Confira os dados e tente novamente.")
+        else:
+            request.session["paciente_id"] = paciente.pk
+            return redirect("area-paciente")
+
+    context = {**get_login_context(), "form": form}
+    return render(request, "core/login.html", context)
+
+
+def cadastro_view(request):
+    """Tela de Cadastro (Criar Conta do paciente)."""
+    form = CadastroPacienteForm(request.POST or None)
+    if request.method == "POST" and form.is_valid():
+        form.save()
+        return redirect("login")
+
+    context = {**get_cadastro_context(), "form": form}
+    return render(request, "core/cadastro.html", context)
+
+
+def logout_view(request):
+    request.session.pop("paciente_id", None)
+    return redirect("login")
+
+
+def area_paciente_view(request):
+    """Placeholder pós-login: substituir pela próxima tela do fluxo do paciente."""
+    paciente_id = request.session.get("paciente_id")
+    if not paciente_id:
+        return redirect("login")
+
+    context = {"page_title": "Área do Paciente"}
+    return render(request, "core/area_paciente.html", context)
 
 
 def gestao_qualidade_view(request):

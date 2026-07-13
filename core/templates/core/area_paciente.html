@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <title>{{ page_title }} - Painel CER4</title>
+    <style>
+        body { font-family: "Segoe UI", Arial, sans-serif; margin: 3rem; color: #171b22; }
+        a { color: #005aa9; }
+    </style>
+</head>
+<body>
+    <h1>{{ page_title }}</h1>
+    <p>Placeholder pós-login. Substitua por sua próxima tela do fluxo do paciente.</p>
+    <form method="post" action="{% url 'logout' %}">
+        {% csrf_token %}
+        <button type="submit">Sair</button>
+    </form>
+</body>
+</html>
