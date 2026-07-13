@@ -1,13 +1,8 @@
 from django.test import TestCase, override_settings
 
 from core.dev_builders import build_fake_screen_list, build_mocked_screen_payload
-<<<<<<< HEAD
-from core.services import get_screen_context, list_team_screens
-from core.models import Paciente, UsuarioSistema
-=======
 from core.services import get_dashboard_monitoramento_context, get_screen_context, list_team_screens
-from core.models import UsuarioSistema
->>>>>>> origin/develop
+from core.models import Paciente, UsuarioSistema
 
 
 class IsolatedScreenSetupTests(TestCase):

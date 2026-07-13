@@ -8,15 +8,11 @@ from core.dev_builders import build_fake_screen_list, build_mocked_screen_payloa
 from core.forms import CadastroPacienteForm, LoginPacienteForm, UsuarioSistemaForm
 from core.models import UsuarioSistema
 from core.services import (
-<<<<<<< HEAD
     autenticar_paciente,
     get_auditoria_percurso_context,
     get_cadastro_context,
-    get_login_context,
-=======
-    get_auditoria_percurso_context,
     get_dashboard_monitoramento_context,
->>>>>>> origin/develop
+    get_login_context,
     get_screen_context,
     list_team_screens,
 )
@@ -186,7 +182,6 @@ def agendamento_nao_encontrado_view(request):
     return render(request, 'core/agendamento_nao_encontrado.html')
 
 
-<<<<<<< HEAD
 def login_view(request):
     """Tela de Login (Acesso ao Portal), autenticação do paciente por CPF."""
     if request.session.get("paciente_id"):
@@ -229,11 +224,11 @@ def area_paciente_view(request):
 
     context = {"page_title": "Área do Paciente"}
     return render(request, "core/area_paciente.html", context)
-=======
+
+
 def gestao_qualidade_view(request):
     return render(request, 'core/gestao_qualidade.html')
 
 
 def pesquisa_satisfacao_view(request):
     return render(request, 'core/pesquisa_satisfacao.html')
->>>>>>> origin/develop
