@@ -10,6 +10,8 @@ from dataclasses import dataclass
 from datetime import date, timedelta
 from typing import Optional
 
+from django.templatetags.static import static
+
 from core.clock import SystemClock
 from core.models import Paciente
 
@@ -101,6 +103,73 @@ AUDITORIA_MOCK_DATA = [
         "setor": "Enfermagem",
     },
 ]
+
+
+def get_painel_chamada_context() -> dict:
+    return {
+        "page_title": "Painel de Chamada",
+        "reception_name": "RECEPÇÃO 3",
+        "weekday": "SEGUNDA-FEIRA,",
+        "current_date": "27 DE ABRIL DE 2026",
+        "current_time": "10:48",
+        "current_call": {
+            "ticket": "A011",
+            "patient_name": "FELIPE DA SILVA",
+            "room": "SALA 04",
+            "service_type": "AMBULATORIAL",
+        },
+        "recent_calls": [
+            {
+                "ticket": "A010",
+                "room": "SALA 02",
+                "patient_name": "MARIA DA SILVA",
+                "time": "10:48",
+            },
+            {
+                "ticket": "B005",
+                "room": "SALA 03",
+                "patient_name": "MARIA JOSÉ",
+                "time": "10:48",
+                "highlighted": True,
+            },
+            {
+                "ticket": "A009",
+                "room": "SALA 06",
+                "patient_name": "ABRAÃO FARIAS DE LIMA",
+                "time": "10:48",
+            },
+            {
+                "ticket": "A008",
+                "room": "SALA 05",
+                "patient_name": "JOÃO PEDRO MIGUEL",
+                "time": "10:48",
+            },
+            {
+                "ticket": "A007",
+                "room": "SALA 01",
+                "patient_name": "LUCAS FERREIRA",
+                "time": "10:48",
+            },
+        ],
+        "notice_items": [
+            "DIRIJA-SE À SUA SALA AO SER CHAMADO",
+            "FIQUE ATENTO AO SINAL SONORO DA CHAMADA",
+            "RESPEITE A ORDEM DAS FILAS",
+            "HOJE É SEGUNDA-FEIRA, 27 DE ABRIL DE 2026",
+        ],
+        "qr_code_url": static("core/painel_chamada/assets/qr-code-temporario.png"),
+        "libras_avatar_url": static("core/painel_chamada/assets/libras-avatar-temporario.png"),
+        "logo_cer_url": static("core/painel_chamada/assets/logo-cer.svg"),
+        "logo_uncisal_url": static("core/painel_chamada/assets/logo-uncisal.svg"),
+        "logo_sus_url": static("core/painel_chamada/assets/logo-sus.png"),
+        "clock_card_url": static("core/painel_chamada/assets/clock-card.svg"),
+        "libras_icon_url": static("core/painel_chamada/assets/libras-icon.svg"),
+        "call_bell_icon_url": static("core/painel_chamada/assets/call-bell-icon.png"),
+        "room_icon_url": static("core/painel_chamada/assets/room-icon.png"),
+        "service_icon_url": static("core/painel_chamada/assets/service-icon.png"),
+        "inter_font_url": static("core/painel_chamada/assets/fonts/Inter-Variable.ttf"),
+        "chamada_audio_url": static("core/painel_chamada/assets/audiobeep2.mp3"),
+    }
 
 
 def get_dashboard_monitoramento_context() -> dict:
@@ -393,6 +462,16 @@ def list_team_screens() -> list[dict]:
             "owner": "Remany",
             "status": "em desenvolvimento",
             "path": "/dashboard-monitoramento/",
+        }
+    )
+
+    other_screens.append(
+        {
+            "slug": "painel-chamada",
+            "title": "Painel de Chamada da Recepção",
+            "owner": "Remany",
+            "status": "em desenvolvimento",
+            "path": "/painel-chamada/",
         }
     )
 

@@ -13,6 +13,7 @@ from core.services import (
     get_cadastro_context,
     get_dashboard_monitoramento_context,
     get_login_context,
+    get_painel_chamada_context,
     get_screen_context,
     list_team_screens,
 )
@@ -21,6 +22,10 @@ from core.services import (
 def dashboard_monitoramento_view(request):
     """Renderiza o dashboard de monitoramento com dados fictícios."""
     return render(request, "core/dashboard_monitoramento.html", get_dashboard_monitoramento_context())
+
+
+def painel_chamada_view(request):
+    return render(request, "core/painel_chamada.html", get_painel_chamada_context())
 
 
 def configuracoes_view(request):
