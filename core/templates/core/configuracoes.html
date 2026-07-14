@@ -183,7 +183,7 @@
         <button class="edit-modal-backdrop" type="button" data-close-edit-modal aria-label="Fechar modal"></button>
         <div class="edit-modal-panel">
             <div class="edit-modal-header"><div><h2 id="edit-user-modal-title">Editar Usuário</h2><p>Atualize as informações cadastrais do colaborador.</p></div><button class="edit-modal-close" type="button" data-close-edit-modal aria-label="Fechar"><i data-lucide="x"></i></button></div>
-            <form id="edit-user-form" method="post" action="/configuracoes/">
+            <form id="edit-user-form" method="post" action="{{ configuracoes_action_url }}">
                 {% csrf_token %}<input id="edit-action" type="hidden" name="action" value="update"><input id="edit-user-id" type="hidden" name="usuario_id">
                 {% if edit_form.errors %}<div class="edit-form-errors">Revise os campos. CPF e e-mail não podem estar duplicados.</div>{% endif %}
                 <div class="edit-form-body">
@@ -203,7 +203,7 @@
         <button class="user-modal-backdrop" type="button" data-close-user-modal aria-label="Fechar modal"></button>
         <div class="user-modal-panel">
             <div class="user-modal-header"><h2 id="user-modal-title">Novo Usuário</h2></div>
-            <form class="new-user-form" id="new-user-form" method="post" action="/configuracoes/">
+            <form class="new-user-form" id="new-user-form" method="post" action="{{ configuracoes_action_url }}">
                 {% csrf_token %}<input type="hidden" name="action" value="create">
                 {% if usuario_form.errors %}<div class="form-errors">Revise os campos. CPF e e-mail não podem estar duplicados.</div>{% endif %}
                 <label class="form-field"><span>Nome Completo</span><input id="new-user-name" name="nome_completo" type="text" value="{{ usuario_form.nome_completo.value|default:'' }}" placeholder="Ex: Ana Maria Silva" autocomplete="name" required></label>
