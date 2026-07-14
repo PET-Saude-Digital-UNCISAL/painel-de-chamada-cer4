@@ -10,7 +10,6 @@ from core.dev_builders import build_fake_screen_list, build_mocked_screen_payloa
 from core.forms import CadastroPacienteForm, LoginPacienteForm, UsuarioSistemaForm
 from core.models import UsuarioSistema
 from core.services import (
-    autenticar_paciente,
     get_auditoria_percurso_context,
     get_cadastro_context,
     get_dashboard_monitoramento_context,
