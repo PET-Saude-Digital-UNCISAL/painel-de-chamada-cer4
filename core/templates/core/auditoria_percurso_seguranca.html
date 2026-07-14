@@ -1117,10 +1117,31 @@
             }
 
         }
+
+        /* === Standard Topbar === */
+        header.topbar{height:66px;display:flex;align-items:center;justify-content:space-between;padding:0 28px;background:#fff;border-bottom:1px solid #edf0f4;font-family:"Segoe UI",Arial,sans-serif;box-sizing:border-box;}
+        header.topbar .brand-group,header.topbar .topbar-actions{display:flex;align-items:center;}
+        header.topbar .brand-group{gap:14px;}
+        header.topbar .brand{color:#071d38;font-size:17px;font-weight:800;font-family:"Segoe UI",Arial,sans-serif;}
+        header.topbar .brand span{font-weight:500;}
+        header.topbar .icon-button{width:36px;height:36px;display:grid;place-items:center;border:1px solid #dce2e9;border-radius:6px;background:#fff;color:#071d38;cursor:pointer;}
+        header.topbar .topbar-actions{gap:18px;}
+        header.topbar .topbar-clock{text-align:right;}
+        header.topbar .topbar-clock strong{display:block;font-size:16px;font-family:"Segoe UI",Arial,sans-serif;color:#071d38;}
+        header.topbar .topbar-clock small{color:#667085;font-size:9px;font-family:"Segoe UI",Arial,sans-serif;}
+        header.topbar .topbar-online{display:flex;align-items:center;gap:7px;padding:10px 13px;border:1px solid #bde4d7;border-radius:7px;background:#effaf6;color:#087d5a;font-size:11px;font-weight:700;}
+        header.topbar .topbar-online::before{content:"";width:6px;height:6px;border-radius:50%;background:#0aaf7b;}
+        header.topbar .topbar-user{display:flex;align-items:center;gap:10px;padding-left:17px;border-left:1px solid #e6eaf0;}
+        header.topbar .topbar-avatar{width:31px;height:31px;display:grid;place-items:center;border-radius:6px;background:#071d38;color:#fff;font-size:11px;}
+        header.topbar .topbar-user strong,header.topbar .topbar-user small{display:block;}
+        header.topbar .topbar-user strong{font-size:11px;color:#171b22;}
+        header.topbar .topbar-user small{margin-top:2px;color:#687180;font-size:9px;}
+
     </style>
 </head>
 <body>
     <div class="app-layout" id="app-layout">
+        {% if not interno %}
         <aside class="sidebar" aria-label="Navegação lateral">
             <button class="drawer-toggle" id="drawer-toggle" type="button" aria-label="Abrir menu" aria-controls="app-layout" aria-expanded="false">
                 <span class="drawer-menu-symbol" aria-hidden="true">&#9776;</span>
@@ -1152,31 +1173,18 @@
             </a>
         </aside>
         <button class="drawer-overlay" id="drawer-overlay" type="button" aria-label="Fechar menu"></button>
+        {% endif %}
 
         <div class="app-shell">
-        <header class="desktop-header">
-            <div class="app-content header-content">
-            <div class="topbar">
-                <div class="topbar-left">
-                    <button class="mobile-drawer-toggle" id="mobile-drawer-toggle" type="button" aria-label="Abrir menu" aria-controls="app-layout" aria-expanded="false">
-                        <span aria-hidden="true">&#9776;</span>
-                    </button>
-                    <h1 class="title">{{ page_title }}</h1>
-                </div>
-                <div class="topbar-right">
-                    <div class="clock">
-                        <div class="clock-time" id="clock-time">{{ current_time }}</div>
-                        <div class="clock-date" id="clock-date">{{ current_date }}</div>
-                    </div>
-                    <div class="user-card">
-                        <div class="avatar">{{ user_initial }}</div>
-                        <div>
-                            <p class="user-name">{{ user_name }}</p>
-                            <p class="user-role">{{ user_role }}</p>
-                        </div>
-                    </div>
-                </div>
+        <header class="topbar">
+            <div class="brand-group">
+                {% if not interno %}<button class="icon-button" id="mobile-drawer-toggle" type="button" aria-label="Abrir menu" aria-expanded="false"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg></button>{% endif %}
+                <div class="brand">CER III <span>&#8212; Auditoria de Percurso</span></div>
             </div>
+            <div class="topbar-actions">
+                <div class="topbar-clock"><strong id="clock-time">--:--</strong><small id="clock-date">Carregando data...</small></div>
+                <div class="topbar-online">Sistema online</div>
+                <div class="topbar-user"><span class="topbar-avatar">{{ user_initial }}</span><div><strong>{{ user_name }}</strong><small>{{ user_role }}</small></div></div>
             </div>
         </header>
 

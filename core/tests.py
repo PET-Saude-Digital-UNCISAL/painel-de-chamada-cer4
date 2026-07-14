@@ -132,21 +132,41 @@ class IsolatedScreenSetupTests(TestCase):
 			],
 		)
 
-	def test_development_panel_links_to_requested_screens(self):
+	def test_development_panel_has_only_the_two_product_flows(self):
 		response = self.client.get("/")
 		self.assertContains(response, 'href="/agendamento-nao-encontrado/"')
-		self.assertContains(response, 'href="/perdeu-chamada/"')
-		self.assertContains(response, 'href="/dashboard-monitoramento/"')
-		self.assertContains(response, 'href="/painel-chamada/"')
+		self.assertContains(response, 'href="/sistema-interno/"')
+		self.assertNotContains(response, 'href="/dashboard-monitoramento/"')
 
+	def test_sistema_interno_uses_one_shell_and_fallback(self):
+		ready_response = self.client.get("/sistema-interno/?tela=configuracoes")
+		self.assertEqual(ready_response.status_code, 200)
+		self.assertContains(ready_response, 'src="/configuracoes/?interno=1"')
+
+		pending_response = self.client.get("/sistema-interno/?tela=relatorios")
+		self.assertEqual(pending_response.status_code, 200)
+		self.assertContains(pending_response, "desenvolvida")
+
+	def test_drawer_connects_existing_internal_screens(self):
+		for tela, embedded_path in (
+			("monitoramento", "/dashboard-monitoramento/?interno=1"),
+			("auditoria", "/telas/auditoria-percurso-seguranca/?interno=1"),
+			("configuracoes", "/configuracoes/?interno=1"),
+		):
+			with self.subTest(tela=tela):
+				response = self.client.get(f"/sistema-interno/?tela={tela}")
+				self.assertEqual(response.status_code, 200)
+				self.assertContains(response, f'src="{embedded_path}"')
+
+	def test_embedded_internal_screens_allow_same_origin_frames(self):
 		for path in (
-			"/agendamento-nao-encontrado/",
-			"/perdeu-chamada/",
 			"/dashboard-monitoramento/",
-			"/painel-chamada/",
+			"/telas/auditoria-percurso-seguranca/",
+			"/configuracoes/",
 		):
 			with self.subTest(path=path):
-				self.assertEqual(self.client.get(path).status_code, 200)
+				response = self.client.get(path)
+				self.assertEqual(response["X-Frame-Options"], "SAMEORIGIN")
 
 	def test_configuracoes_route_and_development_card(self):
 		response = self.client.get("/configuracoes/")
