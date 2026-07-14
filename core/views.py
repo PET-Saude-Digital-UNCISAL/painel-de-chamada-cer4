@@ -10,11 +10,11 @@ from core.dev_builders import build_fake_screen_list, build_mocked_screen_payloa
 from core.forms import CadastroPacienteForm, LoginPacienteForm, UsuarioSistemaForm
 from core.models import UsuarioSistema
 from core.services import (
-    autenticar_paciente,
     get_auditoria_percurso_context,
     get_cadastro_context,
     get_dashboard_monitoramento_context,
     get_login_context,
+    get_painel_chamada_context,
     get_screen_context,
 )
 
@@ -25,6 +25,10 @@ def dashboard_monitoramento_view(request):
     context = get_dashboard_monitoramento_context()
     context["interno"] = request.GET.get("interno") == "1"
     return render(request, "core/dashboard_monitoramento.html", context)
+
+
+def painel_chamada_view(request):
+    return render(request, "core/painel_chamada.html", get_painel_chamada_context())
 
 
 @xframe_options_sameorigin

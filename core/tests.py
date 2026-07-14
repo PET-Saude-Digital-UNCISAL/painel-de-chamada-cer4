@@ -1,7 +1,12 @@
 from django.test import TestCase, override_settings
 
 from core.dev_builders import build_fake_screen_list, build_mocked_screen_payload
-from core.services import get_dashboard_monitoramento_context, get_screen_context, list_team_screens
+from core.services import (
+	get_dashboard_monitoramento_context,
+	get_painel_chamada_context,
+	get_screen_context,
+	list_team_screens,
+)
 from core.models import Paciente, UsuarioSistema
 
 
@@ -47,9 +52,33 @@ class IsolatedScreenSetupTests(TestCase):
 		self.assertContains(response, "Roberto Almeida")
 		self.assertContains(response, "Concluído às 08:55")
 
+	def test_painel_chamada_context_has_expected_mock_data(self):
+		context = get_painel_chamada_context()
+		self.assertEqual(context["reception_name"], "RECEPÇÃO 3")
+		self.assertEqual(context["current_call"]["ticket"], "A011")
+		self.assertEqual(len(context["recent_calls"]), 5)
+		self.assertTrue(context["qr_code_url"].endswith("qr-code-temporario.png"))
+
+	def test_painel_chamada_route_renders_context_data(self):
+		response = self.client.get("/painel-chamada/")
+		self.assertEqual(response.status_code, 200)
+		self.assertTemplateUsed(response, "core/painel_chamada.html")
+		self.assertContains(response, "FELIPE DA SILVA")
+		self.assertContains(response, "ÚLTIMOS CHAMADOS")
+
 	def test_list_team_screens_has_expected_size(self):
 		screens = list_team_screens()
-		self.assertEqual(len(screens), 10) # 1 grupo + 9 telas individuais
+		self.assertEqual(len(screens), 11)
+		self.assertIn(
+			{
+				"slug": "painel-chamada",
+				"title": "Painel de Chamada da Recepção",
+				"owner": "Remany",
+				"status": "em desenvolvimento",
+				"path": "/painel-chamada/",
+			},
+			screens,
+		)
 		self.assertIn(
 			{
 				"slug": "dashboard-monitoramento",

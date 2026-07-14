@@ -13,6 +13,7 @@ urlpatterns = [
         views.dashboard_monitoramento_view,
         name="dashboard-monitoramento",
     ),
+    path("painel-chamada/", views.painel_chamada_view, name="painel-chamada"),
     path(
         "telas/auditoria-percurso-seguranca/",
         views.auditoria_percurso_seguranca_view,
