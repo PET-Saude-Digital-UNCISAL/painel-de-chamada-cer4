@@ -57,7 +57,8 @@ class IsolatedScreenSetupTests(TestCase):
 		self.assertEqual(context["reception_name"], "RECEPÇÃO 3")
 		self.assertEqual(context["current_call"]["ticket"], "A011")
 		self.assertEqual(len(context["recent_calls"]), 5)
-		self.assertTrue(context["qr_code_url"].endswith("qr-code-temporario.png"))
+		self.assertTrue(context["qr_code_url"].startswith("data:image/png;base64,"))
+		self.assertTrue(context["chamada_audio_url"].startswith("data:audio/mpeg;base64,"))
 
 	def test_painel_chamada_route_renders_context_data(self):
 		response = self.client.get("/painel-chamada/")
@@ -65,6 +66,8 @@ class IsolatedScreenSetupTests(TestCase):
 		self.assertTemplateUsed(response, "core/painel_chamada.html")
 		self.assertContains(response, "FELIPE DA SILVA")
 		self.assertContains(response, "ÚLTIMOS CHAMADOS")
+		self.assertContains(response, "data:audio/mpeg;base64,")
+		self.assertNotContains(response, "/static/core/painel_chamada/")
 
 	def test_list_team_screens_has_expected_size(self):
 		screens = list_team_screens()

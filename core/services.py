@@ -5,12 +5,14 @@ Humble Object approach:
 - Business/data assembly lives here.
 """
 
+from base64 import b64encode
 from calendar import monthrange
 from dataclasses import dataclass
 from datetime import date, timedelta
+from functools import lru_cache
+from mimetypes import guess_type
+from pathlib import Path
 from typing import Optional
-
-from django.templatetags.static import static
 
 from core.clock import SystemClock
 from core.models import Paciente
@@ -105,6 +107,17 @@ AUDITORIA_MOCK_DATA = [
 ]
 
 
+PAINEL_CHAMADA_ASSETS_DIR = Path(__file__).resolve().parent / "static" / "core" / "painel_chamada" / "assets"
+
+
+@lru_cache
+def _get_painel_chamada_asset_data_url(relative_path: str) -> str:
+    asset_path = PAINEL_CHAMADA_ASSETS_DIR / relative_path
+    content_type = guess_type(asset_path.name)[0] or "application/octet-stream"
+    encoded_content = b64encode(asset_path.read_bytes()).decode("ascii")
+    return f"data:{content_type};base64,{encoded_content}"
+
+
 def get_painel_chamada_context() -> dict:
     return {
         "page_title": "Painel de Chamada",
@@ -157,18 +170,18 @@ def get_painel_chamada_context() -> dict:
             "RESPEITE A ORDEM DAS FILAS",
             "HOJE É SEGUNDA-FEIRA, 27 DE ABRIL DE 2026",
         ],
-        "qr_code_url": static("core/painel_chamada/assets/qr-code-temporario.png"),
-        "libras_avatar_url": static("core/painel_chamada/assets/libras-avatar-temporario.png"),
-        "logo_cer_url": static("core/painel_chamada/assets/logo-cer.svg"),
-        "logo_uncisal_url": static("core/painel_chamada/assets/logo-uncisal.svg"),
-        "logo_sus_url": static("core/painel_chamada/assets/logo-sus.png"),
-        "clock_card_url": static("core/painel_chamada/assets/clock-card.svg"),
-        "libras_icon_url": static("core/painel_chamada/assets/libras-icon.svg"),
-        "call_bell_icon_url": static("core/painel_chamada/assets/call-bell-icon.png"),
-        "room_icon_url": static("core/painel_chamada/assets/room-icon.png"),
-        "service_icon_url": static("core/painel_chamada/assets/service-icon.png"),
-        "inter_font_url": static("core/painel_chamada/assets/fonts/Inter-Variable.ttf"),
-        "chamada_audio_url": static("core/painel_chamada/assets/audiobeep2.mp3"),
+        "qr_code_url": _get_painel_chamada_asset_data_url("qr-code-temporario.png"),
+        "libras_avatar_url": _get_painel_chamada_asset_data_url("libras-avatar-temporario.png"),
+        "logo_cer_url": _get_painel_chamada_asset_data_url("logo-cer.svg"),
+        "logo_uncisal_url": _get_painel_chamada_asset_data_url("logo-uncisal.svg"),
+        "logo_sus_url": _get_painel_chamada_asset_data_url("logo-sus.png"),
+        "clock_card_url": _get_painel_chamada_asset_data_url("clock-card.svg"),
+        "libras_icon_url": _get_painel_chamada_asset_data_url("libras-icon.svg"),
+        "call_bell_icon_url": _get_painel_chamada_asset_data_url("call-bell-icon.png"),
+        "room_icon_url": _get_painel_chamada_asset_data_url("room-icon.png"),
+        "service_icon_url": _get_painel_chamada_asset_data_url("service-icon.png"),
+        "inter_font_url": _get_painel_chamada_asset_data_url("fonts/Inter-Variable.ttf"),
+        "chamada_audio_url": _get_painel_chamada_asset_data_url("audiobeep2.mp3"),
     }
 
 
