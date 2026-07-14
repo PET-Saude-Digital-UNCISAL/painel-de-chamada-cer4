@@ -34,8 +34,7 @@ body {
   background-color: var(--bg-main);
   color: var(--text-dark);
   line-height: 1.5;
-  display: flex;
-  justify-content: center;
+  display: block;
 }
 
 button {
@@ -46,19 +45,34 @@ button {
   width: 100%;
   max-width: 1440px;
   min-width: 0;
-  min-height: 100vh;
+  min-height: calc(100vh - 66px);
   background-color: var(--bg-main);
   position: relative;
-  padding: 32px 48px;
+  padding: 24px 48px 32px;
+  margin: 0 auto;
 }
 
 /* Header Section */
-.header-wrapper {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 32px;
-}
+.header-wrapper { display:none; }
+
+/* Standard Topbar */
+.topbar{height:66px;display:flex;align-items:center;justify-content:space-between;padding:0 28px;background:#fff;border-bottom:1px solid #edf0f4;font-family:"Segoe UI",Arial,sans-serif;box-sizing:border-box;}
+.topbar .brand-group,.topbar .topbar-actions{display:flex;align-items:center;}
+.topbar .brand-group{gap:14px;}
+.topbar .brand{color:#071d38;font-size:17px;font-weight:800;font-family:"Segoe UI",Arial,sans-serif;}
+.topbar .brand span{font-weight:500;}
+.topbar .icon-button{width:36px;height:36px;display:grid;place-items:center;border:1px solid #dce2e9;border-radius:6px;background:#fff;color:#071d38;cursor:pointer;}
+.topbar .topbar-actions{gap:18px;}
+.topbar .topbar-clock{text-align:right;}
+.topbar .topbar-clock strong{display:block;font-size:16px;font-family:"Segoe UI",Arial,sans-serif;color:#071d38;}
+.topbar .topbar-clock small{color:#667085;font-size:9px;font-family:"Segoe UI",Arial,sans-serif;}
+.topbar .topbar-online{display:flex;align-items:center;gap:7px;padding:10px 13px;border:1px solid #bde4d7;border-radius:7px;background:#effaf6;color:#087d5a;font-size:11px;font-weight:700;}
+.topbar .topbar-online::before{content:"";width:6px;height:6px;border-radius:50%;background:#0aaf7b;}
+.topbar .topbar-user{display:flex;align-items:center;gap:10px;padding-left:17px;border-left:1px solid #e6eaf0;}
+.topbar .topbar-avatar{width:31px;height:31px;display:grid;place-items:center;border-radius:6px;background:#071d38;color:#fff;font-size:11px;}
+.topbar .topbar-user strong,.topbar .topbar-user small{display:block;}
+.topbar .topbar-user strong{font-size:11px;color:#171b22;}
+.topbar .topbar-user small{margin-top:2px;color:#687180;font-size:9px;}
 
 .header-wrapper h1 {
   font-size: 24px;
@@ -877,29 +891,20 @@ button {
   </style>
 </head>
 <body>
-
+<header class="topbar">
+    <div class="brand-group">
+        {% if not interno %}<button class="icon-button" id="drawer-toggle" type="button" aria-label="Abrir menu" aria-expanded="false"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg></button>{% endif %}
+        <div class="brand">CER III <span>&#8212; Dashboard</span></div>
+    </div>
+    <div class="topbar-actions">
+        <div class="topbar-clock"><strong id="clock-time">--:--</strong><small id="clock-date">Carregando data...</small></div>
+        <div class="topbar-online">Sistema online</div>
+        <div class="topbar-user"><span class="topbar-avatar">F</span><div><strong>Funcionário</strong><small>Gestão da recepção</small></div></div>
+    </div>
+</header>
 <div class="dashboard-container">
   <div class="header-wrapper">
     <h1>{{ page_title }}</h1>
-    <div class="header-right">
-      <div class="time-block">
-        <div class="time">{{ current_time }}</div>
-        <div class="date">{{ current_date }}</div>
-      </div>
-      <div class="divider"></div>
-      <div class="status-badge">
-        <div class="dot"></div>
-        <span>{{ system_status }}</span>
-      </div>
-      <div class="divider"></div>
-      <div class="user-profile">
-        <div class="avatar">{{ user.initial }}</div>
-        <div class="user-info">
-          <span class="name">{{ user.name }}</span>
-          <span class="role">{{ user.role }}</span>
-        </div>
-      </div>
-    </div>
   </div>
 
   <div class="kpi-section">
@@ -1045,5 +1050,6 @@ button {
     {% endfor %}
   </div>
 </div>
+<script>(function(){var t=document.getElementById("clock-time"),d=document.getElementById("clock-date"),m=["janeiro","fevereiro","mar\u00e7o","abril","maio","junho","julho","agosto","setembro","outubro","novembro","dezembro"];function r(){var n=new Date(),h=String(n.getHours()).padStart(2,"0"),mi=String(n.getMinutes()).padStart(2,"0"),dy=String(n.getDate()).padStart(2,"0");if(t)t.textContent=h+":"+mi;if(d)d.textContent=dy+" de "+m[n.getMonth()]+" de "+n.getFullYear();}r();setInterval(r,15000);})();</script>
 </body>
 </html>

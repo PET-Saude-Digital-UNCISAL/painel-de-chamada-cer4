@@ -1,10 +1,42 @@
 {% load static %}
-<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Meu Perfil | CER III</title><link rel="stylesheet" href="{% static 'core/css/meu_perfil.css' %}"></head>
-<body><div class="page" id="profile-layout">
-<aside class="drawer" aria-label="Navegação principal"><div class="drawer-brand">CER III</div><a class="drawer-link" href="/"><img src="{% static 'core/icons/dasboard.svg' %}" alt="">Dashboard</a><a class="drawer-link" href="/telas/auditoria-percurso-seguranca/"><img src="{% static 'core/icons/auditoria-percurso.svg' %}" alt="">Auditoria</a><a class="drawer-link" href="/configuracoes/"><img src="{% static 'core/icons/configuracoes.svg' %}" alt="">Configurações</a><a class="drawer-link active" href="/telas/dev1/" aria-current="page"><img src="{% static 'core/icons/meu-perfil.svg' %}" alt="">Meu Perfil</a></aside><button class="drawer-overlay" id="drawer-overlay" type="button" aria-label="Fechar menu"></button>
-<header><div class="brand-group"><button class="drawer-toggle" id="drawer-toggle" type="button" aria-label="Abrir menu" aria-expanded="false"><span></span><span></span><span></span></button><h1>CER III <span>— Meu Perfil</span></h1></div><div class="top"><div class="clock"><b>18:48</b><small>05 de maio de 2026</small></div><div class="online"><i></i>Sistema online</div><div class="user"><b>F</b><span><strong>Funcionário</strong><small>Gestão da recepção</small></span></div></div></header>
+<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Meu Perfil | CER III</title><link rel="stylesheet" href="{% static 'core/css/meu_perfil.css' %}">
+<style>
+header.topbar{height:66px;display:flex;align-items:center;justify-content:space-between;padding:0 28px;background:#fff;border-bottom:1px solid #edf0f4;font-family:"Segoe UI",Arial,sans-serif;box-sizing:border-box;}
+header.topbar .brand-group,header.topbar .topbar-actions{display:flex;align-items:center;}
+header.topbar .brand-group{gap:14px;}
+header.topbar .brand{color:#071d38;font-size:17px;font-weight:800;font-family:"Segoe UI",Arial,sans-serif;}
+header.topbar .brand span{font-weight:500;}
+header.topbar .icon-button{width:36px;height:36px;display:grid;place-items:center;border:1px solid #dce2e9;border-radius:6px;background:#fff;color:#071d38;cursor:pointer;}
+header.topbar .topbar-actions{gap:18px;}
+header.topbar .topbar-clock{text-align:right;}
+header.topbar .topbar-clock strong{display:block;font-size:16px;font-family:"Segoe UI",Arial,sans-serif;color:#071d38;}
+header.topbar .topbar-clock small{color:#667085;font-size:9px;font-family:"Segoe UI",Arial,sans-serif;}
+header.topbar .topbar-online{display:flex;align-items:center;gap:7px;padding:10px 13px;border:1px solid #bde4d7;border-radius:7px;background:#effaf6;color:#087d5a;font-size:11px;font-weight:700;}
+header.topbar .topbar-online::before{content:"";width:6px;height:6px;border-radius:50%;background:#0aaf7b;}
+header.topbar .topbar-user{display:flex;align-items:center;gap:10px;padding-left:17px;border-left:1px solid #e6eaf0;}
+header.topbar .topbar-avatar{width:31px;height:31px;display:grid;place-items:center;border-radius:6px;background:#071d38;color:#fff;font-size:11px;}
+header.topbar .topbar-user strong,header.topbar .topbar-user small{display:block;}
+header.topbar .topbar-user strong{font-size:11px;color:#171b22;}
+header.topbar .topbar-user small{margin-top:2px;color:#687180;font-size:9px;}
+</style>
+</head>
+<body{% if interno %} class="interno"{% endif %}><div class="page" id="profile-layout">
+{% if not interno %}<aside class="drawer" aria-label="Navegação principal"><div class="drawer-brand">CER III</div><a class="drawer-link" href="/"><img src="{% static 'core/icons/dasboard.svg' %}" alt="">Dashboard</a><a class="drawer-link" href="/telas/auditoria-percurso-seguranca/"><img src="{% static 'core/icons/auditoria-percurso.svg' %}" alt="">Auditoria</a><a class="drawer-link" href="/configuracoes/"><img src="{% static 'core/icons/configuracoes.svg' %}" alt="">Configurações</a><a class="drawer-link active" href="/telas/dev1/" aria-current="page"><img src="{% static 'core/icons/meu-perfil.svg' %}" alt="">Meu Perfil</a></aside><button class="drawer-overlay" id="drawer-overlay" type="button" aria-label="Fechar menu"></button>{% endif %}
+<header class="topbar">
+    <div class="brand-group">
+        {% if not interno %}<button class="icon-button drawer-toggle" id="drawer-toggle" type="button" aria-label="Abrir menu" aria-expanded="false"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg></button>{% endif %}
+        <div class="brand">CER III <span>&#8212; Meu Perfil</span></div>
+    </div>
+    <div class="topbar-actions">
+        <div class="topbar-clock"><strong id="clock-time">--:--</strong><small id="clock-date">Carregando data...</small></div>
+        <div class="topbar-online">Sistema online</div>
+        <div class="topbar-user"><span class="topbar-avatar">F</span><div><strong>Funcionário</strong><small>Gestão da recepção</small></div></div>
+    </div>
+</header>
 <main><div class="grid">
 <section class="personal"><h2><i class="blue">♟</i>Informações Pessoais</h2><div class="card personal-card"><div class="photo-row"><div class="photo" id="photo"><button id="pick" type="button" aria-label="Alterar foto">✎</button></div><input id="file" type="file" accept="image/png,image/jpeg" hidden><div class="photo-text"><h3>Sua Foto de Perfil</h3><p>Recomendado: JPG ou PNG de pelo menos 800×800px.</p><button class="change" type="button">Alterar Foto</button><button class="remove" type="button">Remover</button></div></div><form id="form"><label><span>NOME COMPLETO</span><input value="Carlos Eduardo Mendes"></label><label><span>CPF</span><input value="123.456.789-00"></label><label><span>E-MAIL INSTITUCIONAL</span><input type="email" value="carlos.mendes@clinicacentral.com.br"></label><label><span>TELEFONE</span><input value="(11) 98765-4321"></label><label class="lang"><span>PREFERÊNCIA DE IDIOMA</span><select><option>Português (Brasil)</option><option>English</option><option>Español</option></select></label></form></div></section>
 <section class="credentials"><h2><i class="pale">♙</i>Credenciais Profissionais</h2><div class="card credentials-card"><dl><div><dt>CARGO</dt><dd class="accent">Gestor de Unidade</dd></div><div><dt>ID DE REGISTRO</dt><dd>#44892-ACC</dd></div><div><dt>DEPARTAMENTO</dt><dd>Administração Central</dd></div></dl></div></section>
 <section class="security"><h2><i class="green">♜</i>Segurança e Acesso</h2><div class="card security-card"><div class="security-row"><em>◴</em><div><strong>Senha de Acesso</strong><small>Última alteração há 45 dias</small></div><button type="button">Alterar Senha</button></div><div class="security-row"><em class="shield">♢</em><div><strong>Autenticação de Dois Fatores (2FA)</strong><small class="active">Ativado • Protegendo sua conta</small></div><button type="button">Configurar</button></div></div></section>
-</div></main><footer><button class="cancel" type="button">Cancelar</button><button class="save" type="submit" form="form">Salvar Alterações</button></footer><div id="toast">Alterações salvas com sucesso.</div></div><script src="{% static 'core/js/meu_perfil.js' %}"></script></body></html>
+</div></main><footer><button class="cancel" type="button">Cancelar</button><button class="save" type="submit" form="form">Salvar Alterações</button></footer><div id="toast">Alterações salvas com sucesso.</div></div><script src="{% static 'core/js/meu_perfil.js' %}"></script>
+<script>(function(){var t=document.getElementById("clock-time"),d=document.getElementById("clock-date"),m=["janeiro","fevereiro","mar\u00e7o","abril","maio","junho","julho","agosto","setembro","outubro","novembro","dezembro"];function r(){var n=new Date(),h=String(n.getHours()).padStart(2,"0"),mi=String(n.getMinutes()).padStart(2,"0"),dy=String(n.getDate()).padStart(2,"0");if(t)t.textContent=h+":"+mi;if(d)d.textContent=dy+" de "+m[n.getMonth()]+" de "+n.getFullYear();}r();setInterval(r,15000);})();</script>
+</body></html>

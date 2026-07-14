@@ -22,7 +22,9 @@ from core.services import (
 @xframe_options_sameorigin
 def dashboard_monitoramento_view(request):
     """Renderiza o dashboard de monitoramento com dados fictícios."""
-    return render(request, "core/dashboard_monitoramento.html", get_dashboard_monitoramento_context())
+    context = get_dashboard_monitoramento_context()
+    context["interno"] = request.GET.get("interno") == "1"
+    return render(request, "core/dashboard_monitoramento.html", context)
 
 
 @xframe_options_sameorigin
@@ -64,6 +66,7 @@ def configuracoes_view(request):
         "usuarios_ativos": usuarios.filter(usuario_ativo=True).count(),
         "abrir_gestao_usuarios": request.GET.get("modulo") == "usuarios" or request.method == "POST",
         "resultado": request.GET.get("resultado", ""),
+        "interno": request.GET.get("interno") == "1",
         "configuracoes_action_url": (
             f"{reverse('configuracoes')}?interno=1"
             if request.GET.get("interno") == "1"
@@ -158,6 +161,8 @@ def sistema_interno_view(request):
 
 def sistema_interno_figma_view(request):
     """Shell do sistema interno com o Drawer aprovado no Figma."""
+    if not request.session.get("staff_logged_in"):
+        return redirect("login")
     screens = {
         "monitoramento": {"label": "Dashboard", "path": f"{reverse('dashboard-monitoramento')}?interno=1"},
         "relatorios": {"label": "Relatorios de Desempenho", "path": None},
@@ -182,7 +187,6 @@ def sistema_interno_figma_view(request):
         "active_screen": screens[active_key],
     })
 
-
 def screen_view(request, screen_slug):
     """Thin view: only render context produced by the application service."""
     context = get_screen_context(screen_slug)
@@ -205,6 +209,7 @@ def auditoria_percurso_seguranca_view(request):
     }
 
     context = get_auditoria_percurso_context(filtros)
+    context["interno"] = request.GET.get("interno") == "1"
 
     if request.GET.get("export") == "csv":
         response = HttpResponse(content_type="text/csv")
@@ -281,37 +286,28 @@ def agendamento_nao_encontrado_view(request):
 
 @xframe_options_sameorigin
 def login_view(request):
-    """Tela de Login (Acesso ao Portal), autenticação do paciente por CPF."""
-    if request.session.get("paciente_id"):
-        return redirect("area-paciente")
-
-    form = LoginPacienteForm(request.POST or None)
-    if request.method == "POST" and form.is_valid():
-        paciente = autenticar_paciente(form.cleaned_data["cpf"], form.cleaned_data["senha"])
-        if paciente is None:
-            form.add_error(None, "CPF ou senha inválidos. Confira os dados e tente novamente.")
-        else:
-            request.session["paciente_id"] = paciente.pk
-            return redirect("area-paciente")
-
-    context = {**get_login_context(), "form": form}
+    """Tela de Login — qualquer submissão concede acesso ao sistema (protótipo)."""
+    if request.session.get("staff_logged_in"):
+        return redirect("sistema-interno")
+    if request.method == "POST":
+        request.session["staff_logged_in"] = True
+        return redirect("sistema-interno")
+    context = {**get_login_context(), "form": LoginPacienteForm()}
     return render(request, "core/login.html", context)
 
 
 @xframe_options_sameorigin
 def cadastro_view(request):
-    """Tela de Cadastro (Criar Conta do paciente)."""
-    form = CadastroPacienteForm(request.POST or None)
-    if request.method == "POST" and form.is_valid():
-        form.save()
-        return redirect("login")
-
-    context = {**get_cadastro_context(), "form": form}
+    """Tela de Cadastro — qualquer submissão redireciona ao login (protótipo)."""
+    if request.method == "POST":
+        request.session["staff_logged_in"] = True
+        return redirect("sistema-interno")
+    context = {**get_cadastro_context(), "form": CadastroPacienteForm()}
     return render(request, "core/cadastro.html", context)
 
 
 def logout_view(request):
-    request.session.pop("paciente_id", None)
+    request.session.pop("staff_logged_in", None)
     return redirect("login")
 
 
@@ -327,7 +323,7 @@ def area_paciente_view(request):
 
 @xframe_options_sameorigin
 def gestao_qualidade_view(request):
-    return render(request, 'core/gestao_qualidade.html')
+    return render(request, 'core/gestao_qualidade.html', {"interno": request.GET.get("interno") == "1"})
 
 
 def pesquisa_satisfacao_view(request):
@@ -336,4 +332,4 @@ def pesquisa_satisfacao_view(request):
 
 @xframe_options_sameorigin
 def meu_perfil_view(request):
-    return render(request, "core/meu_perfil.html")
+    return render(request, "core/meu_perfil.html", {"interno": request.GET.get("interno") == "1"})

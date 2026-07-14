@@ -10,6 +10,7 @@
 </head>
 <body>
     <div id="app-layout">
+        {% if not interno %}
         <aside class="drawer" aria-label="Navegação principal">
             <div class="drawer-brand">CER III</div>
             <a class="drawer-link" href="/"><img src="{% static 'core/icons/dasboard.svg' %}" alt="">Dashboard</a>
@@ -18,10 +19,11 @@
             <a class="drawer-link" href="/telas/dev1/"><img src="{% static 'core/icons/meu-perfil.svg' %}" alt="">Meu Perfil</a>
         </aside>
         <button class="drawer-overlay" id="drawer-overlay" type="button" aria-label="Fechar menu"></button>
+        {% endif %}
 
         <header class="topbar">
             <div class="brand-group">
-                <button class="icon-button drawer-toggle" id="drawer-toggle" type="button" aria-label="Abrir menu" aria-expanded="false"><i data-lucide="menu"></i></button>
+                {% if not interno %}<button class="icon-button drawer-toggle" id="drawer-toggle" type="button" aria-label="Abrir menu" aria-expanded="false"><i data-lucide="menu"></i></button>{% endif %}
                 <div class="brand">CER III <span>— Configurações</span></div>
             </div>
             <div class="topbar-actions">
