@@ -30,7 +30,14 @@ header.topbar .topbar-user small{margin-top:2px;color:#687180;font-size:9px;}
     <div class="topbar-actions">
         <div class="topbar-clock"><strong id="clock-time">--:--</strong><small id="clock-date">Carregando data...</small></div>
         <div class="topbar-online">Sistema online</div>
-        <div class="topbar-user"><span class="topbar-avatar">{{ iniciais_perfil }}</span><div><strong>{{ nome_perfil }}</strong><small>{{ papel_perfil }}</small></div></div>
+        <div class="topbar-user">
+            {% if usuario and usuario.foto_perfil %}
+                <img src="{{ usuario.foto_perfil.url }}" class="topbar-avatar" style="object-fit:cover;border-radius:6px;" alt="">
+            {% else %}
+                <span class="topbar-avatar">{{ iniciais_perfil }}</span>
+            {% endif %}
+            <div><strong>{{ nome_perfil }}</strong><small>{{ papel_perfil }}</small></div>
+        </div>
     </div>
 </header>
 <main><div class="grid">

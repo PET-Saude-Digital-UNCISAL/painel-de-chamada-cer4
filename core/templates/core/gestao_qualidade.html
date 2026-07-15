@@ -38,7 +38,16 @@
         <div class="topbar-actions">
             <div class="topbar-clock"><strong id="clock-time">--:--</strong><small id="clock-date">Carregando data...</small></div>
             <div class="topbar-online">Sistema online</div>
-            <div class="topbar-user"><span class="topbar-avatar">F</span><div><strong>Funcion&#225;rio</strong><small>Gest&#227;o da recep&#231;&#227;o</small></div></div>
+            <div class="topbar-user">
+                {% if usuario_logado %}
+                    {% if usuario_logado.foto_perfil %}
+                        <img src="{{ usuario_logado.foto_perfil.url }}" class="topbar-avatar" style="object-fit:cover;" alt="">
+                    {% else %}
+                        <span class="topbar-avatar">{{ usuario_logado.iniciais }}</span>
+                    {% endif %}
+                    <div><strong>{{ usuario_logado.nome_completo }}</strong><small>{{ usuario_logado.get_nivel_acesso_display }}</small></div>
+                {% endif %}
+            </div>
         </div>
     </header>
 
