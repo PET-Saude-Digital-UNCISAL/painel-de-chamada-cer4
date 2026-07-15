@@ -212,6 +212,8 @@ body.modal-open { overflow:hidden; }
 .row-actions { display:flex; align-items:center; gap:14px; }
 .row-actions button { width:25px; height:25px; display:grid; place-items:center; border:0; background:transparent; color:#637083; cursor:pointer; }
 .row-actions button svg { width:16px; }
+.edit-user-button { width:25px; height:25px; display:grid; place-items:center; border:0; background:transparent; color:#637083; cursor:pointer; }
+.edit-user-button svg { width:16px; }
 .table-footer { min-height:62px; display:flex; align-items:center; justify-content:space-between; gap:20px; padding:0 18px; border-top:1px solid #edf0f3; color:#737c89; font-size:10px; }
 .pagination { display:flex; gap:7px; }
 .pagination button { width:31px; height:31px; display:grid; place-items:center; border:1px solid #cbd3dc; border-radius:8px; background:#fff; color:#687383; cursor:pointer; font-size:11px; }

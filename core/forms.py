@@ -76,7 +76,7 @@ class MeuPerfilForm(forms.ModelForm):
 
     class Meta:
         model = UsuarioSistema
-        fields = ("nome_completo", "email_institucional")
+        fields = ("nome_completo", "email_institucional", "cargo", "departamento")
 
     def clean_email_institucional(self):
         email = self.cleaned_data["email_institucional"]

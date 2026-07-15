@@ -13,6 +13,8 @@ class UsuarioSistema(models.Model):
     email_institucional = models.EmailField(unique=True)
     cpf = models.CharField(max_length=14, unique=True)
     nivel_acesso = models.CharField(max_length=20, choices=NivelAcesso.choices)
+    cargo = models.CharField(max_length=100, blank=True, default="")
+    departamento = models.CharField(max_length=100, blank=True, default="")
     foto_perfil = models.ImageField(upload_to='perfis/', null=True, blank=True)
     usuario_ativo = models.BooleanField(default=True)
     criado_em = models.DateTimeField(auto_now_add=True)
