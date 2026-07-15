@@ -87,6 +87,13 @@ class IsolatedScreenSetupTests(TestCase):
 		self.assertContains(response, "data:font/ttf;base64,")
 		self.assertNotContains(response, "fonts.googleapis.com")
 		self.assertNotContains(response, "styles.css")
+		self.assertContains(response, "Simular chamada")
+		self.assertNotContains(response, "Entendi, estou a caminho")
+		self.assertContains(response, "navigator.vibrate")
+		self.assertContains(response, "4500")
+		self.assertContains(response, "data:audio/mpeg;base64,")
+		self.assertContains(response, 'role="alert"')
+		self.assertContains(response, "prefers-reduced-motion")
 
 	def test_list_team_screens_has_expected_size(self):
 		screens = list_team_screens()
