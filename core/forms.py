@@ -116,6 +116,17 @@ class CadastroPacienteForm(forms.ModelForm):
             }
         ),
     )
+    confirmar_senha = forms.CharField(
+        label="Confirmar senha",
+        widget=forms.PasswordInput(
+            attrs={
+                "class": "campo-input",
+                "placeholder": "Repita a senha",
+                "id": "id_confirmar_senha",
+                "autocomplete": "new-password",
+            }
+        ),
+    )
 
     class Meta:
         model = Paciente
@@ -128,7 +139,7 @@ class CadastroPacienteForm(forms.ModelForm):
         }
         widgets = {
             "nome_completo": forms.TextInput(
-                attrs={"class": "campo-input", "placeholder": "Ex: Maria Oliveira Silva"}
+                attrs={"class": "campo-input", "placeholder": "Ex: Maria Oliveira Silva", "autocomplete": "name"}
             ),
             "cpf": forms.TextInput(
                 attrs={
@@ -136,15 +147,22 @@ class CadastroPacienteForm(forms.ModelForm):
                     "placeholder": "999.999.999-99",
                     "id": "id_cpf",
                     "inputmode": "numeric",
+                    "autocomplete": "off",
                 }
             ),
             "data_nascimento": forms.DateInput(
-                attrs={"class": "campo-input", "type": "date"}
+                attrs={"class": "campo-input", "type": "date", "autocomplete": "bday"}
             ),
             "email": forms.EmailInput(
-                attrs={"class": "campo-input", "placeholder": "nome@exemplo.com"}
+                attrs={"class": "campo-input", "placeholder": "nome@exemplo.com", "autocomplete": "email"}
             ),
         }
+
+    def clean_nome_completo(self):
+        nome = self.cleaned_data["nome_completo"].strip()
+        if len(nome.split()) < 2:
+            raise forms.ValidationError("Informe o nome completo (nome e sobrenome).")
+        return nome.title()
 
     def clean_cpf(self):
         digits = re.sub(r"\D", "", self.cleaned_data["cpf"])
@@ -153,6 +171,20 @@ class CadastroPacienteForm(forms.ModelForm):
         if Paciente.objects.filter(cpf=digits).exists():
             raise forms.ValidationError("Já existe uma conta cadastrada com este CPF.")
         return digits
+
+    def clean_email(self):
+        email = self.cleaned_data["email"].strip().lower()
+        if email and Paciente.objects.filter(email=email).exists():
+            raise forms.ValidationError("Este e-mail já está cadastrado.")
+        return email
+
+    def clean(self):
+        cleaned = super().clean()
+        senha = cleaned.get("senha")
+        confirmar = cleaned.get("confirmar_senha")
+        if senha and confirmar and senha != confirmar:
+            self.add_error("confirmar_senha", "As senhas não coincidem.")
+        return cleaned
 
     def save(self, commit=True):
         paciente = super().save(commit=False)

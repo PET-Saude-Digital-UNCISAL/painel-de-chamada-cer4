@@ -2,6 +2,7 @@ import csv
 import json
 
 from django.conf import settings
+from django.db import IntegrityError
 from django.http import Http404, HttpResponse, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
@@ -318,10 +319,18 @@ def login_view(request):
 
 @xframe_options_sameorigin
 def cadastro_view(request):
-    """Tela de Cadastro — qualquer submissão redireciona ao login (protótipo)."""
+    """Tela de Cadastro — persiste o paciente no banco com tratamento de erros."""
     if request.method == "POST":
-        request.session["staff_logged_in"] = True
-        return redirect("sistema-interno")
+        form = CadastroPacienteForm(request.POST)
+        if form.is_valid():
+            try:
+                paciente = form.save()
+                request.session["paciente_id"] = paciente.pk
+                return redirect("login")
+            except IntegrityError:
+                form.add_error(None, "Erro ao salvar: CPF ou e-mail já cadastrado.")
+        context = {**get_cadastro_context(), "form": form}
+        return render(request, "core/cadastro.html", context)
     context = {**get_cadastro_context(), "form": CadastroPacienteForm()}
     return render(request, "core/cadastro.html", context)
 
