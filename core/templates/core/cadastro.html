@@ -96,6 +96,17 @@
                         <p class="medidor-senha-legenda" id="medidor-senha-legenda">Senha fraca</p>
                     </div>
 
+                    <div class="campo-grupo">
+                        <label for="id_confirmar_senha">Confirmar senha</label>
+                        <div class="campo-senha-wrapper">
+                            {{ form.confirmar_senha }}
+                            <button type="button" class="botao-mostrar-senha" id="botao-mostrar-confirmar" aria-label="Mostrar senha" aria-pressed="false">
+                                <i data-lucide="eye" id="icone-olho-confirmar"></i>
+                            </button>
+                        </div>
+                        {% if form.confirmar_senha.errors %}<p class="campo-erro">{{ form.confirmar_senha.errors.0 }}</p>{% endif %}
+                    </div>
+
                     <button type="submit" class="botao-primario">Criar Conta <i data-lucide="arrow-right"></i></button>
 
                     <p class="linha-login">Já possui uma conta? <a href="{% url 'login' %}">Fazer login</a></p>
@@ -144,18 +155,25 @@
 
         const botaoMostrarSenha = document.getElementById("botao-mostrar-senha");
         const campoSenha = document.getElementById("id_senha");
-        if (botaoMostrarSenha && campoSenha) {
-            botaoMostrarSenha.addEventListener("click", () => {
-                const visivel = campoSenha.type === "text";
-                campoSenha.type = visivel ? "password" : "text";
-                botaoMostrarSenha.setAttribute("aria-pressed", String(!visivel));
-                const icone = document.getElementById("icone-olho");
+        function toggleSenha(botao, campo, iconeId) {
+            if (!botao || !campo) return;
+            botao.addEventListener("click", () => {
+                const visivel = campo.type === "text";
+                campo.type = visivel ? "password" : "text";
+                botao.setAttribute("aria-pressed", String(!visivel));
+                const icone = document.getElementById(iconeId);
                 if (icone && window.lucide) {
                     icone.setAttribute("data-lucide", visivel ? "eye" : "eye-off");
                     window.lucide.createIcons();
                 }
             });
         }
+        toggleSenha(botaoMostrarSenha, campoSenha, "icone-olho");
+        toggleSenha(
+            document.getElementById("botao-mostrar-confirmar"),
+            document.getElementById("id_confirmar_senha"),
+            "icone-olho-confirmar"
+        );
 
         const medidor = document.getElementById("medidor-senha");
         const legenda = document.getElementById("medidor-senha-legenda");
