@@ -51,6 +51,26 @@ class UsuarioSistemaForm(forms.ModelForm):
         return f"{digits[:3]}.{digits[3:6]}.{digits[6:9]}-{digits[9:]}"
 
 
+class PacientePerfilForm(forms.ModelForm):
+    """Formulário de edição do próprio perfil pelo paciente autenticado."""
+
+    class Meta:
+        model = Paciente
+        fields = ("nome_completo", "email", "data_nascimento")
+        widgets = {
+            "nome_completo": forms.TextInput(attrs={"class": "campo-input"}),
+            "email": forms.EmailInput(attrs={"class": "campo-input"}),
+            "data_nascimento": forms.DateInput(attrs={"class": "campo-input", "type": "date"}),
+        }
+
+    def clean_email(self):
+        email = self.cleaned_data["email"].strip().lower()
+        qs = Paciente.objects.filter(email=email).exclude(pk=self.instance.pk)
+        if email and qs.exists():
+            raise forms.ValidationError("Este e-mail já está em uso por outro cadastro.")
+        return email
+
+
 class MeuPerfilForm(forms.ModelForm):
     """Formulário de edição do próprio perfil pelo usuário autenticado."""
 
