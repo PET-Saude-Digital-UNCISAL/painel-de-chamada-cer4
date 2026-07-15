@@ -4,6 +4,7 @@ from core.dev_builders import build_fake_screen_list, build_mocked_screen_payloa
 from core.services import (
 	get_dashboard_monitoramento_context,
 	get_painel_chamada_context,
+	get_paciente_chamado_context,
 	get_screen_context,
 	list_team_screens,
 )
@@ -69,9 +70,37 @@ class IsolatedScreenSetupTests(TestCase):
 		self.assertContains(response, "data:audio/mpeg;base64,")
 		self.assertNotContains(response, "/static/core/painel_chamada/")
 
+	def test_paciente_chamado_context_has_expected_mock_data(self):
+		context = get_paciente_chamado_context()
+		self.assertEqual(context["senha"], "A003")
+		self.assertEqual(context["paciente"], "Ricardo Augusto Oliveira")
+		self.assertEqual(context["sala"], "10")
+		self.assertEqual(context["tipo_atendimento"], "Ambulatorial")
+		self.assertTrue(context["public_sans_font_url"].startswith("data:font/ttf;base64,"))
+
+	def test_paciente_chamado_route_renders_context_data(self):
+		response = self.client.get("/paciente-chamado/")
+		self.assertEqual(response.status_code, 200)
+		self.assertTemplateUsed(response, "core/paciente_chamado.html")
+		self.assertContains(response, "A003")
+		self.assertContains(response, "RICARDO AUGUSTO OLIVEIRA")
+		self.assertContains(response, "data:font/ttf;base64,")
+		self.assertNotContains(response, "fonts.googleapis.com")
+		self.assertNotContains(response, "styles.css")
+
 	def test_list_team_screens_has_expected_size(self):
 		screens = list_team_screens()
-		self.assertEqual(len(screens), 11)
+		self.assertEqual(len(screens), 12)
+		self.assertIn(
+			{
+				"slug": "paciente-chamado",
+				"title": "Paciente Chamado",
+				"owner": "Remany",
+				"status": "em desenvolvimento",
+				"path": "/paciente-chamado/",
+			},
+			screens,
+		)
 		self.assertIn(
 			{
 				"slug": "painel-chamada",

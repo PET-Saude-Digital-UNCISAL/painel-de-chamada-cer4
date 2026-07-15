@@ -185,6 +185,36 @@ def get_painel_chamada_context() -> dict:
     }
 
 
+PACIENTE_CHAMADO_ASSETS_DIR = Path(__file__).resolve().parent / "static" / "core" / "paciente_chamado" / "assets"
+
+
+@lru_cache
+def _get_paciente_chamado_asset_data_url(relative_path: str) -> str:
+    asset_path = PACIENTE_CHAMADO_ASSETS_DIR / relative_path
+    content_type = guess_type(asset_path.name)[0] or "application/octet-stream"
+    encoded_content = b64encode(asset_path.read_bytes()).decode("ascii")
+    return f"data:{content_type};base64,{encoded_content}"
+
+
+def get_paciente_chamado_context() -> dict:
+    return {
+        "page_title": "Paciente Chamado",
+        "title": "PACIENTE CHAMADO",
+        "subtitle": "Dirija-se ao local indicado para atendimento",
+        "senha": "A003",
+        "paciente": "Ricardo Augusto Oliveira",
+        "sala": "10",
+        "tipo_atendimento": "Ambulatorial",
+        "status": "Chamada atual",
+        "mensagem": "Dirija-se à sala indicada acima para iniciar seu atendimento.",
+        "footer_indicators": [
+            {"label": "LGPD", "detail": "Conforme", "icon": "lock"},
+            {"label": "Conexão", "detail": "Segura", "icon": "shield"},
+        ],
+        "public_sans_font_url": _get_paciente_chamado_asset_data_url("public-sans.ttf"),
+    }
+
+
 def get_dashboard_monitoramento_context() -> dict:
     """Return the temporary mock payload displayed by the monitoring dashboard."""
     return {
@@ -485,6 +515,16 @@ def list_team_screens() -> list[dict]:
             "owner": "Remany",
             "status": "em desenvolvimento",
             "path": "/painel-chamada/",
+        }
+    )
+
+    other_screens.append(
+        {
+            "slug": "paciente-chamado",
+            "title": "Paciente Chamado",
+            "owner": "Remany",
+            "status": "em desenvolvimento",
+            "path": "/paciente-chamado/",
         }
     )
 
