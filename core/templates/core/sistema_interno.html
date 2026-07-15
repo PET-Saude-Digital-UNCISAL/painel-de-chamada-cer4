@@ -33,7 +33,9 @@
             <nav class="navigation">
                 {% for item in navigation_items %}
                     <a class="nav-item{% if item.key == active_key %} active{% endif %}" href="?tela={{ item.key }}"{% if item.key == active_key %} aria-current="page"{% endif %}>
-                        {% if item.key == 'monitoramento' %}
+                        {% if item.key == 'auditoria' %}
+                            <svg class="nav-icon" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/><path d="M8 14h.01M12 14h.01M16 14h.01M8 18h.01M12 18h.01"/></svg>
+                        {% elif item.key == 'monitoramento' %}
                             <svg class="nav-icon" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
                         {% elif item.key == 'relatorios' %}
                             <svg class="nav-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20V5h16v15z"/><path d="M8 16v-3m4 3V9m4 7v-5"/></svg>

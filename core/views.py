@@ -1,13 +1,15 @@
 import csv
+import json
 
 from django.conf import settings
-from django.http import Http404, HttpResponse
+from django.http import Http404, HttpResponse, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 from django.views.decorators.clickjacking import xframe_options_sameorigin
+from django.views.decorators.http import require_POST
 
 from core.dev_builders import build_fake_screen_list, build_mocked_screen_payload
-from core.forms import CadastroPacienteForm, LoginPacienteForm, UsuarioSistemaForm
+from core.forms import CadastroPacienteForm, EncaixeForm, LoginPacienteForm, MeuPerfilForm, UsuarioSistemaForm
 from core.models import UsuarioSistema
 from core.services import (
     get_auditoria_percurso_context,
@@ -17,6 +19,7 @@ from core.services import (
     get_painel_chamada_context,
     get_paciente_chamado_context,
     get_screen_context,
+    registrar_encaixe,
 )
 
 
@@ -109,6 +112,7 @@ def perdeu_chamada_view(request, **kwargs):
 
 def home_view(request):
     """Entrada do painel isolado, limitada aos dois fluxos do produto."""
+    request.session.pop("staff_logged_in", None)
     return render(request, "core/home.html", {"title": "Painel de desenvolvimento"})
 
 
@@ -173,9 +177,9 @@ def sistema_interno_figma_view(request):
     if not request.session.get("staff_logged_in"):
         return redirect("login")
     screens = {
+        "auditoria": {"label": "Atendimentos do Dia", "path": f"{reverse('screen-auditoria-percurso-seguranca')}?interno=1"},
         "monitoramento": {"label": "Dashboard", "path": f"{reverse('dashboard-monitoramento')}?interno=1"},
         "relatorios": {"label": "Relatorios de Desempenho", "path": None},
-        "auditoria": {"label": "Auditoria de Percurso", "path": f"{reverse('screen-auditoria-percurso-seguranca')}?interno=1"},
         "qualidade": {"label": "Gestao de Qualidade", "path": f"{reverse('gestao_qualidade')}?interno=1"},
         "configuracoes": {"label": "Configuracoes", "path": f"{reverse('configuracoes')}?interno=1"},
         "perfil": {"label": "Meu Perfil", "path": f"{reverse('meu-perfil')}?interno=1"},
@@ -183,12 +187,12 @@ def sistema_interno_figma_view(request):
         "login": {"label": "Login", "path": f"{reverse('login')}?interno=1"},
         "cadastro": {"label": "Cadastro", "path": f"{reverse('cadastro')}?interno=1"},
     }
-    active_key = request.GET.get("tela", "monitoramento")
+    active_key = request.GET.get("tela", "auditoria")
     if active_key not in screens:
-        active_key = "monitoramento"
+        active_key = "auditoria"
     navigation_items = [
         {"key": key, **screens[key]}
-        for key in ("monitoramento", "relatorios", "auditoria", "qualidade", "configuracoes", "perfil")
+        for key in ("auditoria", "monitoramento", "relatorios", "qualidade", "configuracoes", "perfil")
     ]
     return render(request, "core/sistema_interno.html", {
         "navigation_items": navigation_items,
@@ -299,7 +303,14 @@ def login_view(request):
     if request.session.get("staff_logged_in"):
         return redirect("sistema-interno")
     if request.method == "POST":
-        request.session["staff_logged_in"] = True
+        form = LoginPacienteForm(request.POST)
+        if form.is_valid():
+            cpf_digits = form.cleaned_data["cpf"]
+            cpf_fmt = f"{cpf_digits[:3]}.{cpf_digits[3:6]}.{cpf_digits[6:9]}-{cpf_digits[9:]}"
+            usuario = UsuarioSistema.objects.filter(cpf=cpf_fmt, usuario_ativo=True).first()
+            request.session["staff_logged_in"] = True
+            if usuario:
+                request.session["staff_usuario_id"] = usuario.pk
         return redirect("sistema-interno")
     context = {**get_login_context(), "form": LoginPacienteForm()}
     return render(request, "core/login.html", context)
@@ -317,6 +328,7 @@ def cadastro_view(request):
 
 def logout_view(request):
     request.session.pop("staff_logged_in", None)
+    request.session.pop("staff_usuario_id", None)
     return redirect("login")
 
 
@@ -339,6 +351,53 @@ def pesquisa_satisfacao_view(request):
     return render(request, 'core/pesquisa_satisfacao.html')
 
 
+@require_POST
+def encaixe_view(request):
+    """Recebe o formulário de encaixe, persiste e retorna JSON com a senha gerada."""
+    form = EncaixeForm(request.POST, request.FILES)
+    if form.is_valid():
+        try:
+            encaixe = registrar_encaixe(form.cleaned_data, arquivo=request.FILES.get("anexo"))
+            return JsonResponse({"ok": True, "senha": encaixe.senha, "posicao": encaixe.posicao_fila})
+        except Exception as e:
+            return JsonResponse({"ok": False, "erros": {"__all__": [str(e)]}}, status=500)
+
+    return JsonResponse({"ok": False, "erros": form.errors}, status=400)
+
+
 @xframe_options_sameorigin
 def meu_perfil_view(request):
-    return render(request, "core/meu_perfil.html", {"interno": request.GET.get("interno") == "1"})
+    if not request.session.get("staff_logged_in"):
+        return redirect("login")
+
+    usuario_id = request.session.get("staff_usuario_id")
+    usuario = get_object_or_404(UsuarioSistema, pk=usuario_id) if usuario_id else None
+    interno = request.GET.get("interno") == "1"
+
+    if request.method == "POST":
+        if usuario is None:
+            return render(request, "core/meu_perfil.html", {
+                "interno": interno,
+                "erro": "Usuário não vinculado à sessão. Faça login novamente.",
+            })
+        form = MeuPerfilForm(request.POST, instance=usuario)
+        if form.is_valid():
+            form.save()
+            return render(request, "core/meu_perfil.html", {
+                "interno": interno,
+                "usuario": usuario,
+                "form": form,
+                "sucesso": True,
+            })
+        return render(request, "core/meu_perfil.html", {
+            "interno": interno,
+            "usuario": usuario,
+            "form": form,
+        })
+
+    form = MeuPerfilForm(instance=usuario) if usuario else MeuPerfilForm()
+    return render(request, "core/meu_perfil.html", {
+        "interno": interno,
+        "usuario": usuario,
+        "form": form,
+    })
