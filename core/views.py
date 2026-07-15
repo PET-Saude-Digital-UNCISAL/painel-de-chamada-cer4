@@ -15,6 +15,7 @@ from core.services import (
     get_dashboard_monitoramento_context,
     get_login_context,
     get_painel_chamada_context,
+    get_paciente_chamado_context,
     get_screen_context,
 )
 
@@ -29,6 +30,10 @@ def dashboard_monitoramento_view(request):
 
 def painel_chamada_view(request):
     return render(request, "core/painel_chamada.html", get_painel_chamada_context())
+
+
+def paciente_chamado_view(request):
+    return render(request, "core/paciente_chamado.html", get_paciente_chamado_context())
 
 
 @xframe_options_sameorigin

@@ -14,6 +14,7 @@ urlpatterns = [
         name="dashboard-monitoramento",
     ),
     path("painel-chamada/", views.painel_chamada_view, name="painel-chamada"),
+    path("paciente-chamado/", views.paciente_chamado_view, name="paciente-chamado"),
     path(
         "telas/auditoria-percurso-seguranca/",
         views.auditoria_percurso_seguranca_view,
