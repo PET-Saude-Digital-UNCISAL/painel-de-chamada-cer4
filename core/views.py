@@ -24,11 +24,17 @@ from core.services import (
 )
 
 
+def _usuario_logado(request):
+    uid = request.session.get("staff_usuario_id")
+    return UsuarioSistema.objects.filter(pk=uid).first() if uid else None
+
+
 @xframe_options_sameorigin
 def dashboard_monitoramento_view(request):
     """Renderiza o dashboard de monitoramento com dados fictícios."""
     context = get_dashboard_monitoramento_context()
     context["interno"] = request.GET.get("interno") == "1"
+    context["usuario_logado"] = _usuario_logado(request)
     return render(request, "core/dashboard_monitoramento.html", context)
 
 
@@ -45,10 +51,18 @@ def paciente_chamado_view(request):
 @xframe_options_sameorigin
 def configuracoes_view(request):
     """Manage access settings and persist institutional users."""
+    usuario_id = request.session.get("staff_usuario_id")
+    usuario_logado = UsuarioSistema.objects.filter(pk=usuario_id).first() if usuario_id else None
+    is_admin = usuario_logado and usuario_logado.nivel_acesso == UsuarioSistema.NivelAcesso.SUPER_ADMIN
+    tabela_vazia = not UsuarioSistema.objects.exists()
+
     form = UsuarioSistemaForm()
     edit_form = None
     edit_user = None
     if request.method == "POST":
+        # Permite criar o primeiro usuário mesmo sem sessão de admin
+        if not is_admin and not tabela_vazia:
+            return redirect("sistema-interno")
         action = request.POST.get("action", "create")
         user_id = request.POST.get("usuario_id")
 
@@ -72,13 +86,24 @@ def configuracoes_view(request):
                 edit_user.delete()
                 return _configuracoes_redirect(request, "excluido")
 
-    usuarios = UsuarioSistema.objects.all()
+    todos_usuarios = UsuarioSistema.objects.all()
+
+    # Paginação: 10 usuários por página
+    from django.core.paginator import Paginator
+    paginator = Paginator(todos_usuarios, 10)
+    pagina_atual = request.GET.get("pagina", 1)
+    page_obj = paginator.get_page(pagina_atual)
+
     context = {
         "usuario_form": form,
         "edit_form": edit_form,
         "edit_user": edit_user,
-        "usuarios": usuarios,
-        "usuarios_ativos": usuarios.filter(usuario_ativo=True).count(),
+        "usuarios": page_obj,
+        "page_obj": page_obj,
+        "is_admin": is_admin,
+        "pode_criar": is_admin or tabela_vazia,
+        "usuario_logado": usuario_logado,
+        "usuarios_ativos": todos_usuarios.filter(usuario_ativo=True).count(),
         "abrir_gestao_usuarios": request.GET.get("modulo") == "usuarios" or request.method == "POST",
         "resultado": request.GET.get("resultado", ""),
         "interno": request.GET.get("interno") == "1",
@@ -229,6 +254,7 @@ def auditoria_percurso_seguranca_view(request):
 
     context = get_auditoria_percurso_context(filtros)
     context["interno"] = request.GET.get("interno") == "1"
+    context["usuario_logado"] = _usuario_logado(request)
 
     if request.GET.get("export") == "csv":
         response = HttpResponse(content_type="text/csv")
@@ -366,7 +392,10 @@ def area_paciente_view(request):
 
 @xframe_options_sameorigin
 def gestao_qualidade_view(request):
-    return render(request, 'core/gestao_qualidade.html', {"interno": request.GET.get("interno") == "1"})
+    return render(request, 'core/gestao_qualidade.html', {
+        "interno": request.GET.get("interno") == "1",
+        "usuario_logado": _usuario_logado(request),
+    })
 
 
 @xframe_options_sameorigin

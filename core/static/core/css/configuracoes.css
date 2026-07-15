@@ -27,6 +27,7 @@ body.modal-open { overflow:hidden; }
 .online::before { content:""; width:6px; height:6px; border-radius:50%; background:#0aaf7b; }
 .user { gap:10px; padding-left:17px; border-left:1px solid var(--line); }
 .avatar { width:31px; height:31px; display:grid; place-items:center; border-radius:6px; background:var(--navy); color:#fff; font-size:11px; }
+.avatar-img { width:31px; height:31px; border-radius:6px; object-fit:cover; }
 .user strong,.user small { display:block; }
 .user strong { font-size:11px; }
 .user small { margin-top:2px; color:#687180; font-size:9px; }

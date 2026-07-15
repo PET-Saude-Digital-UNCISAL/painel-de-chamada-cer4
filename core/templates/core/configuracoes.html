@@ -29,7 +29,16 @@
             <div class="topbar-actions">
                 <div class="clock"><strong id="clock-time">--:--</strong><small id="clock-date">Carregando data...</small></div>
                 <div class="online">Sistema online</div>
-                <div class="user"><span class="avatar">F</span><div><strong>Funcionário</strong><small>Gestão da recepção</small></div></div>
+                {% if usuario_logado %}
+                <div class="user">
+                    {% if usuario_logado.foto_perfil %}
+                        <img src="{{ usuario_logado.foto_perfil.url }}" class="avatar avatar-img" alt="">
+                    {% else %}
+                        <span class="avatar">{{ usuario_logado.iniciais }}</span>
+                    {% endif %}
+                    <div><strong>{{ usuario_logado.nome_completo }}</strong><small>{{ usuario_logado.get_nivel_acesso_display }}</small></div>
+                </div>
+                {% endif %}
             </div>
         </header>
 
@@ -128,8 +137,9 @@
                         <h1>Gestão de Usuários</h1>
                         <p>Controle os colaboradores e níveis de acesso institucional.</p>
                     </div>
-                    <button class="new-user-button" id="open-user-modal" type="button"><i data-lucide="user-round-plus"></i>Novo Usuário</button>
+                    {% if pode_criar %}<button class="new-user-button" id="open-user-modal" type="button"><i data-lucide="user-round-plus"></i>Novo Usuário</button>{% endif %}
                 </div>
+                {% if not is_admin %}<div class="notice" style="margin-bottom:16px"><i data-lucide="shield-alert"></i><span>Você tem acesso somente leitura. Apenas Super Admins podem criar, editar ou excluir usuários.</span></div>{% endif %}
 
                 <section class="user-tools" aria-label="Ferramentas de usuários">
                     <label class="user-search"><i data-lucide="search"></i><input id="user-search" type="search" placeholder="Filtrar por nome ou CPF..." autocomplete="off"></label>
@@ -140,17 +150,17 @@
                 <section class="users-table-card" aria-label="Lista de colaboradores">
                     <div class="users-table-scroll">
                         <table class="users-table">
-                            <thead><tr><th>COLABORADOR</th><th>CPF</th><th>CARGO</th><th>STATUS</th><th>AÇÕES</th></tr></thead>
+                            <thead><tr><th>COLABORADOR</th><th>CPF</th><th>CARGO</th><th>CADASTRO</th><th>STATUS</th>{% if is_admin %}<th>AÇÕES</th>{% endif %}</tr></thead>
                             <tbody>
                                 {% for usuario in usuarios %}
-                                <tr data-user-row data-search="{{ usuario.nome_completo|lower }} {{ usuario.cpf }}"><td><div class="collaborator"><span class="user-avatar blue">{{ usuario.iniciais }}</span><span><strong>{{ usuario.nome_completo }}</strong><small>{{ usuario.email_institucional }}</small></span></div></td><td>{{ usuario.cpf }}</td><td><span class="role-badge">{{ usuario.get_nivel_acesso_display }}</span></td><td><span class="status-badge {% if usuario.usuario_ativo %}active{% else %}inactive{% endif %}">{% if usuario.usuario_ativo %}Ativo{% else %}Inativo{% endif %}</span></td><td><div class="row-actions"><form method="post" action="/configuracoes/" class="toggle-user-form">{% csrf_token %}<input type="hidden" name="action" value="toggle"><input type="hidden" name="usuario_id" value="{{ usuario.pk }}"><label class="switch"><input type="checkbox" {% if usuario.usuario_ativo %}checked{% endif %} aria-label="Alterar status de {{ usuario.nome_completo }}"><span></span></label></form><button class="edit-user-button" type="button" aria-label="Editar {{ usuario.nome_completo }}" data-user-id="{{ usuario.pk }}" data-user-name="{{ usuario.nome_completo }}" data-user-email="{{ usuario.email_institucional }}" data-user-cpf="{{ usuario.cpf }}" data-user-role="{{ usuario.nivel_acesso }}" data-user-active="{% if usuario.usuario_ativo %}true{% else %}false{% endif %}"><i data-lucide="pencil"></i></button></div></td></tr>
+                                <tr data-user-row data-search="{{ usuario.nome_completo|lower }} {{ usuario.cpf }}"><td><div class="collaborator"><span class="user-avatar blue">{{ usuario.iniciais }}</span><span><strong>{{ usuario.nome_completo }}</strong><small>{{ usuario.email_institucional }}</small></span></div></td><td>{{ usuario.cpf }}</td><td><span class="role-badge">{{ usuario.get_nivel_acesso_display }}</span></td><td><small>{{ usuario.criado_em|date:"d/m/Y" }}</small></td><td><span class="status-badge {% if usuario.usuario_ativo %}active{% else %}inactive{% endif %}">{% if usuario.usuario_ativo %}Ativo{% else %}Inativo{% endif %}</span></td>{% if is_admin %}<td><div class="row-actions"><form method="post" action="/configuracoes/" class="toggle-user-form">{% csrf_token %}<input type="hidden" name="action" value="toggle"><input type="hidden" name="usuario_id" value="{{ usuario.pk }}"><label class="switch"><input type="checkbox" {% if usuario.usuario_ativo %}checked{% endif %} aria-label="Alterar status de {{ usuario.nome_completo }}"><span></span></label></form><button class="edit-user-button" type="button" aria-label="Editar {{ usuario.nome_completo }}" data-user-id="{{ usuario.pk }}" data-user-name="{{ usuario.nome_completo }}" data-user-email="{{ usuario.email_institucional }}" data-user-cpf="{{ usuario.cpf }}" data-user-role="{{ usuario.nivel_acesso }}" data-user-active="{% if usuario.usuario_ativo %}true{% else %}false{% endif %}"><i data-lucide="pencil"></i></button></div></td>{% endif %}</tr>
                                 {% empty %}
-                                <tr class="empty-users-row"><td colspan="5">Nenhum usuário cadastrado.</td></tr>
+                                <tr class="empty-users-row"><td colspan="6">Nenhum usuário cadastrado.</td></tr>
                                 {% endfor %}
                             </tbody>
                         </table>
                     </div>
-                    <div class="table-footer"><span id="users-result-count">Exibindo {{ usuarios|length }} usuário{{ usuarios|length|pluralize }}</span><nav class="pagination" aria-label="Paginação"><button type="button" aria-label="Página anterior"><i data-lucide="chevron-left"></i></button><button class="current" type="button">1</button><button type="button" aria-label="Próxima página"><i data-lucide="chevron-right"></i></button></nav></div>
+                    <div class="table-footer"><span id="users-result-count">Exibindo {{ usuarios|length }} de {{ page_obj.paginator.count }} usuário{{ page_obj.paginator.count|pluralize }}</span><nav class="pagination" aria-label="Paginação">{% if page_obj.has_previous %}<a href="?modulo=usuarios&pagina={{ page_obj.previous_page_number }}{% if interno %}&interno=1{% endif %}" type="button" aria-label="Página anterior"><i data-lucide="chevron-left"></i></a>{% else %}<button type="button" disabled aria-label="Página anterior"><i data-lucide="chevron-left"></i></button>{% endif %}{% for num in page_obj.paginator.page_range %}<a href="?modulo=usuarios&pagina={{ num }}{% if interno %}&interno=1{% endif %}" class="{% if page_obj.number == num %}current{% endif %}" type="button">{{ num }}</a>{% endfor %}{% if page_obj.has_next %}<a href="?modulo=usuarios&pagina={{ page_obj.next_page_number }}{% if interno %}&interno=1{% endif %}" type="button" aria-label="Próxima página"><i data-lucide="chevron-right"></i></a>{% else %}<button type="button" disabled aria-label="Próxima página"><i data-lucide="chevron-right"></i></button>{% endif %}</nav></div>
                 </section>
 
                 <div class="user-metrics">
