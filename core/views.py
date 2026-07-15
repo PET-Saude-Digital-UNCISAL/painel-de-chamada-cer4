@@ -350,8 +350,7 @@ def cadastro_view(request):
 
 
 def logout_view(request):
-    request.session.pop("staff_logged_in", None)
-    request.session.pop("staff_usuario_id", None)
+    request.session.flush()
     return redirect("login")
 
 
