@@ -10,8 +10,8 @@ from django.views.decorators.clickjacking import xframe_options_sameorigin
 from django.views.decorators.http import require_POST
 
 from core.dev_builders import build_fake_screen_list, build_mocked_screen_payload
-from core.forms import CadastroPacienteForm, EncaixeForm, LoginPacienteForm, MeuPerfilForm, UsuarioSistemaForm
-from core.models import UsuarioSistema
+from core.forms import CadastroPacienteForm, EncaixeForm, LoginPacienteForm, MeuPerfilForm, PacientePerfilForm, UsuarioSistemaForm
+from core.models import Paciente, UsuarioSistema
 from core.services import (
     get_auditoria_percurso_context,
     get_cadastro_context,
@@ -32,10 +32,12 @@ def dashboard_monitoramento_view(request):
     return render(request, "core/dashboard_monitoramento.html", context)
 
 
+@xframe_options_sameorigin
 def painel_chamada_view(request):
     return render(request, "core/painel_chamada.html", get_painel_chamada_context())
 
 
+@xframe_options_sameorigin
 def paciente_chamado_view(request):
     return render(request, "core/paciente_chamado.html", get_paciente_chamado_context())
 
@@ -111,12 +113,14 @@ def perdeu_chamada_view(request, **kwargs):
     return render(request, "core/perdeu_chamada.html", context)
 
 
+@xframe_options_sameorigin
 def home_view(request):
     """Entrada do painel isolado, limitada aos dois fluxos do produto."""
     request.session.pop("staff_logged_in", None)
     return render(request, "core/home.html", {"title": "Painel de desenvolvimento"})
 
 
+@xframe_options_sameorigin
 def painel_pacientes_view(request):
     """Lista isolada das telas mobile destinadas ao usuário final."""
     screens = [
@@ -173,6 +177,7 @@ def sistema_interno_view(request):
     })
 
 
+@xframe_options_sameorigin
 def sistema_interno_figma_view(request):
     """Shell do sistema interno com o Drawer aprovado no Figma."""
     if not request.session.get("staff_logged_in"):
@@ -294,24 +299,33 @@ def dev_mock_screen_view(request, screen_slug):
     return render(request, "core/screen.html", context)
 
 
+@xframe_options_sameorigin
 def agendamento_nao_encontrado_view(request):
     return render(request, 'core/agendamento_nao_encontrado.html')
 
 
 @xframe_options_sameorigin
 def login_view(request):
-    """Tela de Login — qualquer submissão concede acesso ao sistema (protótipo)."""
+    """Tela de Login — autentica paciente ou staff pelo CPF."""
     if request.session.get("staff_logged_in"):
-        return redirect("sistema-interno")
+        if request.GET.get("interno") != "1":
+            return redirect("sistema-interno")
     if request.method == "POST":
         form = LoginPacienteForm(request.POST)
         if form.is_valid():
             cpf_digits = form.cleaned_data["cpf"]
             cpf_fmt = f"{cpf_digits[:3]}.{cpf_digits[3:6]}.{cpf_digits[6:9]}-{cpf_digits[9:]}"
+
+            # Tenta encontrar staff primeiro
             usuario = UsuarioSistema.objects.filter(cpf=cpf_fmt, usuario_ativo=True).first()
+            # Tenta encontrar paciente pelo CPF sem formatação
+            paciente = Paciente.objects.filter(cpf=cpf_digits, paciente_ativo=True).first()
+
             request.session["staff_logged_in"] = True
             if usuario:
                 request.session["staff_usuario_id"] = usuario.pk
+            if paciente:
+                request.session["paciente_id"] = paciente.pk
         return redirect("sistema-interno")
     context = {**get_login_context(), "form": LoginPacienteForm()}
     return render(request, "core/login.html", context)
@@ -356,6 +370,7 @@ def gestao_qualidade_view(request):
     return render(request, 'core/gestao_qualidade.html', {"interno": request.GET.get("interno") == "1"})
 
 
+@xframe_options_sameorigin
 def pesquisa_satisfacao_view(request):
     return render(request, 'core/pesquisa_satisfacao.html')
 
@@ -376,37 +391,59 @@ def encaixe_view(request):
 
 @xframe_options_sameorigin
 def meu_perfil_view(request):
-    if not request.session.get("staff_logged_in"):
-        return redirect("login")
+    def _iniciais(nome):
+        partes = (nome or "").split()
+        return "".join(p[0] for p in partes[:2]).upper() or "?"
 
-    usuario_id = request.session.get("staff_usuario_id")
-    usuario = get_object_or_404(UsuarioSistema, pk=usuario_id) if usuario_id else None
-    interno = request.GET.get("interno") == "1"
-
-    if request.method == "POST":
-        if usuario is None:
-            return render(request, "core/meu_perfil.html", {
-                "interno": interno,
-                "erro": "Usuário não vinculado à sessão. Faça login novamente.",
-            })
-        form = MeuPerfilForm(request.POST, instance=usuario)
-        if form.is_valid():
-            form.save()
-            return render(request, "core/meu_perfil.html", {
-                "interno": interno,
-                "usuario": usuario,
-                "form": form,
-                "sucesso": True,
-            })
-        return render(request, "core/meu_perfil.html", {
+    def _ctx(interno, usuario, paciente, form, extra=None):
+        instancia = paciente or usuario
+        nome = instancia.nome_completo if instancia else "Sem vínculo"
+        ctx = {
             "interno": interno,
             "usuario": usuario,
+            "paciente": paciente,
             "form": form,
-        })
+            "cpf_perfil": instancia.cpf if instancia else "",
+            "nome_perfil": nome,
+            "iniciais_perfil": _iniciais(nome),
+            "papel_perfil": usuario.get_nivel_acesso_display() if usuario else "Paciente",
+        }
+        if extra:
+            ctx.update(extra)
+        return ctx
 
-    form = MeuPerfilForm(instance=usuario) if usuario else MeuPerfilForm()
-    return render(request, "core/meu_perfil.html", {
-        "interno": interno,
-        "usuario": usuario,
-        "form": form,
-    })
+    interno = request.GET.get("interno") == "1"
+
+    if not request.session.get("staff_logged_in"):
+        return render(request, "core/meu_perfil.html", _ctx(
+            interno, None, None, MeuPerfilForm(),
+            {"erro": "Sessão expirada. Faça login novamente."}
+        ))
+
+    paciente_id = request.session.get("paciente_id")
+    usuario_id = request.session.get("staff_usuario_id")
+    paciente = Paciente.objects.filter(pk=paciente_id, paciente_ativo=True).first() if paciente_id else None
+    usuario = UsuarioSistema.objects.filter(pk=usuario_id).first() if usuario_id else None
+
+    FormClass = PacientePerfilForm if paciente else MeuPerfilForm
+    instancia = paciente if paciente else usuario
+
+    if request.method == "POST":
+        if instancia is None:
+            return render(request, "core/meu_perfil.html", _ctx(
+                interno, None, None, FormClass(),
+                {"erro": "Usuário não vinculado à sessão. Faça login novamente."}
+            ))
+        form = FormClass(request.POST, instance=instancia)
+        if form.is_valid():
+            try:
+                form.save()
+                return render(request, "core/meu_perfil.html", _ctx(
+                    interno, usuario, paciente, form, {"sucesso": True}
+                ))
+            except IntegrityError:
+                form.add_error(None, "Erro ao salvar: dado já em uso por outro cadastro.")
+        return render(request, "core/meu_perfil.html", _ctx(interno, usuario, paciente, form))
+
+    form = FormClass(instance=instancia) if instancia else FormClass()
+    return render(request, "core/meu_perfil.html", _ctx(interno, usuario, paciente, form))
