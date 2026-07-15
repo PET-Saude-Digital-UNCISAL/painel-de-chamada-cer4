@@ -40,4 +40,5 @@ urlpatterns = [
     path('gestao-qualidade/', views.gestao_qualidade_view, name='gestao_qualidade'),
     path('pesquisa-satisfacao/', views.pesquisa_satisfacao_view, name='pesquisa_satisfacao'),
     path('meu-perfil/', views.meu_perfil_view, name='meu-perfil'),
+    path('encaixe/', views.encaixe_view, name='encaixe'),
 ]

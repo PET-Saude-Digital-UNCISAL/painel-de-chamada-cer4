@@ -335,7 +335,7 @@
 
         .input {
             width: 100%;
-            padding: 0 16px 0 38px;
+            padding: 0 16px;
             background: #dfe3e8;
             border-color: #d8dde3;
             box-shadow: none;
@@ -393,18 +393,6 @@
 
         .search-field {
             position: relative;
-        }
-
-        .search-field::before {
-            content: "⌕";
-            position: absolute;
-            left: 14px;
-            top: 50%;
-            transform: translateY(-54%);
-            color: #727783;
-            font-size: 22px;
-            line-height: 1;
-            z-index: 1;
         }
 
         .table-wrap {
@@ -1118,6 +1106,110 @@
 
         }
 
+        .btn-encaixe {
+            background: #0b2b50;
+            color: #fff;
+            border-color: #0b2b50;
+            box-shadow: 0 8px 18px rgba(11, 43, 80, 0.24);
+            font-weight: 900;
+            width: auto;
+            padding: 0 18px;
+        }
+        .btn-encaixe:hover { background: #123a67; border-color: #123a67; }
+        .encaixe-bar {
+            display: flex;
+            justify-content: flex-end;
+            margin-top: 8px;
+        }
+
+        /* === Modal Encaixe === */
+        .encaixe-backdrop {
+            position: fixed; inset: 0; display: none; align-items: center;
+            justify-content: center; padding: 18px;
+            background: rgba(15,23,42,0.42); z-index: 60;
+        }
+        .encaixe-backdrop.is-open { display: flex; }
+        .encaixe-modal {
+            width: min(100%, 540px); background: #fff; border-radius: 14px;
+            box-shadow: 0 24px 60px rgba(15,23,42,0.22); overflow: hidden;
+            max-height: 90vh; display: flex; flex-direction: column;
+        }
+        .encaixe-header {
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 18px 22px; border-bottom: 1px solid #eef2f7;
+        }
+        .encaixe-header h2 { margin: 0; font-size: 16px; font-weight: 800; color: #00519c; }
+        .encaixe-close {
+            width: 28px; height: 28px; border: 0; background: transparent;
+            color: #727783; font-size: 24px; line-height: 1; cursor: pointer;
+        }
+        .encaixe-body { padding: 22px; overflow-y: auto; display: flex; flex-direction: column; gap: 14px; }
+        .encaixe-row { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+        .encaixe-field { display: flex; flex-direction: column; gap: 5px; }
+        .encaixe-field.full { grid-column: 1 / -1; }
+        .encaixe-field label {
+            font-size: 9px; font-weight: 900; letter-spacing: 0.07em;
+            text-transform: uppercase; color: #727783;
+        }
+        .encaixe-field input,
+        .encaixe-field select,
+        .encaixe-field textarea {
+            height: 38px; border: 1px solid #e0e5ec; border-radius: 10px;
+            background: #f5f7fa; padding: 0 12px; font-size: 13px;
+            color: #0d1520; font-family: inherit;
+        }
+        .encaixe-field textarea { height: 72px; padding: 10px 12px; resize: none; }
+        .encaixe-field input[type="file"] { padding: 6px 12px; height: auto; }
+        .encaixe-field input:focus,
+        .encaixe-field select:focus,
+        .encaixe-field textarea:focus {
+            outline: none; border-color: #00519c; background: #fff;
+        }
+        .tipo-row { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; }
+        .tipo-row select { flex: 1; }
+        .btn-add-tipo {
+            width: 32px; height: 32px; border-radius: 8px; border: 1px solid #c8d4e3;
+            background: #fff; color: #00519c; font-size: 20px; font-weight: 700;
+            cursor: pointer; display: grid; place-items: center; flex-shrink: 0;
+            position: relative;
+        }
+        .btn-add-tipo:hover { background: #dbeafe; border-color: #00519c; }
+        .btn-add-tipo .tooltip {
+            display: none; position: absolute; bottom: calc(100% + 6px); left: 50%;
+            transform: translateX(-50%); background: #0d1520; color: #fff;
+            font-size: 10px; font-weight: 700; white-space: nowrap;
+            padding: 4px 8px; border-radius: 5px; pointer-events: none;
+        }
+        .btn-add-tipo:hover .tooltip { display: block; }
+        .encaixe-footer {
+            display: flex; justify-content: flex-end; gap: 12px;
+            padding: 16px 22px; background: #f8fafc; border-top: 1px solid #eef2f7;
+        }
+        .encaixe-cancel {
+            height: 38px; border: 1px solid #cfd8e3; border-radius: 10px;
+            background: transparent; color: #00519c; padding: 0 20px;
+            font-size: 12px; font-weight: 800; cursor: pointer;
+        }
+        .encaixe-submit {
+            height: 38px; border: 0; border-radius: 10px;
+            background: #00519c; color: #fff; padding: 0 24px;
+            font-size: 12px; font-weight: 900; cursor: pointer;
+            box-shadow: 0 8px 18px rgba(0,81,156,0.22);
+        }
+        .encaixe-submit:hover { background: #063f78; }
+        .encaixe-submit:disabled { opacity: 0.6; cursor: not-allowed; }
+        .encaixe-sucesso {
+            display: none; flex-direction: column; align-items: center;
+            gap: 10px; padding: 32px 22px; text-align: center;
+        }
+        .encaixe-sucesso.is-visible { display: flex; }
+        .encaixe-sucesso .senha-badge {
+            font-size: 36px; font-weight: 900; color: #00519c;
+            background: #dbeafe; border-radius: 12px; padding: 10px 28px;
+        }
+        .encaixe-sucesso p { margin: 0; color: #3f4b5c; font-size: 13px; }
+        .encaixe-erro { color: #c62828; font-size: 11px; font-weight: 700; margin-top: 4px; }
+
         /* === Standard Topbar === */
         header.topbar{height:66px;display:flex;align-items:center;justify-content:space-between;padding:0 28px;background:#fff;border-bottom:1px solid #edf0f4;font-family:"Segoe UI",Arial,sans-serif;box-sizing:border-box;}
         header.topbar .brand-group,header.topbar .topbar-actions{display:flex;align-items:center;}
@@ -1179,7 +1271,7 @@
         <header class="topbar">
             <div class="brand-group">
                 {% if not interno %}<button class="icon-button" id="mobile-drawer-toggle" type="button" aria-label="Abrir menu" aria-expanded="false"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg></button>{% endif %}
-                <div class="brand">CER III <span>&#8212; Auditoria de Percurso</span></div>
+                <div class="brand">CER III <span>&#8212; Atendimentos do Dia</span></div>
             </div>
             <div class="topbar-actions">
                 <div class="topbar-clock"><strong id="clock-time">--:--</strong><small id="clock-date">Carregando data...</small></div>
@@ -1214,6 +1306,9 @@
                 <button class="btn btn-dark filter-btn" type="submit" name="export" value="csv">Exportar Relatório (CSV)</button>
             </div>
             </form>
+            <div class="encaixe-bar">
+                <button class="btn btn-encaixe" id="btn-abrir-encaixe" type="button">+ Encaixe</button>
+            </div>
             </section>
 
             <div class="date-modal-backdrop" id="date-filter-modal" aria-hidden="true">
@@ -1376,6 +1471,75 @@
             </div>
         </footer>
     </div>
+    </div>
+
+    <!-- Modal Encaixe -->
+    <div class="encaixe-backdrop" id="encaixe-backdrop" aria-hidden="true">
+        <div class="encaixe-modal" role="dialog" aria-modal="true" aria-labelledby="encaixe-title">
+            <div class="encaixe-header">
+                <h2 id="encaixe-title">Encaixe de Paciente</h2>
+                <button class="encaixe-close" id="encaixe-close" type="button" aria-label="Fechar">&times;</button>
+            </div>
+
+            <div class="encaixe-body" id="encaixe-form-body">
+                <div class="encaixe-row">
+                    <div class="encaixe-field">
+                        <label for="enc-nome">Nome do Paciente</label>
+                        <input id="enc-nome" name="nome_completo" type="text" placeholder="Nome completo" required>
+                    </div>
+                    <div class="encaixe-field">
+                        <label for="enc-cpf">CPF</label>
+                        <input id="enc-cpf" name="cpf" type="text" placeholder="000.000.000-00" maxlength="14" inputmode="numeric">
+                    </div>
+                </div>
+                <div class="encaixe-row">
+                    <div class="encaixe-field">
+                        <label for="enc-nasc">Data de Nascimento</label>
+                        <input id="enc-nasc" name="data_nascimento" type="date">
+                    </div>
+                    <div class="encaixe-field">
+                        <label for="enc-mae">Nome da M&atilde;e</label>
+                        <input id="enc-mae" name="nome_mae" type="text" placeholder="Nome da m&atilde;e">
+                    </div>
+                </div>
+                <div class="encaixe-field full">
+                    <label>Tipo de Atendimento</label>
+                    <div id="tipos-container">
+                        <div class="tipo-row">
+                            <select name="tipos_atendimento">
+                                <option value="consulta">Consulta</option>
+                                <option value="terapia">Terapia</option>
+                                <option value="exame_auditivo">Exame Auditivo</option>
+                            </select>
+                            <button class="btn-add-tipo" id="btn-add-tipo" type="button" aria-label="Adicionar tipo">
+                                +
+                                <span class="tooltip">Mais de um Tipo de Atendimento</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                <div class="encaixe-field full">
+                    <label for="enc-just">Justificativa</label>
+                    <textarea id="enc-just" name="justificativa" placeholder="Descreva o motivo do encaixe..."></textarea>
+                </div>
+                <div class="encaixe-field full">
+                    <label for="enc-anexo">Anexo (PDF, DOC ou DOCX)</label>
+                    <input id="enc-anexo" name="anexo" type="file" accept=".pdf,.doc,.docx">
+                </div>
+                <p class="encaixe-erro" id="encaixe-erro" hidden></p>
+            </div>
+
+            <div class="encaixe-sucesso" id="encaixe-sucesso">
+                <p>Encaixe registrado com sucesso!</p>
+                <span class="senha-badge" id="encaixe-senha-gerada"></span>
+                <p>Senha gerada para o paciente.</p>
+            </div>
+
+            <div class="encaixe-footer">
+                <button class="encaixe-cancel" id="encaixe-cancel" type="button">Cancelar</button>
+                <button class="encaixe-submit" id="encaixe-submit" type="button">Concluir</button>
+            </div>
+        </div>
     </div>
 
     <script>
@@ -1657,6 +1821,126 @@
 
             renderClock();
             setInterval(renderClock, 15000);
+        })();
+
+        // === Encaixe Modal ===
+        (function () {
+            const backdrop   = document.getElementById("encaixe-backdrop");
+            const btnAbrir   = document.getElementById("btn-abrir-encaixe");
+            const btnFechar  = document.getElementById("encaixe-close");
+            const btnCancel  = document.getElementById("encaixe-cancel");
+            const btnSubmit  = document.getElementById("encaixe-submit");
+            const formBody   = document.getElementById("encaixe-form-body");
+            const sucesso    = document.getElementById("encaixe-sucesso");
+            const senhaEl    = document.getElementById("encaixe-senha-gerada");
+            const erroEl     = document.getElementById("encaixe-erro");
+            const tiposCont  = document.getElementById("tipos-container");
+            const btnAddTipo = document.getElementById("btn-add-tipo");
+            const cpfInput   = document.getElementById("enc-cpf");
+
+            function setOpen(open) {
+                backdrop.classList.toggle("is-open", open);
+                backdrop.setAttribute("aria-hidden", String(!open));
+                document.body.classList.toggle("date-modal-open", open);
+            }
+
+            function resetModal() {
+                formBody.querySelectorAll("input, textarea").forEach(el => el.value = "");
+                const rows = tiposCont.querySelectorAll(".tipo-row");
+                rows.forEach((r, i) => { if (i > 0) r.remove(); });
+                const firstSelect = tiposCont.querySelector("select");
+                if (firstSelect) firstSelect.value = "consulta";
+                erroEl.hidden = true;
+                erroEl.textContent = "";
+                sucesso.classList.remove("is-visible");
+                formBody.style.display = "";
+                btnSubmit.disabled = false;
+                btnSubmit.textContent = "Concluir";
+                btnCancel.textContent = "Cancelar";
+            }
+
+            // Máscara CPF
+            cpfInput.addEventListener("input", () => {
+                let v = cpfInput.value.replace(/\D/g, "").slice(0, 11);
+                if (v.length > 9) v = v.replace(/(\d{3})(\d{3})(\d{3})(\d{1,2})/, "$1.$2.$3-$4");
+                else if (v.length > 6) v = v.replace(/(\d{3})(\d{3})(\d{1,3})/, "$1.$2.$3");
+                else if (v.length > 3) v = v.replace(/(\d{3})(\d{1,3})/, "$1.$2");
+                cpfInput.value = v;
+            });
+
+            // Adicionar tipo de atendimento
+            btnAddTipo.addEventListener("click", () => {
+                const novaRow = document.createElement("div");
+                novaRow.className = "tipo-row";
+                novaRow.innerHTML = `
+                    <select name="tipos_atendimento">
+                        <option value="consulta">Consulta</option>
+                        <option value="terapia">Terapia</option>
+                        <option value="exame_auditivo">Exame Auditivo</option>
+                    </select>
+                    <button class="btn-add-tipo" type="button" aria-label="Remover tipo"
+                        style="color:#c62828;border-color:#f5c6c6;font-size:18px;"
+                        onclick="this.closest('.tipo-row').remove()">
+                        &minus;
+                        <span class="tooltip">Remover este tipo</span>
+                    </button>`;
+                tiposCont.appendChild(novaRow);
+            });
+
+            // Abrir / fechar
+            btnAbrir.addEventListener("click", () => { resetModal(); setOpen(true); });
+            [btnFechar, btnCancel].forEach(b => b.addEventListener("click", () => {
+                resetModal(); setOpen(false);
+            }));
+            backdrop.addEventListener("click", e => { if (e.target === backdrop) { resetModal(); setOpen(false); } });
+            document.addEventListener("keydown", e => {
+                if (e.key === "Escape" && backdrop.classList.contains("is-open")) { resetModal(); setOpen(false); }
+            });
+
+            // Submit via fetch
+            btnSubmit.addEventListener("click", () => {
+                erroEl.hidden = true;
+                const nomeVal = document.getElementById("enc-nome").value.trim();
+                if (!nomeVal) { erroEl.textContent = "Informe o nome do paciente."; erroEl.hidden = false; return; }
+
+                const fd = new FormData();
+                fd.append("nome_completo", nomeVal);
+                fd.append("cpf", cpfInput.value.trim());
+                fd.append("data_nascimento", document.getElementById("enc-nasc").value);
+                fd.append("nome_mae", document.getElementById("enc-mae").value.trim());
+                fd.append("justificativa", document.getElementById("enc-just").value.trim());
+                tiposCont.querySelectorAll("select").forEach(s => fd.append("tipos_atendimento", s.value));
+                const anexo = document.getElementById("enc-anexo").files[0];
+                if (anexo) fd.append("anexo", anexo);
+                fd.append("csrfmiddlewaretoken", "{{ csrf_token }}");
+
+                btnSubmit.disabled = true;
+                btnSubmit.textContent = "Salvando...";
+
+                fetch("/encaixe/", { method: "POST", body: fd })
+                    .then(r => r.json())
+                    .then(data => {
+                        if (data.ok) {
+                            formBody.style.display = "none";
+                            senhaEl.textContent = data.senha;
+                            sucesso.classList.add("is-visible");
+                            btnSubmit.style.display = "none";
+                            btnCancel.textContent = "Fechar";
+                        } else {
+                            const msgs = Object.values(data.erros || {}).flat().join(" ");
+                            erroEl.textContent = msgs || "Erro ao salvar. Verifique os campos.";
+                            erroEl.hidden = false;
+                            btnSubmit.disabled = false;
+                            btnSubmit.textContent = "Concluir";
+                        }
+                    })
+                    .catch(() => {
+                        erroEl.textContent = "Erro de conexão. Tente novamente.";
+                        erroEl.hidden = false;
+                        btnSubmit.disabled = false;
+                        btnSubmit.textContent = "Concluir";
+                    });
+            });
         })();
     </script>
 </body>

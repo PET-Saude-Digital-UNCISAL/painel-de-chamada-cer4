@@ -15,7 +15,7 @@ from pathlib import Path
 from typing import Optional
 
 from core.clock import SystemClock
-from core.models import Paciente
+from core.models import EncaixePaciente, Paciente, TipoAtendimentoEncaixe
 
 
 @dataclass(frozen=True)
@@ -624,10 +624,10 @@ def _build_date_filter_modal_context(filtros_dict: dict, today: date) -> dict:
 
 
 def filtrar_auditoria(filtros_dict: dict) -> list[dict]:
-    """Apply audit filters over PostgreSQL data or mocks.
+    """Combina mock data com encaixes reais do banco e aplica os filtros."""
+    from core.models import EncaixePaciente
+    from django.utils import timezone as tz
 
-    In the isolated dev environment we filter mock data.
-    """
     termo = (filtros_dict.get("q") or "").strip().lower()
     termo_digitos = _only_digits(termo)
     data_inicio, data_fim = _resolve_auditoria_date_range(filtros_dict)
@@ -635,8 +635,31 @@ def filtrar_auditoria(filtros_dict: dict) -> list[dict]:
     status_filtro = (filtros_dict.get("status") or "").strip().upper()
     apenas_alertas = str(filtros_dict.get("apenas_alertas") or "").lower() in {"1", "true", "on", "yes"}
 
+    # Converte encaixes reais do banco para o mesmo formato do mock
+    encaixes_qs = EncaixePaciente.objects.prefetch_related("tipos_atendimento").all()
+    encaixes_como_mock = [
+        {
+            "ficha": e.senha,
+            "nome": e.nome_completo,
+            "cpf": e.cpf,
+            "badges": ["Encaixe"] + [t.get_tipo_display() for t in e.tipos_atendimento.all()],
+            "check_in": tz.localtime(e.criado_em).strftime("%H:%M:%S"),
+            "entrada_fila": tz.localtime(e.criado_em).strftime("%H:%M:%S"),
+            "chamada": "--------",
+            "encerramento": "--------",
+            "status": "AGUARDANDO",
+            "status_class": "wait",
+            "log": e.justificativa or "—",
+            "data_referencia": e.data_atendimento.isoformat(),
+            "setor": "Recepção",
+        }
+        for e in encaixes_qs
+    ]
+
+    todos = AUDITORIA_MOCK_DATA + encaixes_como_mock
+
     pacientes_filtrados = []
-    for paciente in AUDITORIA_MOCK_DATA:
+    for paciente in todos:
         if termo:
             termo_nome = termo in paciente["nome"].lower()
             termo_ficha = termo in paciente["ficha"].lower()
@@ -647,16 +670,12 @@ def filtrar_auditoria(filtros_dict: dict) -> list[dict]:
         data_referencia = _parse_iso_date(paciente["data_referencia"])
         if data_inicio and data_referencia and data_referencia < data_inicio:
             continue
-
         if data_fim and data_referencia and data_referencia > data_fim:
             continue
-
         if setor_filtro and setor_filtro != "Todos" and paciente["setor"] != setor_filtro:
             continue
-
         if status_filtro and status_filtro != "TODOS" and paciente["status"] != status_filtro:
             continue
-
         if apenas_alertas and paciente["status_class"] != "alert":
             continue
 
@@ -702,7 +721,7 @@ def get_auditoria_percurso_context(filtros_dict: Optional[dict] = None) -> dict:
     }
 
     return {
-        "page_title": "CER III — Auditoria de Percurso e Segurança",
+        "page_title": "CER III — Atendimentos do Dia",
         "current_time": now.strftime("%H:%M"),
         "current_date": current_date,
         "system_status": "Sistema online",
@@ -729,7 +748,7 @@ def _cabecalho_recepcao_context(guiche: str = "RECEPÇÃO 3") -> dict:
     now = SystemClock.now()
     return {
         "guiche": guiche,
-        "data_atual": now,
+        "data_atual_pt": formatar_data_pt(now.date()),
         "hora_atual": now.strftime("%H:%M"),
     }
 
@@ -750,6 +769,14 @@ def get_cadastro_context() -> dict:
     }
 
 
+_DIAS_PT = ["Segunda-feira", "Terça-feira", "Quarta-feira", "Quinta-feira", "Sexta-feira", "Sábado", "Domingo"]
+_MESES_PT = ["", "janeiro", "fevereiro", "março", "abril", "maio", "junho", "julho", "agosto", "setembro", "outubro", "novembro", "dezembro"]
+
+
+def formatar_data_pt(d: date) -> str:
+    return f"{_DIAS_PT[d.weekday()]}, {d.day:02d} de {_MESES_PT[d.month]} de {d.year}"
+
+
 def autenticar_paciente(cpf: str, senha: str) -> Optional[Paciente]:
     """Retorna o Paciente se CPF e senha conferem e a conta está ativa."""
     try:
@@ -761,3 +788,38 @@ def autenticar_paciente(cpf: str, senha: str) -> Optional[Paciente]:
         return None
 
     return paciente
+
+
+def registrar_encaixe(cleaned_data: dict, arquivo=None) -> EncaixePaciente:
+    """Gera senha, calcula posição e persiste o encaixe no banco."""
+    from django.db import transaction
+
+    hoje = SystemClock.now().date()
+
+    with transaction.atomic():
+        ultimo = (
+            EncaixePaciente.objects.filter(data_atendimento=hoje)
+            .order_by("-posicao_fila")
+            .first()
+        )
+        proxima_posicao = (ultimo.posicao_fila + 1) if ultimo else 1
+        senha = f"E{proxima_posicao:03d}"
+
+        encaixe = EncaixePaciente.objects.create(
+            nome_completo=cleaned_data["nome_completo"],
+            cpf=cleaned_data["cpf"],
+            data_nascimento=cleaned_data.get("data_nascimento"),
+            nome_mae=cleaned_data.get("nome_mae", ""),
+            justificativa=cleaned_data.get("justificativa", ""),
+            anexo=arquivo,
+            senha=senha,
+            posicao_fila=proxima_posicao,
+            data_atendimento=hoje,
+        )
+
+        TipoAtendimentoEncaixe.objects.bulk_create([
+            TipoAtendimentoEncaixe(encaixe=encaixe, tipo=t)
+            for t in cleaned_data.get("tipos_atendimento", [])
+        ])
+
+    return encaixe

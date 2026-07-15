@@ -13,6 +13,7 @@ a { color:inherit; }
 .topo-data { font-weight:700; font-size:12px; color:var(--text); }
 .topo-logos { display:flex; align-items:center; gap:26px; }
 .logo { display:flex; align-items:center; justify-content:center; gap:8px; height:34px; max-width:130px; overflow:hidden; }
+.logo-cer, .logo-uncisal { height:48px; max-width:160px; }
 .logo-imagem { display:block; max-height:100%; max-width:100%; width:auto; height:auto; object-fit:contain; }
 .relogio { display:flex; align-items:center; gap:6px; background:var(--navy); color:#fff; font-weight:700; font-size:13px; padding:8px 14px; border-radius:20px; }
 .relogio svg,.relogio i { width:16px; height:16px; }

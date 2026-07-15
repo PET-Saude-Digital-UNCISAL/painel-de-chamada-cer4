@@ -3,7 +3,40 @@ import re
 from django import forms
 
 from core.business_rules import cpf_e_valido
-from core.models import Paciente, UsuarioSistema
+from core.models import Paciente, TipoAtendimentoEncaixe, UsuarioSistema
+
+
+class EncaixeForm(forms.Form):
+    """Formulário de encaixe manual de paciente na fila do dia."""
+
+    TIPOS_ATENDIMENTO = TipoAtendimentoEncaixe.TIPOS
+    EXTENSOES_PERMITIDAS = (".pdf", ".doc", ".docx")
+
+    nome_completo = forms.CharField(max_length=150, label="Nome do paciente")
+    cpf = forms.CharField(max_length=14, required=False, label="CPF")
+    data_nascimento = forms.DateField(
+        required=False,
+        label="Data de Nascimento",
+        widget=forms.DateInput(attrs={"type": "date"}),
+    )
+    nome_mae = forms.CharField(max_length=150, required=False, label="Nome da Mãe")
+    tipos_atendimento = forms.MultipleChoiceField(
+        choices=TIPOS_ATENDIMENTO,
+        label="Tipo de Atendimento",
+        widget=forms.CheckboxSelectMultiple,
+    )
+    justificativa = forms.CharField(
+        required=False, label="Justificativa", widget=forms.Textarea(attrs={"rows": 3})
+    )
+    anexo = forms.FileField(required=False, label="Anexo")
+
+    def clean_anexo(self):
+        arquivo = self.cleaned_data.get("anexo")
+        if arquivo:
+            nome = arquivo.name.lower()
+            if not any(nome.endswith(ext) for ext in self.EXTENSOES_PERMITIDAS):
+                raise forms.ValidationError("Apenas arquivos PDF, DOC ou DOCX são permitidos.")
+        return arquivo
 
 
 class UsuarioSistemaForm(forms.ModelForm):
@@ -16,6 +49,21 @@ class UsuarioSistemaForm(forms.ModelForm):
         if len(digits) != 11:
             raise forms.ValidationError("Informe um CPF com 11 dígitos.")
         return f"{digits[:3]}.{digits[3:6]}.{digits[6:9]}-{digits[9:]}"
+
+
+class MeuPerfilForm(forms.ModelForm):
+    """Formulário de edição do próprio perfil pelo usuário autenticado."""
+
+    class Meta:
+        model = UsuarioSistema
+        fields = ("nome_completo", "email_institucional")
+
+    def clean_email_institucional(self):
+        email = self.cleaned_data["email_institucional"]
+        qs = UsuarioSistema.objects.filter(email_institucional=email).exclude(pk=self.instance.pk)
+        if qs.exists():
+            raise forms.ValidationError("Este e-mail já está em uso por outro usuário.")
+        return email
 
 
 class LoginPacienteForm(forms.Form):

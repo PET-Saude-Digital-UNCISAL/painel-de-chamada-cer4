@@ -1,5 +1,6 @@
 from django.contrib.auth.hashers import check_password, make_password
 from django.db import models
+from django.utils import timezone
 
 
 class UsuarioSistema(models.Model):
@@ -59,3 +60,51 @@ class Paciente(models.Model):
 
     def __str__(self):
         return self.nome_completo
+
+
+class EncaixePaciente(models.Model):
+    """Registro de encaixe manual de paciente na fila do dia."""
+
+    nome_completo = models.CharField(max_length=150)
+    cpf = models.CharField(max_length=14)
+    data_nascimento = models.DateField(null=True, blank=True)
+    nome_mae = models.CharField(max_length=150, blank=True)
+    justificativa = models.TextField(blank=True)
+    anexo = models.FileField(upload_to="encaixes/%Y/%m/%d/", null=True, blank=True)
+    senha = models.CharField(max_length=10)
+    posicao_fila = models.PositiveIntegerField()
+    data_atendimento = models.DateField(default=timezone.localdate)
+    criado_em = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ("posicao_fila",)
+        verbose_name = "encaixe"
+        verbose_name_plural = "encaixes"
+
+    def __str__(self):
+        return f"{self.senha} — {self.nome_completo}"
+
+
+class TipoAtendimentoEncaixe(models.Model):
+    """Tipos de atendimento vinculados a um encaixe (pode ser mais de um)."""
+
+    CONSULTA = "consulta"
+    TERAPIA = "terapia"
+    EXAME_AUDITIVO = "exame_auditivo"
+    TIPOS = [
+        (CONSULTA, "Consulta"),
+        (TERAPIA, "Terapia"),
+        (EXAME_AUDITIVO, "Exame Auditivo"),
+    ]
+
+    encaixe = models.ForeignKey(
+        EncaixePaciente, on_delete=models.CASCADE, related_name="tipos_atendimento"
+    )
+    tipo = models.CharField(max_length=20, choices=TIPOS)
+
+    class Meta:
+        verbose_name = "tipo de atendimento"
+        verbose_name_plural = "tipos de atendimento"
+
+    def __str__(self):
+        return self.get_tipo_display()
