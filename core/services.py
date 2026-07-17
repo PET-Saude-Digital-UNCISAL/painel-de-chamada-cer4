@@ -215,6 +215,30 @@ def get_paciente_chamado_context() -> dict:
     }
 
 
+def get_acompanhamento_atendimento_context() -> dict:
+    """Return the mocked payload for the patient's queue tracking screen."""
+    return {
+        "page_title": "Acompanhamento de Atendimento",
+        "title": "Acompanhamento de Atendimento",
+        "title_line_1": "Acompanhamento de",
+        "title_line_2": "Atendimento",
+        "subtitle": "Confira sua posição atual na fila",
+        "paciente": "Ricardo Augusto Oliveira",
+        "senha": "A003",
+        "sala_prevista": "Sala 10",
+        "tipo_atendimento": "Ambulatorial",
+        "chamando_agora": "A001",
+        "pacientes_a_frente": 2,
+        "mensagem": "Permaneça atento ao painel de chamadas e aguarde sua vez.",
+        "footer_indicators": [
+            {"label": "LGPD", "detail": "Conforme", "icon": "lock"},
+            {"label": "Conexão", "detail": "Segura", "icon": "shield"},
+        ],
+        "public_sans_font_url": _get_paciente_chamado_asset_data_url("public-sans.ttf"),
+        "inter_font_url": _get_painel_chamada_asset_data_url("fonts/Inter-Variable.ttf"),
+    }
+
+
 def get_dashboard_monitoramento_context() -> dict:
     """Return the temporary mock payload displayed by the monitoring dashboard."""
     return {
@@ -525,6 +549,16 @@ def list_team_screens() -> list[dict]:
             "owner": "Remany",
             "status": "em desenvolvimento",
             "path": "/paciente-chamado/",
+        }
+    )
+
+    other_screens.append(
+        {
+            "slug": "acompanhamento-atendimento",
+            "title": "Acompanhamento de Atendimento",
+            "owner": "Remany",
+            "status": "em desenvolvimento",
+            "path": "/acompanhamento-atendimento/",
         }
     )
 

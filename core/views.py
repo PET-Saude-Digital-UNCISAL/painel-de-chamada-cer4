@@ -13,6 +13,7 @@ from core.dev_builders import build_fake_screen_list, build_mocked_screen_payloa
 from core.forms import CadastroPacienteForm, EncaixeForm, LoginPacienteForm, MeuPerfilForm, PacientePerfilForm, UsuarioSistemaForm
 from core.models import Paciente, UsuarioSistema
 from core.services import (
+    get_acompanhamento_atendimento_context,
     get_auditoria_percurso_context,
     get_cadastro_context,
     get_dashboard_monitoramento_context,
@@ -46,6 +47,15 @@ def painel_chamada_view(request):
 @xframe_options_sameorigin
 def paciente_chamado_view(request):
     return render(request, "core/paciente_chamado.html", get_paciente_chamado_context())
+
+
+@xframe_options_sameorigin
+def acompanhamento_atendimento_view(request):
+    return render(
+        request,
+        "core/acompanhamento_atendimento.html",
+        get_acompanhamento_atendimento_context(),
+    )
 
 
 @xframe_options_sameorigin

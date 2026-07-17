@@ -95,9 +95,18 @@ class IsolatedScreenSetupTests(TestCase):
 		self.assertContains(response, 'role="alert"')
 		self.assertContains(response, "prefers-reduced-motion")
 
-	def test_list_team_screens_has_expected_size(self):
+	def test_list_team_screens_has_expected_registered_screens(self):
 		screens = list_team_screens()
-		self.assertEqual(len(screens), 12)
+		self.assertIn(
+			{
+				"slug": "acompanhamento-atendimento",
+				"title": "Acompanhamento de Atendimento",
+				"owner": "Remany",
+				"status": "em desenvolvimento",
+				"path": "/acompanhamento-atendimento/",
+			},
+			screens,
+		)
 		self.assertIn(
 			{
 				"slug": "paciente-chamado",
