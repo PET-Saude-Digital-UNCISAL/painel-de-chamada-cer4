@@ -239,6 +239,25 @@ def get_acompanhamento_atendimento_context() -> dict:
     }
 
 
+def get_checkin_concluido_context() -> dict:
+    """Return the mocked payload for the completed check-in screen."""
+    return {
+        "page_title": "Check-in concluído",
+        "title": "Check-in concluído",
+        "subtitle": "Paciente identificado com sucesso",
+        "paciente": "Ricardo Augusto Oliveira",
+        "senha": "A003",
+        "mensagem": "Acompanhe sua posição na fila e aguarde sua chamada.",
+        "texto_botao": "Acompanhar",
+        "footer_indicators": [
+            {"label": "LGPD", "detail": "Conforme", "icon": "lock"},
+            {"label": "Conexão", "detail": "Segura", "icon": "shield"},
+        ],
+        "public_sans_font_url": _get_paciente_chamado_asset_data_url("public-sans.ttf"),
+        "inter_font_url": _get_painel_chamada_asset_data_url("fonts/Inter-Variable.ttf"),
+    }
+
+
 def get_dashboard_monitoramento_context() -> dict:
     """Return the temporary mock payload displayed by the monitoring dashboard."""
     return {
@@ -559,6 +578,16 @@ def list_team_screens() -> list[dict]:
             "owner": "Remany",
             "status": "em desenvolvimento",
             "path": "/acompanhamento-atendimento/",
+        }
+    )
+
+    other_screens.append(
+        {
+            "slug": "checkin-concluido",
+            "title": "Check-in Concluído",
+            "owner": "Remany",
+            "status": "em desenvolvimento",
+            "path": "/checkin-concluido/",
         }
     )
 
