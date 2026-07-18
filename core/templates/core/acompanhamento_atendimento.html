@@ -5,6 +5,10 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>{{ page_title }}</title>
   <style>
+    @view-transition {
+      navigation: auto;
+    }
+
     @font-face {
       font-family: "Public Sans";
       src: url("{{ public_sans_font_url }}") format("truetype");
@@ -99,7 +103,7 @@
     .header-title {
       color: #001848;
       font-size: 25px;
-      font-weight: 800;
+      font-weight: 750;
       line-height: 31.2px;
       letter-spacing: -0.25px;
     }
@@ -158,11 +162,11 @@
 
     .patient-name {
       width: 220px;
-      margin-top: 7px;
+      margin-top: 4px;
       color: #000314;
-      font-size: 18px;
+      font-size: 16px;
       font-weight: 800;
-      line-height: 22.5px;
+      line-height: 20px;
       text-transform: uppercase;
     }
 
@@ -171,7 +175,7 @@
       display: grid;
       grid-template-columns: repeat(2, minmax(0, 1fr));
       gap: 12px;
-      margin-top: 24px;
+      margin-top: 19px;
     }
 
     .info-box {
@@ -179,7 +183,7 @@
       padding: 16px 13px;
       background: #fafafa;
       border: 1px solid #e3e2e7;
-      border-radius: 12px;
+      border-radius: 16px;
     }
 
     .info-label {
@@ -211,7 +215,7 @@
 
     .ticket {
       position: absolute;
-      top: 192px;
+      top: 190px;
       left: 24px;
       right: 25px;
       height: 128px;
@@ -223,7 +227,8 @@
       color: #fff;
       background: linear-gradient(90deg, #00226b 0%, #0c307f 100%);
       border: 1px solid rgba(227, 226, 231, 0.3);
-      border-radius: 18px;
+      border-radius: 16px;
+      view-transition-name: attendance-ticket;
     }
 
     .ticket-label {
@@ -264,6 +269,7 @@
       left: 0;
       width: 6px;
       background: #001a4d;
+      transform-origin: center;
     }
 
     .queue-label {
@@ -279,6 +285,7 @@
 
     .queue-current-label {
       top: 20px;
+      left: 38px;
     }
 
     .queue-current-number {
@@ -294,7 +301,7 @@
     .speaker-badge {
       position: absolute;
       top: 28px;
-      left: 238px;
+      left: 276px;
       width: 41px;
       height: 41px;
       display: flex;
@@ -302,6 +309,37 @@
       justify-content: center;
       background: rgba(218, 226, 255, 0.3);
       border-radius: 50%;
+    }
+
+    .speaker-badge::before,
+    .speaker-badge::after {
+      position: absolute;
+      inset: 0;
+      content: "";
+      border: 1.5px solid rgba(12, 48, 127, 0.55);
+      border-radius: inherit;
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    .queue-card.is-updating .queue-accent {
+      animation: queue-accent-pulse 760ms ease-out;
+    }
+
+    .queue-card.is-updating .speaker-badge {
+      animation: speaker-badge-pulse 680ms ease-out;
+    }
+
+    .queue-card.is-updating .speaker-badge::before {
+      animation: speaker-wave 720ms ease-out;
+    }
+
+    .queue-card.is-updating .speaker-badge::after {
+      animation: speaker-wave 720ms 120ms ease-out;
+    }
+
+    .queue-value.is-changing {
+      animation: queue-value-change 600ms ease-in-out;
     }
 
     .queue-divider {
@@ -330,14 +368,14 @@
 
     .orientation-card {
       position: absolute;
-      top: 797px;
+      top: 796px;
       left: 20px;
       right: 20px;
       height: 75px;
       display: flex;
       align-items: flex-start;
       gap: 16px;
-      padding: 14px 12px 14px 32px;
+      padding: 14px 12px 14px 31px;
       background: #f7f5fa;
       border: 1px solid #e3e2e7;
       border-radius: 12px;
@@ -352,8 +390,9 @@
     .orientation-text {
       max-width: 258px;
       color: #4b4d58;
+      font-family: "Inter", Arial, sans-serif;
       font-size: 16px;
-      font-weight: 500;
+      font-weight: 700;
       line-height: 23px;
     }
 
@@ -409,6 +448,113 @@
     .topbar .icon-button:focus-visible {
       background: #eef2f6;
       outline: none;
+    }
+
+    @keyframes queue-accent-pulse {
+      0%, 100% {
+        box-shadow: 0 0 0 rgba(0, 34, 107, 0);
+        filter: brightness(1);
+        transform: scaleY(1);
+      }
+      45% {
+        box-shadow: 5px 0 16px rgba(0, 34, 107, 0.25);
+        filter: brightness(1.55);
+        transform: scaleY(1.035);
+      }
+    }
+
+    @keyframes speaker-badge-pulse {
+      0%, 100% {
+        background: rgba(218, 226, 255, 0.3);
+        transform: scale(1);
+      }
+      45% {
+        background: rgba(206, 219, 255, 0.72);
+        transform: scale(1.06);
+      }
+    }
+
+    @keyframes speaker-wave {
+      0% {
+        opacity: 0.6;
+        transform: scale(0.9);
+      }
+      100% {
+        opacity: 0;
+        transform: scale(1.55);
+      }
+    }
+
+    @keyframes queue-value-change {
+      0% {
+        opacity: 1;
+        transform: translateY(0);
+      }
+      38% {
+        opacity: 0;
+        transform: translateY(-6px);
+      }
+      52% {
+        opacity: 0;
+        transform: translateY(6px);
+      }
+      100% {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    ::view-transition-old(root) {
+      animation: route-fade-out 180ms ease-in both;
+    }
+
+    ::view-transition-new(root) {
+      animation: route-fade-in 420ms cubic-bezier(0.16, 1, 0.3, 1) both;
+    }
+
+    ::view-transition-group(attendance-ticket) {
+      z-index: 20;
+      animation-duration: 480ms;
+      animation-timing-function: cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    ::view-transition-old(attendance-ticket),
+    ::view-transition-new(attendance-ticket) {
+      height: 100%;
+      mix-blend-mode: normal;
+    }
+
+    @keyframes route-fade-out {
+      to {
+        opacity: 0;
+      }
+    }
+
+    @keyframes route-fade-in {
+      from {
+        opacity: 0;
+        transform: translateY(7px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .queue-card.is-updating .queue-accent,
+      .queue-card.is-updating .speaker-badge,
+      .queue-card.is-updating .speaker-badge::before,
+      .queue-card.is-updating .speaker-badge::after,
+      .queue-value.is-changing {
+        animation: none;
+      }
+
+      ::view-transition-old(root),
+      ::view-transition-new(root),
+      ::view-transition-group(attendance-ticket) {
+        animation-duration: 1ms !important;
+      }
     }
 
     @media (max-width: 430px) {
@@ -479,7 +625,7 @@
             </svg>
           </div>
           <div class="patient-data">
-            <p class="eyebrow">Nome do paciente</p>
+            <p class="eyebrow">Paciente</p>
             <p class="patient-name">{{ paciente }}</p>
           </div>
         </div>
@@ -496,15 +642,15 @@
         </div>
 
         <div class="ticket">
-          <p class="ticket-label">Sua senha de atendimento é:</p>
+          <p class="ticket-label">Senha de atendimento</p>
           <p class="ticket-number">{{ senha }}</p>
         </div>
       </section>
 
-      <section class="queue-card" aria-label="Posição na fila">
+      <section class="queue-card" aria-label="Posição na fila" aria-live="polite">
         <div class="queue-accent"></div>
-        <p class="queue-label queue-current-label">Chamando agora</p>
-        <p class="queue-current-number">{{ chamando_agora }}</p>
+        <p class="queue-label queue-current-label">Agora no painel</p>
+        <p class="queue-current-number queue-value" data-current-call>{{ chamando_agora }}</p>
         <div class="speaker-badge">
           <svg width="20" height="16" viewBox="0 0 20 16" fill="none" aria-hidden="true">
             <path d="M16 9V7H20V9H16ZM17.2 16L14 13.6L15.2 12L18.4 14.4L17.2 16ZM15.2 4L14 2.4L17.2 0L18.4 1.6L15.2 4ZM3 15V11H2C1.45 11 0.979167 10.8042 0.5875 10.4125C0.195833 10.0208 0 9.55 0 9V7C0 6.45 0.195833 5.97917 0.5875 5.5875C0.979167 5.19583 1.45 5 2 5H6L11 2V14L6 11H5V15H3ZM9 10.45V5.55L6.55 7H2V9H6.55L9 10.45ZM12 11.35V4.65C12.45 5.05 12.8125 5.5375 13.0875 6.1125C13.3625 6.6875 13.5 7.31667 13.5 8C13.5 8.68333 13.3625 9.3125 13.0875 9.8875C12.8125 10.4625 12.45 10.95 12 11.35Z" fill="#000314"/>
@@ -512,7 +658,7 @@
         </div>
         <div class="queue-divider"></div>
         <p class="queue-label queue-ahead-label">Pacientes à sua frente</p>
-        <p class="queue-ahead-number">{{ pacientes_a_frente }}</p>
+        <p class="queue-ahead-number queue-value" data-ahead-count>{{ pacientes_a_frente }}</p>
       </section>
 
       <section class="orientation-card" aria-label="Orientação">
@@ -558,5 +704,55 @@
       </div>
     </footer>
   </div>
+  <script>
+    (() => {
+      const queueCard = document.querySelector(".queue-card");
+      const currentCall = document.querySelector("[data-current-call]");
+      const aheadCount = document.querySelector("[data-ahead-count]");
+      const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
+      let cleanupTimer;
+      let valueTimer;
+
+      const updateQueue = ({ currentCall: nextCall, aheadCount: nextAhead }) => {
+        if (!queueCard || !currentCall || !aheadCount) return;
+
+        window.clearTimeout(cleanupTimer);
+        window.clearTimeout(valueTimer);
+        queueCard.classList.remove("is-updating");
+        currentCall.classList.remove("is-changing");
+        aheadCount.classList.remove("is-changing");
+
+        if (reduceMotion.matches) {
+          currentCall.textContent = nextCall;
+          aheadCount.textContent = nextAhead;
+          return;
+        }
+
+        void queueCard.offsetWidth;
+        queueCard.classList.add("is-updating");
+        currentCall.classList.add("is-changing");
+        aheadCount.classList.add("is-changing");
+
+        valueTimer = window.setTimeout(() => {
+          currentCall.textContent = nextCall;
+          aheadCount.textContent = nextAhead;
+        }, 250);
+
+        cleanupTimer = window.setTimeout(() => {
+          queueCard.classList.remove("is-updating");
+          currentCall.classList.remove("is-changing");
+          aheadCount.classList.remove("is-changing");
+        }, 850);
+      };
+
+      window.acompanhamentoAtendimento = { updateQueue };
+
+      if (new URLSearchParams(window.location.search).get("demo") === "1") {
+        window.setTimeout(() => {
+          updateQueue({ currentCall: "A002", aheadCount: "1" });
+        }, 1100);
+      }
+    })();
+  </script>
 </body>
 </html>
