@@ -4,6 +4,11 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>{{ page_title }}</title>
+  <script>
+    if (new URLSearchParams(window.location.search).get("demo") === "1") {
+      document.documentElement.classList.add("queue-demo");
+    }
+  </script>
   <style>
     @view-transition {
       navigation: auto;
@@ -252,6 +257,7 @@
       border: 1px solid #e3e2e7;
       border-radius: 16px;
       box-shadow: 0 4px 20px rgba(0, 26, 77, 0.08);
+      transition: height 720ms cubic-bezier(0.16, 1, 0.3, 1), box-shadow 720ms ease;
     }
 
     .queue-accent {
@@ -341,11 +347,20 @@
       right: 22px;
       height: 1px;
       background: #e3e2e7;
+      opacity: 1;
+      filter: blur(0);
+      transform: scaleX(1);
+      transform-origin: left center;
+      transition: opacity 320ms ease, filter 420ms ease, transform 620ms cubic-bezier(0.16, 1, 0.3, 1);
     }
 
     .queue-ahead-label {
       top: 100px;
       left: 38px;
+      opacity: 1;
+      filter: blur(0);
+      transform: translateY(0);
+      transition: opacity 360ms ease, filter 460ms ease, transform 620ms cubic-bezier(0.16, 1, 0.3, 1);
     }
 
     .queue-ahead-number {
@@ -356,6 +371,40 @@
       font-size: 38px;
       font-weight: 600;
       line-height: 49px;
+      opacity: 1;
+      filter: blur(0);
+      transform: translateY(0);
+      transition: opacity 380ms ease, filter 480ms ease, transform 660ms cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    .queue-demo:not(.position-revealed) .queue-card {
+      height: 88px;
+      box-shadow: 0 3px 14px rgba(0, 26, 77, 0.06);
+    }
+
+    .queue-demo:not(.position-revealed) .queue-divider {
+      opacity: 0;
+      filter: blur(5px);
+      transform: scaleX(0.18);
+    }
+
+    .queue-demo:not(.position-revealed) .queue-ahead-label,
+    .queue-demo:not(.position-revealed) .queue-ahead-number {
+      opacity: 0;
+      filter: blur(6px);
+      transform: translateY(-12px);
+    }
+
+    .queue-demo.position-revealed .queue-divider {
+      transition-delay: 160ms;
+    }
+
+    .queue-demo.position-revealed .queue-ahead-label {
+      transition-delay: 220ms;
+    }
+
+    .queue-demo.position-revealed .queue-ahead-number {
+      transition-delay: 290ms;
     }
 
     .orientation-card {
@@ -371,6 +420,11 @@
       background: #f7f5fa;
       border: 1px solid #e3e2e7;
       border-radius: 12px;
+      transition: top 720ms cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    .queue-demo:not(.position-revealed) .orientation-card {
+      top: 655px;
     }
 
     .orientation-icon {
@@ -542,6 +596,14 @@
         animation: none;
       }
 
+      .queue-card,
+      .queue-divider,
+      .queue-ahead-label,
+      .queue-ahead-number,
+      .orientation-card {
+        transition: none !important;
+      }
+
       ::view-transition-old(root),
       ::view-transition-new(root),
       ::view-transition-group(attendance-ticket) {
@@ -647,9 +709,9 @@
             <path d="M16 9V7H20V9H16ZM17.2 16L14 13.6L15.2 12L18.4 14.4L17.2 16ZM15.2 4L14 2.4L17.2 0L18.4 1.6L15.2 4ZM3 15V11H2C1.45 11 0.979167 10.8042 0.5875 10.4125C0.195833 10.0208 0 9.55 0 9V7C0 6.45 0.195833 5.97917 0.5875 5.5875C0.979167 5.19583 1.45 5 2 5H6L11 2V14L6 11H5V15H3ZM9 10.45V5.55L6.55 7H2V9H6.55L9 10.45ZM12 11.35V4.65C12.45 5.05 12.8125 5.5375 13.0875 6.1125C13.3625 6.6875 13.5 7.31667 13.5 8C13.5 8.68333 13.3625 9.3125 13.0875 9.8875C12.8125 10.4625 12.45 10.95 12 11.35Z" fill="#000314"/>
           </svg>
         </div>
-        <div class="queue-divider"></div>
-        <p class="queue-label queue-ahead-label">Pacientes à sua frente</p>
-        <p class="queue-ahead-number queue-value" data-ahead-count>{{ pacientes_a_frente }}</p>
+        <div class="queue-divider" aria-hidden="true"></div>
+        <p class="queue-label queue-ahead-label" data-position-detail>Pacientes à sua frente</p>
+        <p class="queue-ahead-number queue-value" data-ahead-count data-position-detail>{{ pacientes_a_frente }}</p>
       </section>
 
       <section class="orientation-card" aria-label="Orientação">
@@ -700,11 +762,12 @@
       const queueCard = document.querySelector(".queue-card");
       const currentCall = document.querySelector("[data-current-call]");
       const aheadCount = document.querySelector("[data-ahead-count]");
+      const positionDetails = document.querySelectorAll("[data-position-detail]");
       const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
       let cleanupTimer;
       let valueTimer;
 
-      const updateQueue = ({ currentCall: nextCall, aheadCount: nextAhead }) => {
+      const updateQueue = ({ currentCall: nextCall, aheadCount: nextAhead, animateAhead = true }) => {
         if (!queueCard || !currentCall || !aheadCount) return;
 
         window.clearTimeout(cleanupTimer);
@@ -722,7 +785,7 @@
         void queueCard.offsetWidth;
         queueCard.classList.add("is-updating");
         currentCall.classList.add("is-changing");
-        aheadCount.classList.add("is-changing");
+        if (animateAhead) aheadCount.classList.add("is-changing");
 
         valueTimer = window.setTimeout(() => {
           currentCall.textContent = nextCall;
@@ -739,9 +802,15 @@
       window.acompanhamentoAtendimento = { updateQueue };
 
       if (new URLSearchParams(window.location.search).get("demo") === "1") {
+        queueCard.setAttribute("aria-label", "Chamada atual no painel");
+        positionDetails.forEach((detail) => detail.setAttribute("aria-hidden", "true"));
+
         window.setTimeout(() => {
-          updateQueue({ currentCall: "A002", aheadCount: "1" });
-        }, 1100);
+          document.documentElement.classList.add("position-revealed");
+          queueCard.setAttribute("aria-label", "Chamada atual e posição na fila");
+          positionDetails.forEach((detail) => detail.removeAttribute("aria-hidden"));
+          updateQueue({ currentCall: "A002", aheadCount: "10", animateAhead: false });
+        }, 4000);
       }
     })();
   </script>

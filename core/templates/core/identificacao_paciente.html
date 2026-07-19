@@ -1,0 +1,702 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>{{ page_title }}</title>
+  <style>
+    @font-face {
+      font-family: "Public Sans";
+      src: url("{{ public_sans_font_url }}") format("truetype");
+      font-style: normal;
+      font-weight: 100 900;
+      font-display: swap;
+    }
+
+    @font-face {
+      font-family: "Inter";
+      src: url("{{ inter_font_url }}") format("truetype");
+      font-style: normal;
+      font-weight: 100 900;
+      font-display: swap;
+    }
+
+    *, *::before, *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    html, body {
+      min-height: 100%;
+    }
+
+    body {
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+      overflow-x: hidden;
+      color: #001b56;
+      background: #e8edf2;
+      font-family: "Public Sans", Arial, sans-serif;
+      font-synthesis: none;
+    }
+
+    button, input {
+      color: inherit;
+      font: inherit;
+    }
+
+    .screen {
+      position: relative;
+      width: 390px;
+      min-height: max(844px, 100svh);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      background: #f7f9fb;
+    }
+
+    .topbar {
+      position: sticky;
+      top: 0;
+      z-index: 10;
+      width: 100%;
+      height: 68px;
+      flex: 0 0 68px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 16px 24px;
+      background: rgba(247, 249, 251, 0.8);
+      box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+      backdrop-filter: blur(12px);
+    }
+
+    .topbar-spacer {
+      width: 25px;
+      height: 25px;
+    }
+
+    .icon-button {
+      width: 36px;
+      height: 36px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 8px;
+      background: transparent;
+      border: 0;
+      border-radius: 9999px;
+    }
+
+    main {
+      width: 100%;
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      padding: 20px 24px 22px;
+      transform-origin: center top;
+      transition: opacity 260ms ease, filter 320ms ease, transform 380ms cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    .welcome {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+    }
+
+    .institution-logo {
+      width: 176px;
+      height: 52px;
+      display: block;
+      object-fit: contain;
+      transform: translateX(9px);
+    }
+
+    .title {
+      margin-top: 14px;
+      color: #001b56;
+      font-size: 30px;
+      font-weight: 800;
+      line-height: 36px;
+      letter-spacing: -0.35px;
+    }
+
+    .subtitle {
+      max-width: 290px;
+      margin-top: 6px;
+      color: #466178;
+      font-family: "Inter", "Public Sans", Arial, sans-serif;
+      font-size: 16px;
+      font-weight: 500;
+      line-height: 23px;
+    }
+
+    .identification-form {
+      display: grid;
+      gap: 14px;
+      margin-top: 20px;
+    }
+
+    .field-label {
+      display: block;
+      margin: 0 0 7px 3px;
+      color: #466178;
+      font-family: "Inter", "Public Sans", Arial, sans-serif;
+      font-size: 12px;
+      font-weight: 700;
+      line-height: 15px;
+      letter-spacing: 0.6px;
+      text-transform: uppercase;
+    }
+
+    .input-shell {
+      height: 62px;
+      display: flex;
+      align-items: center;
+      gap: 13px;
+      padding: 0 18px;
+      color: #466178;
+      background: #fff;
+      border: 1px solid #e1e7ee;
+      border-radius: 16px;
+      box-shadow: 0 4px 14px rgba(0, 27, 86, 0.06);
+      transition: border-color 160ms ease, box-shadow 160ms ease;
+    }
+
+    .input-shell:focus-within {
+      border-color: #5b8fc7;
+      box-shadow: 0 0 0 4px rgba(0, 71, 141, 0.1), 0 6px 18px rgba(0, 27, 86, 0.08);
+    }
+
+    .field-icon {
+      width: 20px;
+      height: 20px;
+      flex: 0 0 20px;
+    }
+
+    .field-input {
+      width: 100%;
+      min-width: 0;
+      height: 100%;
+      color: #001b56;
+      background: transparent;
+      border: 0;
+      outline: 0;
+      font-family: "Inter", "Public Sans", Arial, sans-serif;
+      font-size: 17px;
+      font-weight: 600;
+      line-height: 24px;
+    }
+
+    .field-input::placeholder {
+      color: #8191a2;
+      font-weight: 500;
+      opacity: 1;
+    }
+
+    .actions {
+      display: grid;
+      gap: 12px;
+      margin-top: 20px;
+    }
+
+    .action-button {
+      width: 100%;
+      min-height: 60px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      padding: 14px 22px;
+      border: 0;
+      border-radius: 9999px;
+      text-decoration: none;
+      font-size: 18px;
+      font-weight: 700;
+      line-height: 26px;
+    }
+
+    .action-button:focus-visible {
+      outline: 3px solid rgba(0, 71, 141, 0.28);
+      outline-offset: 3px;
+    }
+
+    .action-primary {
+      color: #fff;
+      background: #001b56;
+      box-shadow: 0 9px 14px -3px rgba(0, 71, 141, 0.2), 0 4px 6px -4px rgba(0, 71, 141, 0.2);
+    }
+
+    .action-primary:active {
+      transform: translateY(1px);
+    }
+
+    .action-secondary {
+      color: #001b56;
+      background: #c7e3fe;
+      cursor: default;
+    }
+
+    .footer {
+      position: relative;
+      z-index: 10;
+      width: 100%;
+      min-height: 85px;
+      flex: 0 0 auto;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 12px 24px max(12px, env(safe-area-inset-bottom));
+      border-top: 1px solid rgba(194, 198, 212, 0.1);
+      background: #f7f9fb;
+    }
+
+    .footer-indicators {
+      display: flex;
+      align-items: center;
+      gap: 24px;
+    }
+
+    .footer-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .footer-text {
+      color: #466178;
+      font-family: "Inter", Arial, sans-serif;
+      font-size: 12px;
+      font-weight: 500;
+      line-height: 16px;
+    }
+
+    .footer-actions {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .accessibility-icon {
+      width: 36px;
+      height: 36px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 0;
+      color: #466178;
+      background: transparent;
+      border: 0;
+      border-radius: 9999px;
+      cursor: default;
+    }
+
+    .validation-layer {
+      position: fixed;
+      top: 68px;
+      bottom: 85px;
+      left: 50%;
+      z-index: 9;
+      width: min(390px, 100vw);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+      overflow: hidden;
+      background: radial-gradient(circle at 50% 18%, #fff 0, #f7f9fb 52%, #f7f9fb 100%);
+      opacity: 0;
+      visibility: hidden;
+      pointer-events: none;
+      transform: translateX(-50%) scale(1.012);
+      transition: opacity 260ms ease, visibility 0s linear 260ms, transform 520ms cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    .screen.is-validating main {
+      opacity: 0;
+      filter: blur(10px);
+      pointer-events: none;
+      transform: scale(0.985);
+    }
+
+    .screen.is-validating .validation-layer {
+      opacity: 1;
+      visibility: visible;
+      pointer-events: auto;
+      transform: translateX(-50%) scale(1);
+      transition-delay: 0s;
+    }
+
+    .screen.is-validating .footer {
+      position: fixed;
+      right: auto;
+      bottom: 0;
+      left: 50%;
+      width: min(390px, 100vw);
+      transform: translateX(-50%);
+    }
+
+    .validation-progress {
+      position: absolute;
+      top: 0;
+      right: 0;
+      left: 0;
+      height: 3px;
+      overflow: hidden;
+      background: #dce6f2;
+    }
+
+    .validation-progress-bar {
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(90deg, #8bb7e3 0%, #25569f 58%, #001b56 100%);
+      box-shadow: 0 0 12px rgba(37, 86, 159, 0.3);
+      transform: scaleX(0);
+      transform-origin: left center;
+    }
+
+    .screen.is-validating .validation-progress-bar {
+      animation: validation-progress 2850ms cubic-bezier(0.22, 1, 0.36, 1) 80ms both;
+    }
+
+    .validation-status {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      color: #001b56;
+      font-family: "Inter", "Public Sans", Arial, sans-serif;
+      text-align: center;
+      outline: 0;
+    }
+
+    .validation-spinner {
+      width: 64px;
+      height: 64px;
+      margin-bottom: 28px;
+      filter: drop-shadow(0 7px 14px rgba(0, 71, 141, 0.12));
+      animation: validation-spin 860ms linear infinite;
+    }
+
+    .validation-title {
+      font-size: 24px;
+      font-weight: 700;
+      line-height: 31px;
+      letter-spacing: -0.25px;
+    }
+
+    .validation-security {
+      display: flex;
+      align-items: center;
+      gap: 9px;
+      margin-top: 15px;
+      color: #5b7187;
+      font-size: 16px;
+      font-weight: 500;
+      line-height: 24px;
+    }
+
+    @keyframes validation-spin {
+      to {
+        transform: rotate(360deg);
+      }
+    }
+
+    @keyframes validation-progress {
+      0% {
+        transform: scaleX(0);
+      }
+      62% {
+        transform: scaleX(0.78);
+      }
+      100% {
+        transform: scaleX(1);
+      }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      main,
+      .validation-layer {
+        transition: none;
+      }
+
+      .validation-spinner {
+        animation: none;
+      }
+
+      .screen.is-validating .validation-progress-bar {
+        animation: none;
+        transform: scaleX(1);
+      }
+    }
+
+    @media (max-width: 430px) {
+      .screen {
+        width: 100%;
+      }
+    }
+
+    @media (max-width: 370px) {
+      .topbar,
+      main {
+        padding-right: 18px;
+        padding-left: 18px;
+      }
+
+      .footer {
+        padding-right: 16px;
+        padding-left: 16px;
+      }
+
+      .footer-indicators {
+        gap: 15px;
+      }
+
+      .title {
+        font-size: 28px;
+      }
+
+      .subtitle {
+        font-size: 15px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="screen">
+    <header class="topbar">
+      <div class="topbar-spacer" aria-hidden="true"></div>
+      <button class="icon-button" type="button" aria-label="Configurações">
+        <svg width="21" height="20" viewBox="0 0 20.1 20" fill="none" aria-hidden="true">
+          <path d="M7.3 20L6.9 16.8C6.68333 16.7167 6.47917 16.6167 6.2875 16.5C6.09583 16.3833 5.90833 16.2583 5.725 16.125L2.75 17.375L0 12.625L2.575 10.675C2.55833 10.5583 2.55 10.4458 2.55 10.3375V9.6625C2.55 9.55417 2.55833 9.44167 2.575 9.325L0 7.375L2.75 2.625L5.725 3.875C5.90833 3.74167 6.1 3.61667 6.3 3.5C6.5 3.38333 6.7 3.28333 6.9 3.2L7.3 0H12.8L13.2 3.2C13.4167 3.28333 13.6208 3.38333 13.8125 3.5C14.0042 3.61667 14.1917 3.74167 14.375 3.875L17.35 2.625L20.1 7.375L17.525 9.325C17.5417 9.44167 17.55 9.55417 17.55 9.6625V10.3375C17.55 10.4458 17.5333 10.5583 17.5 10.675L20.075 12.625L17.325 17.375L14.375 16.125C14.1917 16.2583 14 16.3833 13.8 16.5C13.6 16.6167 13.4 16.7167 13.2 16.8L12.8 20H7.3ZM9.05 18H11.025L11.375 15.35C11.8917 15.2167 12.3708 15.0208 12.8125 14.7625C13.2542 14.5042 13.6583 14.1917 14.025 13.825L16.5 14.85L17.475 13.15L15.325 11.525C15.4083 11.2917 15.4667 11.0458 15.5 10.7875C15.5333 10.5292 15.55 10.2667 15.55 10C15.55 9.73333 15.5333 9.47083 15.5 9.2125C15.4667 8.95417 15.4083 8.70833 15.325 8.475L17.475 6.85L16.5 5.15L14.025 6.2C13.6583 5.81667 13.2542 5.49583 12.8125 5.2375C12.3708 4.97917 11.8917 4.78333 11.375 4.65L11.05 2H9.075L8.725 4.65C8.20833 4.78333 7.72917 4.97917 7.2875 5.2375C6.84583 5.49583 6.44167 5.80833 6.075 6.175L3.6 5.15L2.625 6.85L4.775 8.45C4.69167 8.7 4.63333 8.95 4.6 9.2C4.56667 9.45 4.55 9.71667 4.55 10C4.55 10.2667 4.56667 10.525 4.6 10.775C4.63333 11.025 4.69167 11.275 4.775 11.525L2.625 13.15L3.6 14.85L6.075 13.8C6.44167 14.1833 6.84583 14.5042 7.2875 14.7625C7.72917 15.0208 8.20833 15.2167 8.725 15.35L9.05 18ZM10.1 13.5C11.0667 13.5 11.8917 13.1583 12.575 12.475C13.2583 11.7917 13.6 10.9667 13.6 10C13.6 9.03333 13.2583 8.20833 12.575 7.525C11.8917 6.84167 11.0667 6.5 10.1 6.5C9.11667 6.5 8.2875 6.84167 7.6125 7.525C6.9375 8.20833 6.6 9.03333 6.6 10C6.6 10.9667 6.9375 11.7917 7.6125 12.475C8.2875 13.1583 9.11667 13.5 10.1 13.5Z" fill="#64748b"/>
+        </svg>
+      </button>
+    </header>
+
+    <main>
+      <section class="welcome" aria-labelledby="welcome-title">
+        <img class="institution-logo" src="{{ cer_logo_url }}" alt="CER - Centro Especializado em Reabilitação">
+        <h1 class="title" id="welcome-title">{{ title }}</h1>
+        <p class="subtitle">{{ subtitle }}</p>
+      </section>
+
+      <form class="identification-form" novalidate>
+        {% for field in fields %}
+          <div class="field-group">
+            <label class="field-label" for="{{ field.name }}">{{ field.label }}</label>
+            <div class="input-shell">
+              {% if field.icon == "document" %}
+                <svg class="field-icon" viewBox="0 0 20 20" fill="none" aria-hidden="true">
+                  <path d="M5.25 1.75h6.1L15.5 5.9v12.35H5.25V1.75Z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/>
+                  <path d="M11.25 1.9V6h4.05M7.8 9.25h5.2M7.8 12.25h5.2M7.8 15.25h3.4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+              {% elif field.icon == "calendar" %}
+                <svg class="field-icon" viewBox="0 0 20 20" fill="none" aria-hidden="true">
+                  <rect x="2.5" y="4" width="15" height="13.5" rx="2.2" stroke="currentColor" stroke-width="1.6"/>
+                  <path d="M6 2v4M14 2v4M2.75 8h14.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
+                  <path d="M6.25 11.25h1.5v1.5h-1.5v-1.5ZM9.25 11.25h1.5v1.5h-1.5v-1.5ZM12.25 11.25h1.5v1.5h-1.5v-1.5Z" fill="currentColor"/>
+                </svg>
+              {% else %}
+                <svg class="field-icon" viewBox="0 0 20 20" fill="none" aria-hidden="true">
+                  <circle cx="10" cy="6.25" r="3.25" stroke="currentColor" stroke-width="1.6"/>
+                  <path d="M3.5 17c.45-3.25 2.62-5 6.5-5s6.05 1.75 6.5 5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
+                </svg>
+              {% endif %}
+              <input
+                class="field-input"
+                id="{{ field.name }}"
+                name="{{ field.name }}"
+                type="text"
+                inputmode="{{ field.inputmode }}"
+                autocomplete="{{ field.autocomplete }}"
+                placeholder="{{ field.placeholder }}"
+                {% if field.name == "cpf" %}data-mask="cpf" maxlength="14"{% elif field.name == "data_nascimento" %}data-mask="date" maxlength="10"{% endif %}
+                {% if field.name == "nome_mae" %}data-uppercase autocapitalize="characters"{% else %}autocapitalize="off" spellcheck="false"{% endif %}
+              >
+            </div>
+          </div>
+        {% endfor %}
+      </form>
+
+      <div class="actions">
+        <a class="action-button action-primary" href="{% url 'checkin-concluido' %}" data-checkin-action>
+          <span>{{ texto_botao_principal }}</span>
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+            <path d="M12.175 9H0V7h12.175l-5.6-5.6L8 0l8 8-8 8-1.425-1.4 5.6-5.6Z" fill="currentColor"/>
+          </svg>
+        </a>
+
+        <button class="action-button action-secondary" type="button">
+          <svg width="20" height="18" viewBox="0 0 20 18" fill="none" aria-hidden="true">
+            <path d="M3 10V9a7 7 0 0 1 14 0v1M3 10H2a1 1 0 0 0-1 1v3a2 2 0 0 0 2 2h2v-6H3ZM17 10h1a1 1 0 0 1 1 1v3a2 2 0 0 1-2 2h-2v-6h2ZM15 16c-.8 1-2.25 1.5-4.35 1.5" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+          <span>{{ texto_botao_assistido }}</span>
+        </button>
+      </div>
+    </main>
+
+    <section class="validation-layer" data-validation-layer aria-hidden="true">
+      <div class="validation-progress" aria-hidden="true">
+        <div class="validation-progress-bar"></div>
+      </div>
+
+      <div class="validation-status" data-validation-status role="status" aria-live="polite" tabindex="-1">
+        <svg class="validation-spinner" viewBox="0 0 64 64" fill="none" aria-hidden="true">
+          <defs>
+            <linearGradient id="validation-spinner-gradient" x1="12" y1="9" x2="54" y2="54" gradientUnits="userSpaceOnUse">
+              <stop stop-color="#9eb5d3"/>
+              <stop offset="0.48" stop-color="#4a73b2"/>
+              <stop offset="1" stop-color="#001b56"/>
+            </linearGradient>
+          </defs>
+          <circle cx="32" cy="32" r="25" stroke="#d8e1ed" stroke-width="7"/>
+          <circle cx="32" cy="32" r="25" stroke="url(#validation-spinner-gradient)" stroke-width="7" stroke-linecap="round" stroke-dasharray="86 157" transform="rotate(-90 32 32)"/>
+        </svg>
+        <h2 class="validation-title">{{ validation_title }}</h2>
+        <p class="validation-security">
+          <svg width="14" height="17" viewBox="0 0 14 17" fill="none" aria-hidden="true">
+            <rect x="2" y="7" width="10" height="8" rx="1.5" stroke="currentColor" stroke-width="1.6"/>
+            <path d="M4.5 7V4.75a2.5 2.5 0 0 1 5 0V7M7 10.2v1.8" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
+          </svg>
+          <span>{{ validation_detail }}</span>
+        </p>
+      </div>
+    </section>
+
+    <footer class="footer">
+      <div class="footer-indicators">
+        {% for indicator in footer_indicators %}
+          <div class="footer-item">
+            {% if indicator.icon == "lock" %}
+              <svg width="10" height="13" viewBox="0 0 10 13" fill="none" aria-hidden="true">
+                <path fill-rule="evenodd" clip-rule="evenodd" d="M5 0a3 3 0 0 0-3 3v1H1a1 1 0 0 0-1 1v7a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1V5a1 1 0 0 0-1-1H8V3a3 3 0 0 0-3-3H5Zm2 4H3V3a2 2 0 1 1 4 0v1ZM5 7a1 1 0 0 1 1 1v1a1 1 0 1 1-2 0V8a1 1 0 0 1 1-1Z" fill="#466178"/>
+              </svg>
+            {% else %}
+              <svg width="10" height="12" viewBox="0 0 10 12" fill="none" aria-hidden="true">
+                <path fill-rule="evenodd" clip-rule="evenodd" d="M5 0 .5 1.75v3.56C.5 8.07 2.44 10.66 5 11.67c2.56-1.01 4.5-3.6 4.5-6.36V1.75L5 0Zm2.68 4.61L4.05 8.24 2.32 6.51l.83-.83.9.9 2.8-2.8.83.83Z" fill="#466178"/>
+              </svg>
+            {% endif %}
+            <p class="footer-text">{{ indicator.label }}<br>{{ indicator.detail }}</p>
+          </div>
+        {% endfor %}
+      </div>
+
+      <div class="footer-actions" aria-label="Recursos de acessibilidade">
+        <button class="accessibility-icon" type="button" aria-label="Aumentar contraste">
+          <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true">
+            <path fill-rule="evenodd" clip-rule="evenodd" d="M10 0a10 10 0 1 0 0 20 10 10 0 0 0 0-20Zm1 2.08a8 8 0 0 1 0 15.84V2.08Z" fill="currentColor"/>
+          </svg>
+        </button>
+        <button class="accessibility-icon" type="button" aria-label="Aumentar fonte">
+          <svg width="20" height="16" viewBox="0 0 20 16" fill="none" aria-hidden="true">
+            <path d="M12 16V3H7V0h13v3h-5v13h-3ZM3 16V8H0V5h9v3H6v8H3Z" fill="currentColor"/>
+          </svg>
+        </button>
+      </div>
+    </footer>
+  </div>
+  <script>
+    (() => {
+      const maskedInputs = document.querySelectorAll("[data-mask]");
+      const uppercaseInputs = document.querySelectorAll("[data-uppercase]");
+
+      const formatCpf = (digits) => {
+        const value = digits.slice(0, 11);
+        return value
+          .replace(/^(\d{3})(\d)/, "$1.$2")
+          .replace(/^(\d{3})\.(\d{3})(\d)/, "$1.$2.$3")
+          .replace(/^(\d{3})\.(\d{3})\.(\d{3})(\d)/, "$1.$2.$3-$4");
+      };
+
+      const formatDate = (digits) => {
+        const value = digits.slice(0, 8);
+        return value
+          .replace(/^(\d{2})(\d)/, "$1/$2")
+          .replace(/^(\d{2})\/(\d{2})(\d)/, "$1/$2/$3");
+      };
+
+      const caretAfterDigits = (value, digitCount) => {
+        if (digitCount <= 0) return 0;
+        let seen = 0;
+        for (let index = 0; index < value.length; index += 1) {
+          if (/\d/.test(value[index])) seen += 1;
+          if (seen === digitCount) return index + 1;
+        }
+        return value.length;
+      };
+
+      maskedInputs.forEach((input) => {
+        input.addEventListener("beforeinput", (event) => {
+          if (event.inputType === "insertText" && event.data && /\D/.test(event.data)) {
+            event.preventDefault();
+          }
+        });
+
+        input.addEventListener("input", () => {
+          const currentCaret = input.selectionStart ?? input.value.length;
+          const digitsBeforeCaret = input.value.slice(0, currentCaret).replace(/\D/g, "").length;
+          const digits = input.value.replace(/\D/g, "");
+          const formatted = input.dataset.mask === "cpf" ? formatCpf(digits) : formatDate(digits);
+
+          input.value = formatted;
+          const nextCaret = caretAfterDigits(formatted, digitsBeforeCaret);
+          input.setSelectionRange(nextCaret, nextCaret);
+        });
+      });
+
+      uppercaseInputs.forEach((input) => {
+        input.addEventListener("input", () => {
+          const selectionStart = input.selectionStart;
+          const selectionEnd = input.selectionEnd;
+          input.value = input.value.toLocaleUpperCase("pt-BR");
+          if (selectionStart !== null && selectionEnd !== null) {
+            input.setSelectionRange(selectionStart, selectionEnd);
+          }
+        });
+      });
+    })();
+
+    (() => {
+      const screen = document.querySelector(".screen");
+      const main = document.querySelector("main");
+      const checkinAction = document.querySelector("[data-checkin-action]");
+      const validationLayer = document.querySelector("[data-validation-layer]");
+      const validationStatus = document.querySelector("[data-validation-status]");
+      const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
+      let redirectTimer;
+
+      const resetValidation = () => {
+        window.clearTimeout(redirectTimer);
+        screen.classList.remove("is-validating");
+        screen.removeAttribute("aria-busy");
+        main.removeAttribute("aria-hidden");
+        main.removeAttribute("inert");
+        validationLayer.setAttribute("aria-hidden", "true");
+      };
+
+      checkinAction.addEventListener("click", (event) => {
+        event.preventDefault();
+        if (screen.classList.contains("is-validating")) return;
+
+        const destination = checkinAction.href;
+        screen.classList.add("is-validating");
+        screen.setAttribute("aria-busy", "true");
+        main.setAttribute("aria-hidden", "true");
+        main.setAttribute("inert", "");
+        validationLayer.setAttribute("aria-hidden", "false");
+        validationStatus.focus({ preventScroll: true });
+
+        redirectTimer = window.setTimeout(() => {
+          window.location.assign(destination);
+        }, reduceMotion.matches ? 650 : 3000);
+      });
+
+      window.addEventListener("pageshow", (event) => {
+        if (event.persisted) resetValidation();
+      });
+    })();
+  </script>
+</body>
+</html>

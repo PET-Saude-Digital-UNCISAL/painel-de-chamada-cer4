@@ -72,7 +72,7 @@ class IsolatedScreenSetupTests(TestCase):
 
 	def test_paciente_chamado_context_has_expected_mock_data(self):
 		context = get_paciente_chamado_context()
-		self.assertEqual(context["senha"], "A003")
+		self.assertEqual(context["senha"], "A012")
 		self.assertEqual(context["paciente"], "Ricardo Augusto Oliveira")
 		self.assertEqual(context["sala"], "10")
 		self.assertEqual(context["tipo_atendimento"], "Ambulatorial")
@@ -82,7 +82,7 @@ class IsolatedScreenSetupTests(TestCase):
 		response = self.client.get("/paciente-chamado/")
 		self.assertEqual(response.status_code, 200)
 		self.assertTemplateUsed(response, "core/paciente_chamado.html")
-		self.assertContains(response, "A003")
+		self.assertContains(response, "A012")
 		self.assertContains(response, "RICARDO AUGUSTO OLIVEIRA")
 		self.assertContains(response, "data:font/ttf;base64,")
 		self.assertNotContains(response, "fonts.googleapis.com")

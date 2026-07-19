@@ -201,7 +201,7 @@ def get_paciente_chamado_context() -> dict:
         "page_title": "Paciente Chamado",
         "title": "PACIENTE CHAMADO",
         "subtitle": "Dirija-se ao local indicado para atendimento",
-        "senha": "A003",
+        "senha": "A012",
         "paciente": "Ricardo Augusto Oliveira",
         "sala": "10",
         "tipo_atendimento": "Ambulatorial",
@@ -224,7 +224,7 @@ def get_acompanhamento_atendimento_context() -> dict:
         "title_line_2": "Atendimento",
         "subtitle": "Confira sua posição atual na fila",
         "paciente": "Ricardo Augusto Oliveira",
-        "senha": "A003",
+        "senha": "A012",
         "sala_prevista": "Sala 10",
         "tipo_atendimento": "Ambulatorial",
         "chamando_agora": "A001",
@@ -246,13 +246,59 @@ def get_checkin_concluido_context() -> dict:
         "title": "Check-in concluído",
         "subtitle": "Paciente identificado com sucesso",
         "paciente": "Ricardo Augusto Oliveira",
-        "senha": "A003",
+        "senha": "A012",
         "mensagem": "Acompanhe sua posição na fila e aguarde sua chamada.",
         "texto_botao": "Acompanhar",
         "footer_indicators": [
             {"label": "LGPD", "detail": "Conforme", "icon": "lock"},
             {"label": "Conexão", "detail": "Segura", "icon": "shield"},
         ],
+        "public_sans_font_url": _get_paciente_chamado_asset_data_url("public-sans.ttf"),
+        "inter_font_url": _get_painel_chamada_asset_data_url("fonts/Inter-Variable.ttf"),
+    }
+
+
+def get_identificacao_paciente_context() -> dict:
+    """Return the mocked payload for the patient identification screen."""
+    return {
+        "page_title": "Identificação do Paciente",
+        "title": "Bem-vindo",
+        "subtitle": "Digite seus dados para iniciar o atendimento",
+        "fields": [
+            {
+                "name": "cpf",
+                "label": "CPF",
+                "placeholder": "000.000.000-00",
+                "inputmode": "numeric",
+                "autocomplete": "off",
+                "icon": "document",
+            },
+            {
+                "name": "data_nascimento",
+                "label": "Data de nascimento",
+                "placeholder": "DD/MM/AAAA",
+                "inputmode": "numeric",
+                "autocomplete": "bday",
+                "icon": "calendar",
+            },
+            {
+                "name": "nome_mae",
+                "label": "Nome da mãe",
+                "placeholder": "Digite o nome completo",
+                "inputmode": "text",
+                "autocomplete": "off",
+                "icon": "person",
+            },
+        ],
+        "texto_botao_principal": "Realizar Check-in",
+        "texto_botao_assistido": "Check-in Assistido",
+        "validation_title": "Validando dados...",
+        "validation_detail": "Conexão segura",
+        "footer_indicators": [
+            {"label": "LGPD", "detail": "Conforme", "icon": "lock"},
+            {"label": "Conexão", "detail": "Segura", "icon": "shield"},
+        ],
+        "cer_logo_url": _get_painel_chamada_asset_data_url("logo-cer.svg"),
         "public_sans_font_url": _get_paciente_chamado_asset_data_url("public-sans.ttf"),
         "inter_font_url": _get_painel_chamada_asset_data_url("fonts/Inter-Variable.ttf"),
     }
