@@ -26,6 +26,11 @@ urlpatterns = [
         name="checkin-concluido",
     ),
     path(
+        "identificacao-paciente/",
+        views.identificacao_paciente_view,
+        name="identificacao-paciente",
+    ),
+    path(
         "telas/auditoria-percurso-seguranca/",
         views.auditoria_percurso_seguranca_view,
         name="screen-auditoria-percurso-seguranca",

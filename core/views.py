@@ -18,6 +18,7 @@ from core.services import (
     get_cadastro_context,
     get_checkin_concluido_context,
     get_dashboard_monitoramento_context,
+    get_identificacao_paciente_context,
     get_login_context,
     get_painel_chamada_context,
     get_paciente_chamado_context,
@@ -65,6 +66,15 @@ def checkin_concluido_view(request):
         request,
         "core/checkin_concluido.html",
         get_checkin_concluido_context(),
+    )
+
+
+@xframe_options_sameorigin
+def identificacao_paciente_view(request):
+    return render(
+        request,
+        "core/identificacao_paciente.html",
+        get_identificacao_paciente_context(),
     )
 
 
