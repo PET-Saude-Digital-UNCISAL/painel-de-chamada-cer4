@@ -173,13 +173,13 @@
 
     .senha-label {
       font-size: 48px;
-      font-weight: 900;
+      font-weight: 700;
       line-height: 1.1;
     }
 
     .senha-codigo {
       font-size: 72px;
-      font-weight: 700;
+      font-weight: 800;
       line-height: 1;
     }
 
@@ -387,7 +387,7 @@
     }
 
     .card-blue.is-announcing {
-      animation: call-attention 642.857ms ease-in-out 7;
+      animation: call-attention 642.857ms ease-in-out 14;
       will-change: box-shadow, filter;
     }
 
@@ -579,7 +579,7 @@
         card.classList.add("is-announcing");
         attentionTimer = window.setTimeout(() => {
           card.classList.remove("is-announcing");
-        }, 4500);
+        }, 9000);
       };
 
       const simulateCall = async () => {

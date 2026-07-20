@@ -143,7 +143,6 @@ def get_painel_chamada_context() -> dict:
                 "room": "SALA 03",
                 "patient_name": "MARIA JOSÉ",
                 "time": "10:48",
-                "highlighted": True,
             },
             {
                 "ticket": "A009",
