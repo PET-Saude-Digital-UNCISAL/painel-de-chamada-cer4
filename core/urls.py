@@ -38,6 +38,7 @@ urlpatterns = [
 
     # Direct isolated routes for each team screen.
     path("telas/pacientes-listagem/", views.screen_view, {"screen_slug": "pacientes-listagem"}, name="screen-pacientes-listagem"),
+    path("telas/cris/checagem_documentos.html", views.checagem_documentos_view, name="screen-checagem-documentos"),
     path("telas/dev2/", views.screen_view, {"screen_slug": "dev2"}, name="screen-dev2"),
     path("telas/dev3/", views.screen_view, {"screen_slug": "dev3"}, name="screen-dev3"),
     path("telas/dev4/", views.screen_view, {"screen_slug": "dev4"}, name="screen-dev4"),
