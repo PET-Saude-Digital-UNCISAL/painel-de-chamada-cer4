@@ -377,6 +377,18 @@
       transition: opacity 380ms ease, filter 480ms ease, transform 660ms cubic-bezier(0.16, 1, 0.3, 1);
     }
 
+    .queue-card.is-patient-next .queue-ahead-number {
+      top: 123px;
+      color: #000314;
+      font-family: "Public Sans", Arial, sans-serif;
+      font-size: 20px;
+      font-weight: 800;
+      line-height: 24px;
+      letter-spacing: -0.19px;
+      text-transform: uppercase;
+      white-space: nowrap;
+    }
+
     .queue-demo:not(.position-revealed) .queue-card {
       height: 88px;
       box-shadow: 0 3px 14px rgba(0, 26, 77, 0.06);
@@ -440,6 +452,8 @@
       font-size: 16px;
       font-weight: 700;
       line-height: 23px;
+      opacity: 1;
+      transform: translateY(0);
     }
 
     .footer {
@@ -550,6 +564,11 @@
       }
     }
 
+    .queue-copy.is-changing,
+    .orientation-text.is-changing {
+      animation: queue-value-change 600ms ease-in-out;
+    }
+
     ::view-transition-old(root) {
       animation: route-fade-out 180ms ease-in both;
     }
@@ -592,7 +611,9 @@
       .queue-card.is-updating .speaker-badge,
       .queue-card.is-updating .speaker-badge::before,
       .queue-card.is-updating .speaker-badge::after,
-      .queue-value.is-changing {
+      .queue-value.is-changing,
+      .queue-copy.is-changing,
+      .orientation-text.is-changing {
         animation: none;
       }
 
@@ -620,11 +641,55 @@
     @media (max-width: 360px) {
       .header-section {
         left: 20px;
+        right: 16px;
+      }
+
+      .header-title {
+        font-size: clamp(22px, 6.95vw, 25px);
+        line-height: 1.25;
       }
 
       .patient-card {
         left: 16px;
         right: 16px;
+        padding-right: 20px;
+        padding-left: 20px;
+      }
+
+      .patient-row {
+        gap: 12px;
+      }
+
+      .patient-data {
+        flex: 1;
+      }
+
+      .patient-name {
+        width: auto;
+        font-size: clamp(14px, 4.45vw, 16px);
+      }
+
+      .info-box {
+        padding-right: 10px;
+        padding-left: 10px;
+      }
+
+      .info-label {
+        font-size: 10px;
+        letter-spacing: 0.45px;
+      }
+
+      .info-value {
+        font-size: 15px;
+      }
+
+      .info-box:last-child .info-value {
+        font-size: clamp(12px, 3.9vw, 14px);
+      }
+
+      .ticket {
+        right: 20px;
+        left: 20px;
       }
 
       .queue-card {
@@ -632,9 +697,28 @@
         right: 16px;
       }
 
+      .queue-card.is-patient-next .queue-ahead-number {
+        font-size: clamp(17px, 5.55vw, 20px);
+        letter-spacing: -0.17px;
+      }
+
+      .queue-ahead-label {
+        font-size: clamp(10px, 3.05vw, 11px);
+        letter-spacing: 0.45px;
+      }
+
       .orientation-card {
         left: 16px;
         right: 16px;
+        gap: 12px;
+        padding-right: 10px;
+        padding-left: 20px;
+      }
+
+      .orientation-text {
+        max-width: none;
+        font-size: clamp(14px, 4.45vw, 16px);
+        line-height: 1.4;
       }
 
       .speaker-badge {
@@ -650,6 +734,30 @@
       .footer-actions {
         right: 10px;
         gap: 4px;
+      }
+    }
+
+    @media (max-width: 320px) {
+      .footer-indicators {
+        left: 12px;
+        gap: 10px;
+      }
+
+      .footer-indicator {
+        gap: 5px;
+      }
+
+      .footer-indicator:first-child {
+        width: 92px;
+      }
+
+      .footer-copy {
+        font-size: 11px;
+      }
+
+      .footer-actions {
+        right: 6px;
+        gap: 0;
       }
     }
   </style>
@@ -710,7 +818,7 @@
           </svg>
         </div>
         <div class="queue-divider" aria-hidden="true"></div>
-        <p class="queue-label queue-ahead-label" data-position-detail>Pacientes à sua frente</p>
+        <p class="queue-label queue-ahead-label queue-copy" data-ahead-label data-position-detail>Pacientes à sua frente</p>
         <p class="queue-ahead-number queue-value" data-ahead-count data-position-detail>{{ pacientes_a_frente }}</p>
       </section>
 
@@ -761,24 +869,66 @@
     (() => {
       const queueCard = document.querySelector(".queue-card");
       const currentCall = document.querySelector("[data-current-call]");
+      const aheadLabel = document.querySelector("[data-ahead-label]");
       const aheadCount = document.querySelector("[data-ahead-count]");
       const positionDetails = document.querySelectorAll("[data-position-detail]");
+      const orientationText = document.querySelector(".orientation-text");
+      const defaultAheadLabel = aheadLabel?.textContent.trim() || "";
+      const defaultOrientationMessage = orientationText?.textContent.trim() || "";
+      const nearOrientationMessage = "Sua vez está próxima. Permaneça atento ao painel.";
+      const isDemoMode = new URLSearchParams(window.location.search).get("demo") === "1";
+      const patientCalledUrl = "{% url 'paciente-chamado' %}";
       const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
       let cleanupTimer;
+      let demoRedirectTimer;
       let valueTimer;
+
+      const getOrientationMessage = (numericAhead) => {
+        if (numericAhead === 1 || numericAhead === 2) return nearOrientationMessage;
+        return defaultOrientationMessage;
+      };
+
+      const applyProximityState = (nextAhead) => {
+        const numericAhead = Number.parseInt(nextAhead, 10);
+        const isNext = numericAhead === 1;
+
+        queueCard.classList.toggle("is-patient-next", isNext);
+        if (aheadLabel) {
+          aheadLabel.textContent = isNext ? "Prepare-se para o atendimento." : defaultAheadLabel;
+        }
+        aheadCount.textContent = isNext ? "Você será o próximo." : String(nextAhead);
+        aheadCount.dataset.aheadValue = String(nextAhead);
+
+        if (isDemoMode && isNext && !demoRedirectTimer) {
+          demoRedirectTimer = window.setTimeout(() => {
+            window.location.assign(patientCalledUrl);
+          }, 20000);
+        }
+
+        if (!orientationText) return;
+        orientationText.textContent = getOrientationMessage(numericAhead);
+      };
 
       const updateQueue = ({ currentCall: nextCall, aheadCount: nextAhead, animateAhead = true }) => {
         if (!queueCard || !currentCall || !aheadCount) return;
+
+        const numericAhead = Number.parseInt(nextAhead, 10);
+        const positionCopyWillChange = queueCard.classList.contains("is-patient-next") !== (numericAhead === 1);
+        const orientationWillChange = Boolean(
+          orientationText && orientationText.textContent.trim() !== getOrientationMessage(numericAhead)
+        );
 
         window.clearTimeout(cleanupTimer);
         window.clearTimeout(valueTimer);
         queueCard.classList.remove("is-updating");
         currentCall.classList.remove("is-changing");
         aheadCount.classList.remove("is-changing");
+        aheadLabel?.classList.remove("is-changing");
+        orientationText?.classList.remove("is-changing");
 
         if (reduceMotion.matches) {
           currentCall.textContent = nextCall;
-          aheadCount.textContent = nextAhead;
+          applyProximityState(nextAhead);
           return;
         }
 
@@ -786,31 +936,53 @@
         queueCard.classList.add("is-updating");
         currentCall.classList.add("is-changing");
         if (animateAhead) aheadCount.classList.add("is-changing");
+        if (positionCopyWillChange) aheadLabel?.classList.add("is-changing");
+        if (orientationWillChange) orientationText?.classList.add("is-changing");
 
         valueTimer = window.setTimeout(() => {
           currentCall.textContent = nextCall;
-          aheadCount.textContent = nextAhead;
+          applyProximityState(nextAhead);
         }, 250);
 
         cleanupTimer = window.setTimeout(() => {
           queueCard.classList.remove("is-updating");
           currentCall.classList.remove("is-changing");
           aheadCount.classList.remove("is-changing");
+          aheadLabel?.classList.remove("is-changing");
+          orientationText?.classList.remove("is-changing");
         }, 850);
       };
 
+      applyProximityState(aheadCount.textContent);
       window.acompanhamentoAtendimento = { updateQueue };
 
-      if (new URLSearchParams(window.location.search).get("demo") === "1") {
-        queueCard.setAttribute("aria-label", "Chamada atual no painel");
-        positionDetails.forEach((detail) => detail.setAttribute("aria-hidden", "true"));
+      if (isDemoMode) {
+        const initialDemoStepDelay = 6000;
+        const demoStepInterval = 10000;
+        const finalDemoCall = 11;
+        let nextDemoCall = 9;
+        let nextDemoAheadCount = 3;
 
-        window.setTimeout(() => {
-          document.documentElement.classList.add("position-revealed");
-          queueCard.setAttribute("aria-label", "Chamada atual e posição na fila");
-          positionDetails.forEach((detail) => detail.removeAttribute("aria-hidden"));
-          updateQueue({ currentCall: "A002", aheadCount: "10", animateAhead: false });
-        }, 4000);
+        const scheduleNextDemoUpdate = (delay = demoStepInterval) => {
+          if (nextDemoCall > finalDemoCall) return;
+
+          window.setTimeout(() => {
+            updateQueue({
+              currentCall: `A${String(nextDemoCall).padStart(3, "0")}`,
+              aheadCount: String(nextDemoAheadCount),
+            });
+            nextDemoCall += 1;
+            nextDemoAheadCount -= 1;
+            scheduleNextDemoUpdate();
+          }, delay);
+        };
+
+        currentCall.textContent = "A008";
+        applyProximityState("4");
+        document.documentElement.classList.add("position-revealed");
+        queueCard.setAttribute("aria-label", "Chamada atual e posição na fila");
+        positionDetails.forEach((detail) => detail.removeAttribute("aria-hidden"));
+        scheduleNextDemoUpdate(initialDemoStepDelay);
       }
     })();
   </script>
