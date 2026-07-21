@@ -895,7 +895,7 @@
 
         queueCard.classList.toggle("is-patient-next", isNext);
         if (aheadLabel) {
-          aheadLabel.textContent = isNext ? "Prepare-se para o atendimento." : defaultAheadLabel;
+          aheadLabel.textContent = isNext ? "Prepare-se para o atendimento" : defaultAheadLabel;
         }
         aheadCount.textContent = isNext ? "Você será o próximo." : String(nextAhead);
         aheadCount.dataset.aheadValue = String(nextAhead);

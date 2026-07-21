@@ -1,4 +1,5 @@
 from django.test import TestCase, override_settings
+from django.urls import resolve, reverse
 
 from core.dev_builders import build_fake_screen_list, build_mocked_screen_payload
 from core.services import (
@@ -7,6 +8,7 @@ from core.services import (
 	get_painel_chamada_context,
 	get_paciente_chamado_context,
 	get_screen_context,
+	list_patient_screens,
 	list_team_screens,
 )
 from core.models import Paciente, UsuarioSistema
@@ -37,6 +39,47 @@ class IsolatedScreenSetupTests(TestCase):
 		payload = build_mocked_screen_payload("dev2")
 		self.assertEqual(payload["screen_slug"], "dev2")
 		self.assertEqual(payload["status"], "mock-data")
+
+	def test_patient_navigation_has_required_screens_in_expected_order(self):
+		screens = list_patient_screens()
+		expected = [
+			("identificacao-paciente", "Identificação do Paciente", "Remany", "identificacao-paciente"),
+			("checkin-concluido", "Check-in Concluído", "Remany", "checkin-concluido"),
+			("acompanhamento-atendimento", "Acompanhamento de Atendimento", "Remany", "acompanhamento-atendimento"),
+			("paciente-chamado", "Paciente Chamado", "Remany", "paciente-chamado"),
+			("checkin-assistido", "Check-in Assistido", "Remany", "checkin-assistido"),
+			("pesquisa-satisfacao", "Pesquisa de satisfação", "Monaliza", "pesquisa_satisfacao"),
+			("agendamento-nao-encontrado", "Agendamento não encontrado", "Monaliza", "agendamento_nao_encontrado"),
+			("perdeu-chamada", "Perdeu a chamada", "Monaliza", "perdeu_chamada"),
+		]
+		screens_by_slug = {screen["slug"]: screen for screen in screens}
+		positions = {screen["slug"]: index for index, screen in enumerate(screens)}
+
+		for slug, title, owner, route_name in expected:
+			with self.subTest(slug=slug):
+				self.assertIn(slug, screens_by_slug)
+				screen = screens_by_slug[slug]
+				self.assertEqual(screen["title"], title)
+				self.assertEqual(screen["owner"], owner)
+				self.assertEqual(screen["path"], reverse(route_name))
+				self.assertEqual(resolve(screen["path"]).url_name, route_name)
+
+		for current, following in zip(expected, expected[1:]):
+			self.assertLess(positions[current[0]], positions[following[0]])
+
+		self.assertNotIn("dashboard-monitoramento", screens_by_slug)
+		self.assertNotIn("painel-chamada", screens_by_slug)
+
+	def test_patient_navigation_route_renders_canonical_cards(self):
+		response = self.client.get(reverse("painel-pacientes"))
+
+		self.assertEqual(response.status_code, 200)
+		self.assertTemplateUsed(response, "core/painel_pacientes.html")
+		self.assertEqual(response.context["screens"], list_patient_screens())
+		for screen in list_patient_screens():
+			with self.subTest(slug=screen["slug"]):
+				self.assertContains(response, screen["title"])
+				self.assertContains(response, f'href="{screen["path"]}"')
 
 	def test_dashboard_monitoramento_context_has_expected_mock_data(self):
 		context = get_dashboard_monitoramento_context()

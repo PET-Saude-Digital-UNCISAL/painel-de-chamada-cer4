@@ -14,6 +14,8 @@ from mimetypes import guess_type
 from pathlib import Path
 from typing import Optional
 
+from django.urls import reverse
+
 from core.clock import SystemClock
 from core.models import EncaixePaciente, Paciente, TipoAtendimentoEncaixe
 
@@ -584,6 +586,60 @@ def get_dashboard_monitoramento_context() -> dict:
     }
  
  
+def list_patient_screens() -> list[dict]:
+    """Return the canonical navigation cards for patient-facing screens."""
+    return [
+        {
+            "slug": "identificacao-paciente",
+            "title": "Identificação do Paciente",
+            "owner": "Remany",
+            "path": reverse("identificacao-paciente"),
+        },
+        {
+            "slug": "checkin-concluido",
+            "title": "Check-in Concluído",
+            "owner": "Remany",
+            "path": reverse("checkin-concluido"),
+        },
+        {
+            "slug": "acompanhamento-atendimento",
+            "title": "Acompanhamento de Atendimento",
+            "owner": "Remany",
+            "path": reverse("acompanhamento-atendimento"),
+        },
+        {
+            "slug": "paciente-chamado",
+            "title": "Paciente Chamado",
+            "owner": "Remany",
+            "path": reverse("paciente-chamado"),
+        },
+        {
+            "slug": "checkin-assistido",
+            "title": "Check-in Assistido",
+            "owner": "Remany",
+            "path": reverse("checkin-assistido"),
+        },
+        {
+            "slug": "pesquisa-satisfacao",
+            "title": "Pesquisa de satisfação",
+            "owner": "Monaliza",
+            "path": reverse("pesquisa_satisfacao"),
+        },
+        {
+            "slug": "agendamento-nao-encontrado",
+            "title": "Agendamento não encontrado",
+            "owner": "Monaliza",
+            "path": reverse("agendamento_nao_encontrado"),
+        },
+        {
+            "slug": "perdeu-chamada",
+            "title": "Perdeu a chamada",
+            "owner": "Monaliza",
+            "path": reverse("perdeu_chamada"),
+        },
+    ]
+
+
 def list_team_screens() -> list[dict]:
     """Return cards used by the dashboard and direct route links."""
     # Agrupando telas relacionadas a Pacientes

@@ -24,6 +24,7 @@ from core.services import (
     get_painel_chamada_context,
     get_paciente_chamado_context,
     get_screen_context,
+    list_patient_screens,
     registrar_encaixe,
 )
 
@@ -188,24 +189,11 @@ def home_view(request):
 @xframe_options_sameorigin
 def painel_pacientes_view(request):
     """Lista isolada das telas mobile destinadas ao usuário final."""
-    screens = [
-        {
-            "title": "Tela de Pesquisa de satisfação",
-            "owner": "Monaliza",
-            "path": reverse("pesquisa_satisfacao"),
-        },
-        {
-            "title": "Tela de agendamento não encontrado",
-            "owner": "Monaliza",
-            "path": reverse("agendamento_nao_encontrado"),
-        },
-        {
-            "title": "Tela de Perdeu a chamada",
-            "owner": "Monaliza",
-            "path": reverse("perdeu_chamada"),
-        },
-    ]
-    return render(request, "core/painel_pacientes.html", {"screens": screens})
+    return render(
+        request,
+        "core/painel_pacientes.html",
+        {"screens": list_patient_screens()},
+    )
 
 
 def sistema_interno_view(request):
