@@ -274,6 +274,13 @@ def relatorios_desempenho_view(request):
     context = {}
     return render(request, "telas/cris/relatorios_desempenho.html", context)
 
+
+@xframe_options_sameorigin
+def visualizar_agendamento_view(request):
+    """Renderiza a tela de visualizar agendamento"""
+    context = {}
+    return render(request, "telas/cris/visualizar_agendamento.html", context)
+
 def screen_view(request, screen_slug):
     """Thin view: only render context produced by the application service."""
     context = get_screen_context(screen_slug)
