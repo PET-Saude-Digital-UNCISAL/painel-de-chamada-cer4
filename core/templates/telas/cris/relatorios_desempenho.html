@@ -1,0 +1,548 @@
+
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Relatórios de Desempenho</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background-color: #f5f7fa;
+            color: #333;
+        }
+
+        .header {
+            background-color: white;
+            padding: 20px 30px;
+            border-bottom: 1px solid #e0e6ed;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .header-title {
+            font-size: 24px;
+            font-weight: 600;
+            color: #003d7a;
+        }
+
+        .tabs {
+            display: flex;
+            gap: 30px;
+            margin-left: 50px;
+        }
+
+        .tab {
+            background: none;
+            border: none;
+            padding: 10px 0;
+            font-size: 14px;
+            cursor: pointer;
+            color: #666;
+            border-bottom: 2px solid transparent;
+            transition: all 0.3s ease;
+        }
+
+        .tab.active {
+            color: #003d7a;
+            border-bottom-color: #003d7a;
+            font-weight: 600;
+        }
+
+        .settings-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            border: 2px solid #e0e6ed;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            font-size: 20px;
+        }
+
+        .container {
+            padding: 30px;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .filters-section {
+            background-color: white;
+            padding: 25px;
+            border-radius: 8px;
+            margin-bottom: 30px;
+            display: flex;
+            gap: 20px;
+            align-items: flex-end;
+        }
+
+        .filter-group {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .filter-group label {
+            font-size: 13px;
+            font-weight: 500;
+            color: #555;
+        }
+
+        .filter-group select {
+            padding: 10px 15px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 14px;
+            min-width: 200px;
+            cursor: pointer;
+            background-color: white;
+        }
+
+        .apply-filters-btn {
+            background-color: #003d7a;
+            color: white;
+            border: none;
+            padding: 10px 30px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: background-color 0.3s ease;
+        }
+
+        .apply-filters-btn:hover {
+            background-color: #002a55;
+        }
+
+        .section-title {
+            font-size: 24px;
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: #333;
+        }
+
+        .section-subtitle {
+            font-size: 13px;
+            color: #999;
+            margin-bottom: 25px;
+        }
+
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .metric-card {
+            background-color: white;
+            border-radius: 8px;
+            padding: 25px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+
+        .metric-card-title {
+            font-size: 16px;
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: #333;
+        }
+
+        .metric-card-subtitle {
+            font-size: 13px;
+            color: #999;
+            margin-bottom: 20px;
+        }
+
+        .metric-value {
+            font-size: 48px;
+            font-weight: 700;
+            color: #003d7a;
+            margin-bottom: 15px;
+        }
+
+        .chart-container {
+            position: relative;
+            height: 250px;
+            margin-bottom: 15px;
+        }
+
+        .badge {
+            display: inline-block;
+            background-color: #003d7a;
+            color: white;
+            padding: 8px 16px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: 600;
+            margin-bottom: 15px;
+        }
+
+        .gauge-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 200px;
+            margin: 20px 0;
+        }
+
+        .gauge-text {
+            font-size: 48px;
+            font-weight: 700;
+            color: #333;
+        }
+
+        .gauge-meta {
+            font-size: 13px;
+            color: #999;
+            text-align: center;
+            margin-top: 10px;
+        }
+
+        .large-metric {
+            font-size: 56px;
+            font-weight: 700;
+            color: #003d7a;
+            margin: 20px 0;
+        }
+
+        .horizontal-bar-chart {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .bar-item {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .bar-label {
+            min-width: 150px;
+            font-size: 13px;
+            color: #333;
+        }
+
+        .bar-progress {
+            flex: 1;
+            background-color: #e8eef7;
+            border-radius: 4px;
+            height: 12px;
+            overflow: hidden;
+        }
+
+        .bar-fill {
+            background: linear-gradient(90deg, #003d7a 0%, #0056b3 100%);
+            height: 100%;
+            border-radius: 4px;
+        }
+
+        .bar-value {
+            font-size: 12px;
+            color: #666;
+            min-width: 80px;
+            text-align: right;
+        }
+
+        .specialty-bar-1 {
+            width: 100%;
+        }
+
+        .specialty-bar-2 {
+            width: 67%;
+        }
+
+        .specialty-bar-3 {
+            width: 56%;
+        }
+
+        .bottom-metrics {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 20px;
+        }
+
+        .card-icon {
+            font-size: 24px;
+            margin-bottom: 10px;
+        }
+
+        .metric-info {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+
+        .metric-info-title {
+            font-size: 14px;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .metric-info-subtitle {
+            font-size: 12px;
+            color: #999;
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .menu-icon {
+            cursor: pointer;
+            font-size: 20px;
+            color: #ccc;
+        }
+
+        @media (max-width: 1024px) {
+            .metrics-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .filters-section {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            .filter-group select {
+                width: 100%;
+            }
+
+            .apply-filters-btn {
+                width: 100%;
+                justify-content: center;
+            }
+        }
+
+        .time-range {
+            font-size: 12px;
+            color: #999;
+            margin-top: 15px;
+        }
+    </style>
+</head>
+<body>
+    <!-- HEADER -->
+    <div class="header">
+        <div style="display: flex; align-items: center; gap: 30px;">
+            <h1 class="header-title">Painel de Chamada</h1>
+            <div class="tabs">
+                <button class="tab active">Relatórios e Métricas</button>
+            </div>
+        </div>
+        <div class="settings-icon">⚙️</div>
+    </div>
+
+    <!-- CONTAINER PRINCIPAL -->
+    <div class="container">
+        <!-- SEÇÃO DE FILTROS -->
+        <div class="filters-section">
+            <div class="filter-group">
+                <label>Turno</label>
+                <select>
+                    <option selected>Manhã</option>
+                    <option>Tarde</option>
+                    <option>Noite</option>
+                </select>
+            </div>
+
+            <div class="filter-group">
+                <label>Dia da Semana</label>
+                <select>
+                    <option selected>Segunda-feira</option>
+                    <option>Terça-feira</option>
+                    <option>Quarta-feira</option>
+                    <option>Quinta-feira</option>
+                    <option>Sexta-feira</option>
+                </select>
+            </div>
+
+            <div class="filter-group">
+                <label>Especialidade Clínica</label>
+                <select>
+                    <option selected>Fisioterapia</option>
+                    <option>Fonoaudiologia</option>
+                    <option>Terapia Ocupacional</option>
+                </select>
+            </div>
+
+            <button class="apply-filters-btn">📊 Aplicar Filtros</button>
+        </div>
+
+        <!-- TÍTULO DA SEÇÃO -->
+        <h2 class="section-title">Visão Analítica de Desempenho</h2>
+        <p class="section-subtitle">Relatório consolidado referente ao período atual filtrado.</p>
+
+        <!-- GRID SUPERIOR DE MÉTRICAS -->
+        <div class="metrics-grid" style="grid-template-columns: 1fr 1fr;">
+            <!-- CARD: Tempo Médio de Espera -->
+            <div class="metric-card">
+                <h3 class="metric-card-title">Tempo Médio de Espera (TME)</h3>
+                <p class="metric-card-subtitle">Comparativo por unidade de recepção (em minutos)</p>
+                
+                <div class="badge">CONSOLIDADO</div>
+                <div class="metric-value">18 min</div>
+
+                <div class="chart-container">
+                    <canvas id="timeChart"></canvas>
+                </div>
+                <p class="time-range">Minutos: 0 | 10 | 20 | 30 | 40+</p>
+            </div>
+
+            <!-- CARD: Índice de Absenteísmo -->
+            <div class="metric-card">
+                <h3 class="metric-card-title">Índice de Absenteísmo</h3>
+                <p class="metric-card-subtitle">Pacientes que não compareceram ao chamado</p>
+
+                <div class="gauge-container">
+                    <div style="position: relative; width: 180px; height: 180px;">
+                        <canvas id="gaugeChart"></canvas>
+                    </div>
+                </div>
+                <div style="text-align: center;">
+                    <div class="gauge-text">12%</div>
+                    <div class="gauge-meta">META: < 5%</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- GRID INFERIOR DE MÉTRICAS -->
+        <div class="bottom-metrics">
+            <!-- CARD: Volume de Atendimentos -->
+            <div class="metric-card">
+                <div class="metric-info">
+                    <div class="card-icon">👥</div>
+                    <div class="metric-info-title">Volume de Atendimentos</div>
+                </div>
+                <div class="large-metric">100</div>
+            </div>
+
+            <!-- CARD: TME Triagem -->
+            <div class="metric-card">
+                <div style="display: flex; justify-content: space-between; align-items: start;">
+                    <div>
+                        <div class="card-icon">⏱️</div>
+                        <div class="metric-info-title">TME Triagem</div>
+                    </div>
+                </div>
+                <div class="large-metric">06 min</div>
+                <div style="font-size: 12px; color: #999;">Dentro da meta institucional</div>
+            </div>
+
+            <!-- CARD: Distribuição por Especialidade -->
+            <div class="metric-card" style="grid-column: 1 / -1;">
+                <div class="card-header">
+                    <h3 class="metric-card-title">Distribuição por Especialidade</h3>
+                    <div class="menu-icon">⋮</div>
+                </div>
+
+                <div class="horizontal-bar-chart">
+                    <!-- Fisioterapia -->
+                    <div class="bar-item">
+                        <div class="bar-label">Fisioterapia</div>
+                        <div class="bar-progress">
+                            <div class="bar-fill specialty-bar-1"></div>
+                        </div>
+                        <div class="bar-value">45% (558 at.)</div>
+                    </div>
+
+                    <!-- Fonoaudiologia -->
+                    <div class="bar-item">
+                        <div class="bar-label">Fonoaudiologia</div>
+                        <div class="bar-progress">
+                            <div class="bar-fill specialty-bar-2"></div>
+                        </div>
+                        <div class="bar-value">30% (372 at.)</div>
+                    </div>
+
+                    <!-- Terapia Ocupacional -->
+                    <div class="bar-item">
+                        <div class="bar-label">Terapia ocupacional</div>
+                        <div class="bar-progress">
+                            <div class="bar-fill specialty-bar-3"></div>
+                        </div>
+                        <div class="bar-value">25% (310 at.)</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Gráfico de Barras - Tempo Médio de Espera
+        const timeCtx = document.getElementById('timeChart').getContext('2d');
+        new Chart(timeCtx, {
+            type: 'bar',
+            data: {
+                labels: ['Recepção 1', 'Recepção 2', 'Recepção 3', 'Recepção 4'],
+                datasets: [{
+                    label: 'Tempo (minutos)',
+                    data: [12, 19, 15, 25],
+                    backgroundColor: ['#001a4d', '#0066cc', '#001a4d', '#003d7a'],
+                    borderRadius: 4,
+                    borderSkipped: false,
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                indexAxis: 'x',
+                plugins: {
+                    legend: {
+                        display: false
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        max: 40,
+                        ticks: {
+                            stepSize: 10
+                        }
+                    }
+                }
+            }
+        });
+
+        // Gráfico de Gauge - Absenteísmo
+        const gaugeCtx = document.getElementById('gaugeChart').getContext('2d');
+        new Chart(gaugeCtx, {
+            type: 'doughnut',
+            data: {
+                labels: ['Absenteísmo', 'Comparecimento'],
+                datasets: [{
+                    data: [12, 88],
+                    backgroundColor: ['#cc0000', '#e0e6ed'],
+                    borderWidth: 0,
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        display: false
+                    }
+                }
+            }
+        });
+    </script>
+</body>
+</html>

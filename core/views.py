@@ -267,6 +267,13 @@ def checagem_documentos_view(request):
     context = {}
     return render(request, "telas/cris/checagem_documentos.html", context)
 
+
+@xframe_options_sameorigin
+def relatorios_desempenho_view(request):
+    """Renderiza a tela de relatórios de desempenho"""
+    context = {}
+    return render(request, "telas/cris/relatorios_desempenho.html", context)
+
 def screen_view(request, screen_slug):
     """Thin view: only render context produced by the application service."""
     context = get_screen_context(screen_slug)
