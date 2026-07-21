@@ -2,7 +2,7 @@
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <title>{{ page_title }}</title>
   <style>
     @font-face {
@@ -43,40 +43,11 @@
       background: #f7f9fb;
     }
 
-    .topbar {
-      position: sticky;
-      top: 0;
-      z-index: 10;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: 16px 24px;
-      background: rgba(247, 249, 251, 0.88);
-      box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
-      backdrop-filter: blur(12px);
-    }
-
-    .topbar-logo {
-      width: 25px;
-      height: 25px;
-    }
-
-    .topbar-gear {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      padding: 8px;
-      color: #64748b;
-      background: none;
-      border: 0;
-      border-radius: 9999px;
-      pointer-events: none;
-    }
-
     main {
       flex: 1;
       display: flex;
       flex-direction: column;
+      padding-top: max(52px, env(safe-area-inset-top));
     }
 
     .header-section {
@@ -438,15 +409,6 @@
 </head>
 <body>
   <div class="shell">
-    <header class="topbar">
-      <div class="topbar-logo"></div>
-      <button class="topbar-gear" type="button" aria-label="Configurações" aria-disabled="true" tabindex="-1">
-        <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true">
-          <path fill-rule="evenodd" clip-rule="evenodd" d="M11.49 1.36a1.75 1.75 0 0 0-2.98 0L7.6 3.02a.25.25 0 0 1-.27.11l-1.87-.42a1.75 1.75 0 0 0-2.1 2.1l.42 1.87a.25.25 0 0 1-.11.27L1.36 8.51a1.75 1.75 0 0 0 0 2.98l1.66.91a.25.25 0 0 1 .11.27l-.42 1.87a1.75 1.75 0 0 0 2.1 2.1l1.87-.42a.25.25 0 0 1 .27.11l.91 1.66a1.75 1.75 0 0 0 2.98 0l.91-1.66a.25.25 0 0 1 .27-.11l1.87.42a1.75 1.75 0 0 0 2.1-2.1l-.42-1.87a.25.25 0 0 1 .11-.27l1.66-.91a1.75 1.75 0 0 0 0-2.98l-1.66-.91a.25.25 0 0 1-.11-.27l.42-1.87a1.75 1.75 0 0 0-2.1-2.1l-1.87.42a.25.25 0 0 1-.27-.11l-.91-1.66ZM10 7a3 3 0 1 0 0 6 3 3 0 0 0 0-6Z" fill="#64748b"/>
-        </svg>
-      </button>
-    </header>
-
     <main>
       <section class="header-section">
         <h1 class="header-title">{{ title }}</h1>
