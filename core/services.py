@@ -257,6 +257,28 @@ def get_checkin_concluido_context() -> dict:
     }
 
 
+def get_checkin_assistido_context() -> dict:
+    """Return the mocked payload for the assisted check-in guidance screen."""
+    return {
+        "page_title": "Check-in Assistido",
+        "title": "Siga para a Recepção",
+        "message": (
+            "Nossa equipe no balcão principal ajudará com seu check-in. "
+            "Por favor, tenha um documento com foto em mãos."
+        ),
+        "message_lines": [
+            "Nossa equipe no balcão principal ajudará com",
+            "seu check-in. Por favor, tenha um documento",
+            "com foto em mãos.",
+        ],
+        "footer_indicators": [
+            {"label": "LGPD", "detail": "Conforme", "icon": "lock"},
+            {"label": "Conexão", "detail": "Segura", "icon": "shield"},
+        ],
+        "inter_font_url": _get_painel_chamada_asset_data_url("fonts/Inter-Variable.ttf"),
+    }
+
+
 def get_identificacao_paciente_context() -> dict:
     """Return the mocked payload for the patient identification screen."""
     return {
@@ -383,11 +405,17 @@ def get_dashboard_monitoramento_context() -> dict:
             "title": "Controle de encaixes",
             "pending_count": "7 solicitações pendentes",
             "pending_chip": "+4 solicitações",
+            "expanded_chip": "7 exibidas",
             "link_label": "Ver todos",
+            "collapse_label": "Mostrar menos",
             "requests": [
-                {"name": "Roberto Almeida", "specialty": "Fonoaudiologia", "time": "08:15"},
-                {"name": "Marta Ribeiro", "specialty": "Fonoaudiologia", "time": "08:30"},
-                {"name": "José Fernando", "specialty": "Fisioterapia", "time": "08:30"},
+                {"name": "Roberto Almeida", "mother": "Helena Almeida", "specialty": "Fonoaudiologia", "time": "08:15"},
+                {"name": "Marta Ribeiro", "mother": "Sônia Ribeiro", "specialty": "Fonoaudiologia", "time": "08:30"},
+                {"name": "José Fernando", "mother": "Maria de Lourdes Silva", "specialty": "Fisioterapia", "time": "08:30"},
+                {"name": "Ana Paula Santos", "mother": "Francisca Santos", "specialty": "Terapia Ocupacional", "time": "08:45"},
+                {"name": "Carlos Henrique Lima", "mother": "Rosângela Lima", "specialty": "Psicologia", "time": "09:00"},
+                {"name": "Beatriz Souza Costa", "mother": "Adriana Souza", "specialty": "Fisioterapia", "time": "09:15"},
+                {"name": "Lucas Gabriel Rocha", "mother": "Patrícia Rocha", "specialty": "Fonoaudiologia", "time": "09:30"},
             ],
         },
         "kanban_columns": [
@@ -633,6 +661,16 @@ def list_team_screens() -> list[dict]:
             "owner": "Remany",
             "status": "em desenvolvimento",
             "path": "/checkin-concluido/",
+        }
+    )
+
+    other_screens.append(
+        {
+            "slug": "checkin-assistido",
+            "title": "Check-in Assistido",
+            "owner": "Remany",
+            "status": "em desenvolvimento",
+            "path": "/checkin-assistido/",
         }
     )
 

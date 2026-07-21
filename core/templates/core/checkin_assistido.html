@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>{{ page_title }}</title>
+  <style>
+    @font-face {
+      font-family: "Inter";
+      src: url("{{ inter_font_url }}") format("truetype");
+      font-style: normal;
+      font-weight: 100 900;
+      font-display: swap;
+    }
+
+    *, *::before, *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    html,
+    body {
+      min-height: 100%;
+    }
+
+    body {
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+      overflow-x: hidden;
+      color: #001b56;
+      background: #e8edf2;
+      font-family: "Inter", Arial, sans-serif;
+      font-synthesis: none;
+      -webkit-font-smoothing: antialiased;
+      text-rendering: optimizeLegibility;
+    }
+
+    button,
+    a {
+      color: inherit;
+      font: inherit;
+    }
+
+    .screen {
+      position: relative;
+      width: 390px;
+      min-height: max(844px, 100svh);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      background: #f7f9fb;
+    }
+
+    .topbar {
+      position: sticky;
+      top: 0;
+      z-index: 10;
+      width: 100%;
+      height: 68px;
+      flex: 0 0 68px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 16px 24px;
+      background: rgba(247, 249, 251, 0.8);
+      box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+      backdrop-filter: blur(12px);
+    }
+
+    .icon-button {
+      width: 36px;
+      height: 36px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 8px;
+      background: transparent;
+      border: 0;
+      border-radius: 9999px;
+      text-decoration: none;
+    }
+
+    .icon-button:hover,
+    .icon-button:focus-visible,
+    .accessibility-icon:hover,
+    .accessibility-icon:focus-visible {
+      background: #eef2f6;
+      outline: none;
+    }
+
+    .icon-button:focus-visible,
+    .accessibility-icon:focus-visible {
+      box-shadow: 0 0 0 3px rgba(0, 71, 141, 0.2);
+    }
+
+    .content-area {
+      width: 100%;
+      flex: 1;
+      display: grid;
+      place-items: center;
+      padding: 28px 14px;
+    }
+
+    .assisted-content {
+      width: 100%;
+      max-width: 360px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+    }
+
+    .support-badge {
+      width: 56px;
+      height: 56px;
+      display: grid;
+      flex: 0 0 56px;
+      place-items: center;
+      color: #0c307f;
+      background: #e5ebf6;
+      border-radius: 50%;
+    }
+
+    .support-icon {
+      width: 28px;
+      height: 25px;
+    }
+
+    .title {
+      margin-top: 28px;
+      color: #001b56;
+      font-size: 22px;
+      font-weight: 800;
+      line-height: 28px;
+      letter-spacing: -0.22px;
+    }
+
+    .message {
+      max-width: 360px;
+      margin-top: 18px;
+      color: #466178;
+      font-family: "Inter", Arial, sans-serif;
+      font-size: 15px;
+      font-weight: 500;
+      line-height: 23px;
+      letter-spacing: 0;
+    }
+
+    .message-line {
+      display: block;
+    }
+
+    .footer {
+      position: relative;
+      z-index: 10;
+      width: 100%;
+      min-height: 85px;
+      flex: 0 0 auto;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 12px 24px max(12px, env(safe-area-inset-bottom));
+      border-top: 1px solid rgba(194, 198, 212, 0.1);
+      background: #f7f9fb;
+    }
+
+    .footer-indicators {
+      display: flex;
+      align-items: center;
+      gap: 24px;
+    }
+
+    .footer-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .footer-text {
+      color: #466178;
+      font-family: "Inter", Arial, sans-serif;
+      font-size: 12px;
+      font-weight: 500;
+      line-height: 16px;
+      white-space: nowrap;
+    }
+
+    .footer-actions {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .accessibility-icon {
+      width: 36px;
+      height: 36px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 0;
+      color: #466178;
+      background: transparent;
+      border: 0;
+      border-radius: 9999px;
+    }
+
+    @media (max-width: 430px) {
+      .screen {
+        width: 100%;
+      }
+    }
+
+    @media (max-width: 360px) {
+      .topbar,
+      .content-area {
+        padding-right: 18px;
+        padding-left: 18px;
+      }
+
+      .title {
+        font-size: clamp(20px, 6.1vw, 22px);
+        line-height: 1.25;
+      }
+
+      .message {
+        max-width: 310px;
+        font-size: clamp(14px, 4.15vw, 15px);
+        line-height: 1.55;
+      }
+
+      .message-line {
+        display: inline;
+      }
+
+      .footer {
+        padding-right: 16px;
+        padding-left: 16px;
+      }
+
+      .footer-indicators {
+        gap: 15px;
+      }
+    }
+
+    @media (max-width: 320px) {
+      .footer {
+        padding-right: 10px;
+        padding-left: 10px;
+      }
+
+      .footer-indicators {
+        gap: 10px;
+      }
+
+      .footer-item {
+        gap: 5px;
+      }
+
+      .footer-text {
+        font-size: 11px;
+      }
+
+      .footer-actions {
+        gap: 0;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="screen">
+    <header class="topbar">
+      <a class="icon-button" href="{% url 'identificacao-paciente' %}" aria-label="Voltar para identificação do paciente">
+        <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true">
+          <path d="M16.25 10H3.75M9 4.75 3.75 10 9 15.25" stroke="#64748b" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </a>
+
+      <button class="icon-button" type="button" aria-label="Configurações">
+        <svg width="21" height="20" viewBox="0 0 20.1 20" fill="none" aria-hidden="true">
+          <path d="M7.3 20L6.9 16.8C6.68333 16.7167 6.47917 16.6167 6.2875 16.5C6.09583 16.3833 5.90833 16.2583 5.725 16.125L2.75 17.375L0 12.625L2.575 10.675C2.55833 10.5583 2.55 10.4458 2.55 10.3375V9.6625C2.55 9.55417 2.55833 9.44167 2.575 9.325L0 7.375L2.75 2.625L5.725 3.875C5.90833 3.74167 6.1 3.61667 6.3 3.5C6.5 3.38333 6.7 3.28333 6.9 3.2L7.3 0H12.8L13.2 3.2C13.4167 3.28333 13.6208 3.38333 13.8125 3.5C14.0042 3.61667 14.1917 3.74167 14.375 3.875L17.35 2.625L20.1 7.375L17.525 9.325C17.5417 9.44167 17.55 9.55417 17.55 9.6625V10.3375C17.55 10.4458 17.5333 10.5583 17.5 10.675L20.075 12.625L17.325 17.375L14.375 16.125C14.1917 16.2583 14 16.3833 13.8 16.5C13.6 16.6167 13.4 16.7167 13.2 16.8L12.8 20H7.3ZM9.05 18H11.025L11.375 15.35C11.8917 15.2167 12.3708 15.0208 12.8125 14.7625C13.2542 14.5042 13.6583 14.1917 14.025 13.825L16.5 14.85L17.475 13.15L15.325 11.525C15.4083 11.2917 15.4667 11.0458 15.5 10.7875C15.5333 10.5292 15.55 10.2667 15.55 10C15.55 9.73333 15.5333 9.47083 15.5 9.2125C15.4667 8.95417 15.4083 8.70833 15.325 8.475L17.475 6.85L16.5 5.15L14.025 6.2C13.6583 5.81667 13.2542 5.49583 12.8125 5.2375C12.3708 4.97917 11.8917 4.78333 11.375 4.65L11.05 2H9.075L8.725 4.65C8.20833 4.78333 7.72917 4.97917 7.2875 5.2375C6.84583 5.49583 6.44167 5.80833 6.075 6.175L3.6 5.15L2.625 6.85L4.775 8.45C4.69167 8.7 4.63333 8.95 4.6 9.2C4.56667 9.45 4.55 9.71667 4.55 10C4.55 10.2667 4.56667 10.525 4.6 10.775C4.63333 11.025 4.69167 11.275 4.775 11.525L2.625 13.15L3.6 14.85L6.075 13.8C6.44167 14.1833 6.84583 14.5042 7.2875 14.7625C7.72917 15.0208 8.20833 15.2167 8.725 15.35L9.05 18ZM10.1 13.5C11.0667 13.5 11.8917 13.1583 12.575 12.475C13.2583 11.7917 13.6 10.9667 13.6 10C13.6 9.03333 13.2583 8.20833 12.575 7.525C11.8917 6.84167 11.0667 6.5 10.1 6.5C9.11667 6.5 8.2875 6.84167 7.6125 7.525C6.9375 8.20833 6.6 9.03333 6.6 10C6.6 10.9667 6.9375 11.7917 7.6125 12.475C8.2875 13.1583 9.11667 13.5 10.1 13.5Z" fill="#64748b"/>
+        </svg>
+      </button>
+    </header>
+
+    <main class="content-area">
+      <section class="assisted-content" aria-labelledby="assisted-title">
+        <div class="support-badge" aria-hidden="true">
+          <svg class="support-icon" viewBox="0 0 20 18" fill="none">
+            <path d="M3 10V9a7 7 0 0 1 14 0v1M3 10H2a1 1 0 0 0-1 1v3a2 2 0 0 0 2 2h2v-6H3ZM17 10h1a1 1 0 0 1 1 1v3a2 2 0 0 1-2 2h-2v-6h2ZM15 16c-.8 1-2.25 1.5-4.35 1.5" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </div>
+
+        <h1 class="title" id="assisted-title">{{ title }}</h1>
+        <p class="message" aria-label="{{ message }}">
+          {% for line in message_lines %}<span class="message-line">{{ line }}</span>{% endfor %}
+        </p>
+      </section>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-indicators">
+        {% for indicator in footer_indicators %}
+          <div class="footer-item">
+            {% if indicator.icon == "lock" %}
+              <svg width="10" height="13" viewBox="0 0 10 13" fill="none" aria-hidden="true">
+                <path fill-rule="evenodd" clip-rule="evenodd" d="M5 0a3 3 0 0 0-3 3v1H1a1 1 0 0 0-1 1v7a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1V5a1 1 0 0 0-1-1H8V3a3 3 0 0 0-3-3H5Zm2 4H3V3a2 2 0 1 1 4 0v1ZM5 7a1 1 0 0 1 1 1v1a1 1 0 1 1-2 0V8a1 1 0 0 1 1-1Z" fill="#466178"/>
+              </svg>
+            {% else %}
+              <svg width="10" height="12" viewBox="0 0 10 12" fill="none" aria-hidden="true">
+                <path fill-rule="evenodd" clip-rule="evenodd" d="M5 0 .5 1.75v3.56C.5 8.07 2.44 10.66 5 11.67c2.56-1.01 4.5-3.6 4.5-6.36V1.75L5 0Zm2.68 4.61L4.05 8.24 2.32 6.51l.83-.83.9.9 2.8-2.8.83.83Z" fill="#466178"/>
+              </svg>
+            {% endif %}
+            <p class="footer-text">{{ indicator.label }}<br>{{ indicator.detail }}</p>
+          </div>
+        {% endfor %}
+      </div>
+
+      <div class="footer-actions" aria-label="Recursos de acessibilidade">
+        <button class="accessibility-icon" type="button" aria-label="Aumentar contraste">
+          <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true">
+            <path fill-rule="evenodd" clip-rule="evenodd" d="M10 0a10 10 0 1 0 0 20 10 10 0 0 0 0-20Zm1 2.08a8 8 0 0 1 0 15.84V2.08Z" fill="currentColor"/>
+          </svg>
+        </button>
+        <button class="accessibility-icon" type="button" aria-label="Aumentar fonte">
+          <svg width="20" height="16" viewBox="0 0 20 16" fill="none" aria-hidden="true">
+            <path d="M12 16V3H7V0h13v3h-5v13h-3ZM3 16V8H0V5h9v3H6v8H3Z" fill="currentColor"/>
+          </svg>
+        </button>
+      </div>
+    </footer>
+  </div>
+</body>
+</html>

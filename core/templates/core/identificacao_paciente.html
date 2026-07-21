@@ -116,6 +116,7 @@
     .title {
       margin-top: 0;
       color: #001b56;
+      font-family: "Inter", Arial, sans-serif;
       font-size: 30px;
       font-weight: 800;
       line-height: 36px;
@@ -126,7 +127,7 @@
       max-width: 290px;
       margin-top: 6px;
       color: #466178;
-      font-family: "Inter", "Public Sans", Arial, sans-serif;
+      font-family: "Inter", Arial, sans-serif;
       font-size: 16px;
       font-weight: 500;
       line-height: 23px;
@@ -364,7 +365,7 @@
       flex-direction: column;
       align-items: center;
       color: #001b56;
-      font-family: "Inter", "Public Sans", Arial, sans-serif;
+      font-family: "Inter", Arial, sans-serif;
       text-align: center;
       outline: 0;
     }
@@ -523,12 +524,12 @@
           </svg>
         </a>
 
-        <button class="action-button action-secondary" type="button">
+        <a class="action-button action-secondary" href="{% url 'checkin-assistido' %}">
           <svg width="20" height="18" viewBox="0 0 20 18" fill="none" aria-hidden="true">
             <path d="M3 10V9a7 7 0 0 1 14 0v1M3 10H2a1 1 0 0 0-1 1v3a2 2 0 0 0 2 2h2v-6H3ZM17 10h1a1 1 0 0 1 1 1v3a2 2 0 0 1-2 2h-2v-6h2ZM15 16c-.8 1-2.25 1.5-4.35 1.5" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/>
           </svg>
           <span>{{ texto_botao_assistido }}</span>
-        </button>
+        </a>
       </div>
     </main>
 

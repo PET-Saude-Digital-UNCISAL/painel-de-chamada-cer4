@@ -12,7 +12,7 @@
   --text-dark: #0f172a;
   --text-muted: #64748b;
   --text-light: #94a3b8;
-  --primary-blue: #102A72;
+  --primary-blue: #0A2B6F;
   --border-color: #E5E7EB;
 
   --color-green: #13c15d;
@@ -192,7 +192,7 @@ button {
 .card {
   background-color: var(--bg-card);
   border: 1px solid var(--border-color);
-  border-radius: 32px;
+  border-radius: 24px;
   padding: 24px;
   display: flex;
   flex-direction: column;
@@ -290,6 +290,7 @@ button {
   font-weight: 500;
   color: var(--text-light);
   margin-top: auto;
+  text-transform: uppercase;
 }
 
 .card.primary .card-footer {
@@ -390,7 +391,7 @@ button {
 .encaixes-section {
   background-color: var(--bg-card);
   border: 1px solid var(--border-color);
-  border-radius: 24px;
+  border-radius: 20px;
   padding: 24px;
   margin-bottom: 24px;
   box-shadow: 0 2px 16px -4px rgba(0,0,0,0.04);
@@ -458,7 +459,36 @@ button {
 .encaixes-list {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 32px;
+  gap: 16px;
+}
+
+.encaixes-extra {
+  display: grid;
+  grid-template-rows: 0fr;
+  opacity: 0;
+  visibility: hidden;
+  transition: grid-template-rows 280ms ease, opacity 200ms ease, visibility 0s linear 280ms;
+}
+
+.encaixes-extra-inner {
+  min-height: 0;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 16px;
+  padding-top: 0;
+  overflow: hidden;
+  transition: padding-top 280ms ease;
+}
+
+.encaixes-section.is-expanded .encaixes-extra {
+  grid-template-rows: 1fr;
+  opacity: 1;
+  visibility: visible;
+  transition-delay: 0s;
+}
+
+.encaixes-section.is-expanded .encaixes-extra-inner {
+  padding-top: 16px;
 }
 
 .encaixe-item {
@@ -467,6 +497,10 @@ button {
   display: flex;
   flex-direction: column;
   gap: 20px;
+  padding: 16px;
+  background: #fafbfd;
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
 }
 
 
@@ -482,6 +516,13 @@ button {
   font-size: 15px;
   font-weight: 700;
   color: var(--text-dark);
+}
+
+.encaixe-mother {
+  margin-top: 2px;
+  color: var(--text-light);
+  font-size: 13px;
+  font-weight: 500;
 }
 
 .encaixe-spec {
@@ -574,7 +615,7 @@ button {
 .patient-card {
   background-color: var(--bg-card);
   border: 1px solid var(--border-color);
-  border-radius: 24px;
+  border-radius: 20px;
   padding: 24px;
   display: flex;
   flex-direction: column;
@@ -769,6 +810,19 @@ button {
 .encaixes-link .icon {
   width: 18px;
   height: 18px;
+  transition: transform 240ms ease;
+}
+
+.encaixes-section.is-expanded .encaixes-link .icon {
+  transform: rotate(180deg);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .encaixes-extra,
+  .encaixes-extra-inner,
+  .encaixes-link .icon {
+    transition: none;
+  }
 }
 
 @media (max-width: 1200px) {
@@ -821,9 +875,14 @@ button {
     flex-wrap: wrap;
   }
 
-  .encaixes-list {
+  .encaixes-list,
+  .encaixes-extra-inner {
     grid-template-columns: 1fr;
-    gap: 24px;
+    gap: 16px;
+  }
+
+  .encaixes-section.is-expanded .encaixes-extra-inner {
+    padding-top: 16px;
   }
 }
 
@@ -972,29 +1031,24 @@ button {
         <div class="encaixes-count">{{ encaixes.pending_count }}</div>
       </div>
       <div class="encaixes-header-right">
-        <div class="encaixes-chip">{{ encaixes.pending_chip }}</div>
-        <button type="button" class="encaixes-link">{{ encaixes.link_label }} <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg></button>
+        <div class="encaixes-chip" id="encaixes-chip" data-collapsed-label="{{ encaixes.pending_chip }}" data-expanded-label="{{ encaixes.expanded_chip }}">{{ encaixes.pending_chip }}</div>
+        <button type="button" class="encaixes-link" id="encaixes-toggle" aria-expanded="false" aria-controls="encaixes-extra">
+          <span data-collapsed-label="{{ encaixes.link_label }}" data-expanded-label="{{ encaixes.collapse_label }}">{{ encaixes.link_label }}</span>
+          <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><polyline points="6 9 12 15 18 9"/></svg>
+        </button>
       </div>
     </div>
     <div class="encaixes-list">
-      {% for request in encaixes.requests %}
-      <div class="encaixe-item">
-        <div class="encaixe-info">
-          <div>
-            <div class="encaixe-name">{{ request.name }}</div>
-            <div class="encaixe-spec">{{ request.specialty }}</div>
-          </div>
-          <div class="encaixe-time">
-            <svg class="icon-sm" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-            {{ request.time }}
-          </div>
-        </div>
-        <div class="encaixe-actions">
-          <button type="button" class="action-btn approve"><svg class="icon-sm" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>Aprovar</button>
-          <button type="button" class="action-btn redirect"><svg class="icon-sm" viewBox="0 0 24 24"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>Redirecionar</button>
-        </div>
-      </div>
+      {% for request in encaixes.requests|slice:":3" %}
+        {% include "core/_encaixe_item.html" with request=request %}
       {% endfor %}
+    </div>
+    <div class="encaixes-extra" id="encaixes-extra" aria-hidden="true" inert>
+      <div class="encaixes-extra-inner">
+        {% for request in encaixes.requests|slice:"3:" %}
+          {% include "core/_encaixe_item.html" with request=request %}
+        {% endfor %}
+      </div>
     </div>
   </div>
 
@@ -1060,5 +1114,31 @@ button {
   </div>
 </div>
 <script>(function(){var t=document.getElementById("clock-time"),d=document.getElementById("clock-date"),m=["janeiro","fevereiro","mar\u00e7o","abril","maio","junho","julho","agosto","setembro","outubro","novembro","dezembro"];function r(){var n=new Date(),h=String(n.getHours()).padStart(2,"0"),mi=String(n.getMinutes()).padStart(2,"0"),dy=String(n.getDate()).padStart(2,"0");if(t)t.textContent=h+":"+mi;if(d)d.textContent=dy+" de "+m[n.getMonth()]+" de "+n.getFullYear();}r();setInterval(r,15000);})();</script>
+<script>
+  (() => {
+    const section = document.querySelector(".encaixes-section");
+    const toggle = document.getElementById("encaixes-toggle");
+    const extra = document.getElementById("encaixes-extra");
+    const chip = document.getElementById("encaixes-chip");
+    const toggleLabel = toggle?.querySelector("span");
+
+    if (!section || !toggle || !extra || !chip || !toggleLabel) return;
+
+    toggle.addEventListener("click", () => {
+      const expanded = toggle.getAttribute("aria-expanded") !== "true";
+
+      section.classList.toggle("is-expanded", expanded);
+      toggle.setAttribute("aria-expanded", String(expanded));
+      extra.setAttribute("aria-hidden", String(!expanded));
+      extra.inert = !expanded;
+      toggleLabel.textContent = expanded
+        ? toggleLabel.dataset.expandedLabel
+        : toggleLabel.dataset.collapsedLabel;
+      chip.textContent = expanded
+        ? chip.dataset.expandedLabel
+        : chip.dataset.collapsedLabel;
+    });
+  })();
+</script>
 </body>
 </html>

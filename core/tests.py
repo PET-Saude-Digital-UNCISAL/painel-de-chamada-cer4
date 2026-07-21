@@ -2,6 +2,7 @@ from django.test import TestCase, override_settings
 
 from core.dev_builders import build_fake_screen_list, build_mocked_screen_payload
 from core.services import (
+	get_checkin_assistido_context,
 	get_dashboard_monitoramento_context,
 	get_painel_chamada_context,
 	get_paciente_chamado_context,
@@ -42,7 +43,9 @@ class IsolatedScreenSetupTests(TestCase):
 		self.assertEqual(context["current_time"], "09:48")
 		self.assertEqual(len(context["kpis"]), 6)
 		self.assertEqual(len(context["chart"]["bars"]), 7)
-		self.assertEqual(len(context["encaixes"]["requests"]), 3)
+		self.assertEqual(len(context["encaixes"]["requests"]), 7)
+		self.assertEqual(context["encaixes"]["pending_chip"], "+4 solicitações")
+		self.assertTrue(all(request["mother"] for request in context["encaixes"]["requests"]))
 		self.assertEqual(len(context["kanban_columns"]), 4)
 		self.assertTrue(all(len(column["patients"]) == 3 for column in context["kanban_columns"]))
 
@@ -51,6 +54,10 @@ class IsolatedScreenSetupTests(TestCase):
 		self.assertEqual(response.status_code, 200)
 		self.assertContains(response, "Monitoramento do Fluxo")
 		self.assertContains(response, "Roberto Almeida")
+		self.assertContains(response, "Mãe: Helena Almeida")
+		self.assertContains(response, "Lucas Gabriel Rocha")
+		self.assertContains(response, 'id="encaixes-toggle"')
+		self.assertContains(response, 'aria-expanded="false"')
 		self.assertContains(response, "Concluído às 08:55")
 
 	def test_painel_chamada_context_has_expected_mock_data(self):
@@ -95,8 +102,43 @@ class IsolatedScreenSetupTests(TestCase):
 		self.assertContains(response, 'role="alert"')
 		self.assertContains(response, "prefers-reduced-motion")
 
+	def test_checkin_assistido_context_has_expected_mock_data(self):
+		context = get_checkin_assistido_context()
+		self.assertEqual(context["title"], "Siga para a Recepção")
+		self.assertIn("documento com foto", context["message"])
+		self.assertEqual(len(context["footer_indicators"]), 2)
+		self.assertTrue(context["inter_font_url"].startswith("data:font/ttf;base64,"))
+
+	def test_checkin_assistido_route_and_identification_link_work(self):
+		response = self.client.get("/checkin-assistido/")
+		self.assertEqual(response.status_code, 200)
+		self.assertTemplateUsed(response, "core/checkin_assistido.html")
+		self.assertContains(response, "Siga para a Recepção")
+		self.assertContains(response, "Nossa equipe no balcão principal")
+		self.assertContains(response, "data:font/ttf;base64,")
+		self.assertContains(response, 'font-family: "Inter"')
+		self.assertNotContains(response, 'font-family: "Public Sans"')
+		self.assertContains(response, 'href="/identificacao-paciente/"')
+		self.assertContains(response, "LGPD")
+		self.assertContains(response, "Conexão")
+		self.assertNotContains(response, "fonts.googleapis.com")
+
+		identification_response = self.client.get("/identificacao-paciente/")
+		self.assertEqual(identification_response.status_code, 200)
+		self.assertContains(identification_response, 'href="/checkin-assistido/"')
+
 	def test_list_team_screens_has_expected_registered_screens(self):
 		screens = list_team_screens()
+		self.assertIn(
+			{
+				"slug": "checkin-assistido",
+				"title": "Check-in Assistido",
+				"owner": "Remany",
+				"status": "em desenvolvimento",
+				"path": "/checkin-assistido/",
+			},
+			screens,
+		)
 		self.assertIn(
 			{
 				"slug": "acompanhamento-atendimento",
