@@ -517,7 +517,12 @@
       </form>
 
       <div class="actions">
-        <a class="action-button action-primary" href="{% url 'checkin-concluido' %}" data-checkin-action>
+        <a
+          class="action-button action-primary"
+          href="{% url 'checkin-concluido' %}"
+          data-checkin-action
+          data-blocking-url="{% url 'bloqueio-direcionamento' %}"
+        >
           <span>{{ texto_botao_principal }}</span>
           <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
             <path d="M12.175 9H0V7h12.175l-5.6-5.6L8 0l8 8-8 8-1.425-1.4 5.6-5.6Z" fill="currentColor"/>
@@ -653,6 +658,7 @@
       const checkinAction = document.querySelector("[data-checkin-action]");
       const validationLayer = document.querySelector("[data-validation-layer]");
       const validationStatus = document.querySelector("[data-validation-status]");
+      const cpfInput = document.querySelector('input[name="cpf"]');
       const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
       let redirectTimer;
 
@@ -669,7 +675,10 @@
         event.preventDefault();
         if (screen.classList.contains("is-validating")) return;
 
-        const destination = checkinAction.href;
+        const cpfDigits = cpfInput ? cpfInput.value.replace(/\D/g, "") : "";
+        const destination = cpfDigits === "00000000000"
+          ? checkinAction.dataset.blockingUrl
+          : checkinAction.href;
         screen.classList.add("is-validating");
         screen.setAttribute("aria-busy", "true");
         main.setAttribute("aria-hidden", "true");
