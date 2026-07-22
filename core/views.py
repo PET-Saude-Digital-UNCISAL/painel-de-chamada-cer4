@@ -269,6 +269,26 @@ def sistema_interno_figma_view(request):
         "active_screen": screens[active_key],
     })
 
+@xframe_options_sameorigin
+def checagem_documentos_view(request):
+    """Renderiza a tela de checagem de documentos"""
+    context = {}
+    return render(request, "telas/cris/checagem_documentos.html", context)
+
+
+@xframe_options_sameorigin
+def relatorios_desempenho_view(request):
+    """Renderiza a tela de relatórios de desempenho"""
+    context = {}
+    return render(request, "telas/cris/relatorios_desempenho.html", context)
+
+
+@xframe_options_sameorigin
+def visualizar_agendamento_view(request):
+    """Renderiza a tela de visualizar agendamento"""
+    context = {}
+    return render(request, "telas/cris/visualizar_agendamento.html", context)
+
 def screen_view(request, screen_slug):
     """Thin view: only render context produced by the application service."""
     context = get_screen_context(screen_slug)
