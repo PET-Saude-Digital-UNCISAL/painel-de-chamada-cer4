@@ -2,19 +2,11 @@
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <title>{{ page_title }}</title>
   <style>
     @view-transition {
       navigation: auto;
-    }
-
-    @font-face {
-      font-family: "Public Sans";
-      src: url("{{ public_sans_font_url }}") format("truetype");
-      font-style: normal;
-      font-weight: 100 900;
-      font-display: swap;
     }
 
     @font-face {
@@ -43,7 +35,7 @@
       overflow-x: hidden;
       color: #001a4d;
       background: #e8edf2;
-      font-family: "Public Sans", Arial, sans-serif;
+      font-family: "Inter", Arial, sans-serif;
       font-synthesis: none;
     }
 
@@ -55,18 +47,20 @@
     .screen {
       position: relative;
       width: 390px;
-      min-height: max(871px, 100svh);
+      min-height: 100vh;
+      min-height: 100svh;
+      display: flex;
+      flex-direction: column;
       overflow: hidden;
       background: #f7f9fb;
     }
 
     .topbar {
-      position: absolute;
-      top: 0;
-      left: 0;
+      position: relative;
       z-index: 10;
       width: 100%;
       height: 68px;
+      flex: 0 0 68px;
       display: flex;
       align-items: center;
       justify-content: space-between;
@@ -74,6 +68,13 @@
       background: rgba(247, 249, 251, 0.8);
       box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
       backdrop-filter: blur(12px);
+    }
+
+    main {
+      width: 100%;
+      flex: 1 0 auto;
+      display: flex;
+      flex-direction: column;
     }
 
     .topbar-spacer {
@@ -94,12 +95,10 @@
     }
 
     .success-section {
-      position: absolute;
-      top: 104px;
-      left: 50%;
-      width: 290px;
+      position: relative;
+      width: min(342px, calc(100% - 48px));
+      margin: 36px auto 0;
       text-align: center;
-      transform: translateX(-50%);
     }
 
     .success-icon {
@@ -156,7 +155,6 @@
       font-weight: 700;
       line-height: 38.4px;
       letter-spacing: -0.35px;
-      white-space: nowrap;
       opacity: 0;
       filter: blur(5px);
       animation: content-rise 720ms cubic-bezier(0.16, 1, 0.3, 1) 420ms both;
@@ -168,18 +166,17 @@
       font-size: 18px;
       font-weight: 400;
       line-height: 27px;
-      white-space: nowrap;
       opacity: 0;
       filter: blur(4px);
       animation: content-rise 720ms cubic-bezier(0.16, 1, 0.3, 1) 500ms both;
     }
 
     .patient-card {
-      position: absolute;
-      top: 313px;
-      left: 24px;
-      right: 24px;
+      position: relative;
+      width: calc(100% - 48px);
       height: 265px;
+      flex: 0 0 265px;
+      margin: 25px 24px 0;
       overflow: hidden;
       background: #fff;
       border: 1px solid #f1f5f9;
@@ -212,7 +209,7 @@
     .patient-name {
       margin-top: 8px;
       color: #000314;
-      font-family: "Inter", "Public Sans", Arial, sans-serif;
+      font-family: "Inter", Arial, sans-serif;
       font-size: 16px;
       font-weight: 800;
       line-height: 20.5px;
@@ -256,27 +253,23 @@
     }
 
     .guidance {
-      position: absolute;
-      top: 615px;
-      left: 50%;
-      width: 295px;
+      position: relative;
+      width: min(295px, calc(100% - 48px));
+      margin: 37px auto 0;
       color: #001a4d;
-      font-family: "Inter", "Public Sans", Arial, sans-serif;
+      font-family: "Inter", Arial, sans-serif;
       font-size: 16px;
       font-weight: 700;
       line-height: 24px;
       text-align: center;
       opacity: 0;
-      transform: translateX(-50%);
       animation: guidance-rise 720ms cubic-bezier(0.16, 1, 0.3, 1) 720ms both;
     }
 
     .follow-button {
-      position: absolute;
-      top: 681px;
-      left: 28px;
-      right: 28px;
+      position: relative;
       height: 60px;
+      flex: 0 0 60px;
       display: flex;
       align-items: center;
       justify-content: center;
@@ -291,6 +284,7 @@
       line-height: 26px;
       text-decoration: none;
       cursor: pointer;
+      margin: 18px 28px;
       opacity: 0;
       transform: translateY(18px) scale(0.96);
       animation: button-rise 820ms cubic-bezier(0.34, 1.35, 0.64, 1) 800ms both;
@@ -310,11 +304,10 @@
     }
 
     .footer {
-      position: absolute;
-      right: 0;
-      bottom: 0;
-      left: 0;
+      position: relative;
+      width: 100%;
       min-height: 85px;
+      flex: 0 0 auto;
       display: flex;
       align-items: center;
       justify-content: space-between;
@@ -446,11 +439,11 @@
     @keyframes guidance-rise {
       from {
         opacity: 0;
-        transform: translate(-50%, 12px);
+        transform: translateY(12px);
       }
       to {
         opacity: 1;
-        transform: translate(-50%, 0);
+        transform: translateY(0);
       }
     }
 
@@ -522,10 +515,6 @@
         stroke-dashoffset: 0;
       }
 
-      .guidance {
-        transform: translateX(-50%) !important;
-      }
-
       .success-icon::after {
         display: none;
       }
@@ -544,8 +533,13 @@
     }
 
     @media (max-width: 370px) {
+      .success-section {
+        width: calc(100% - 36px);
+      }
+
       .title {
         font-size: 29px;
+        line-height: 35px;
       }
 
       .subtitle {
@@ -553,13 +547,14 @@
       }
 
       .patient-card {
-        left: 18px;
-        right: 18px;
+        width: calc(100% - 36px);
+        margin-right: 18px;
+        margin-left: 18px;
       }
 
       .follow-button {
-        left: 22px;
-        right: 22px;
+        margin-right: 22px;
+        margin-left: 22px;
       }
 
       .footer {
@@ -571,17 +566,80 @@
         gap: 15px;
       }
     }
+
+    @media (max-height: 700px) {
+      .success-section {
+        width: calc(100% - 36px);
+        margin-top: 24px;
+      }
+
+      .success-icon {
+        width: 80px;
+        height: 80px;
+        margin-bottom: 12px;
+      }
+
+      .success-mark {
+        width: 52px;
+        height: 52px;
+      }
+
+      .title {
+        font-size: 28px;
+        line-height: 34px;
+      }
+
+      .subtitle {
+        margin-top: 6px;
+        font-size: 16px;
+        line-height: 23px;
+      }
+
+      .patient-card {
+        width: calc(100% - 36px);
+        height: 245px;
+        flex-basis: 245px;
+        margin-top: 18px;
+        margin-right: 18px;
+        margin-left: 18px;
+      }
+
+      .patient-data {
+        top: 20px;
+        right: 20px;
+        left: 20px;
+        height: 60px;
+      }
+
+      .ticket {
+        top: 100px;
+        right: 16px;
+        left: 16px;
+        height: 121px;
+      }
+
+      .guidance {
+        margin-top: 20px;
+      }
+
+      .follow-button {
+        height: 56px;
+        flex-basis: 56px;
+        margin-top: 14px;
+        margin-bottom: 14px;
+      }
+    }
   </style>
 </head>
 <body>
   <div class="screen">
     <header class="topbar">
       <div class="topbar-spacer" aria-hidden="true"></div>
-      <button class="icon-button" type="button" aria-label="Configurações">
+      <span class="icon-button" aria-hidden="true">
         <svg width="21" height="20" viewBox="0 0 20.1 20" fill="none" aria-hidden="true">
           <path d="M7.3 20L6.9 16.8C6.68333 16.7167 6.47917 16.6167 6.2875 16.5C6.09583 16.3833 5.90833 16.2583 5.725 16.125L2.75 17.375L0 12.625L2.575 10.675C2.55833 10.5583 2.55 10.4458 2.55 10.3375V9.6625C2.55 9.55417 2.55833 9.44167 2.575 9.325L0 7.375L2.75 2.625L5.725 3.875C5.90833 3.74167 6.1 3.61667 6.3 3.5C6.5 3.38333 6.7 3.28333 6.9 3.2L7.3 0H12.8L13.2 3.2C13.4167 3.28333 13.6208 3.38333 13.8125 3.5C14.0042 3.61667 14.1917 3.74167 14.375 3.875L17.35 2.625L20.1 7.375L17.525 9.325C17.5417 9.44167 17.55 9.55417 17.55 9.6625V10.3375C17.55 10.4458 17.5333 10.5583 17.5 10.675L20.075 12.625L17.325 17.375L14.375 16.125C14.1917 16.2583 14 16.3833 13.8 16.5C13.6 16.6167 13.4 16.7167 13.2 16.8L12.8 20H7.3ZM9.05 18H11.025L11.375 15.35C11.8917 15.2167 12.3708 15.0208 12.8125 14.7625C13.2542 14.5042 13.6583 14.1917 14.025 13.825L16.5 14.85L17.475 13.15L15.325 11.525C15.4083 11.2917 15.4667 11.0458 15.5 10.7875C15.5333 10.5292 15.55 10.2667 15.55 10C15.55 9.73333 15.5333 9.47083 15.5 9.2125C15.4667 8.95417 15.4083 8.70833 15.325 8.475L17.475 6.85L16.5 5.15L14.025 6.2C13.6583 5.81667 13.2542 5.49583 12.8125 5.2375C12.3708 4.97917 11.8917 4.78333 11.375 4.65L11.05 2H9.075L8.725 4.65C8.20833 4.78333 7.72917 4.97917 7.2875 5.2375C6.84583 5.49583 6.44167 5.80833 6.075 6.175L3.6 5.15L2.625 6.85L4.775 8.45C4.69167 8.7 4.63333 8.95 4.6 9.2C4.56667 9.45 4.55 9.71667 4.55 10C4.55 10.2667 4.56667 10.525 4.6 10.775C4.63333 11.025 4.69167 11.275 4.775 11.525L2.625 13.15L3.6 14.85L6.075 13.8C6.44167 14.1833 6.84583 14.5042 7.2875 14.7625C7.72917 15.0208 8.20833 15.2167 8.725 15.35L9.05 18ZM10.1 13.5C11.0667 13.5 11.8917 13.1583 12.575 12.475C13.2583 11.7917 13.6 10.9667 13.6 10C13.6 9.03333 13.2583 8.20833 12.575 7.525C11.8917 6.84167 11.0667 6.5 10.1 6.5C9.11667 6.5 8.2875 6.84167 7.6125 7.525C6.9375 8.20833 6.6 9.03333 6.6 10C6.6 10.9667 6.9375 11.7917 7.6125 12.475C8.2875 13.1583 9.11667 13.5 10.1 13.5Z" fill="#64748b"/>
         </svg>
-      </button>
+      </span>
     </header>
 
     <main>
@@ -637,13 +695,13 @@
         {% endfor %}
       </div>
 
-      <div class="footer-actions" aria-label="Recursos de acessibilidade">
-        <span class="accessibility-icon" aria-label="Aumentar contraste" role="img">
+      <div class="footer-actions" aria-hidden="true">
+        <span class="accessibility-icon">
           <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true">
             <path fill-rule="evenodd" clip-rule="evenodd" d="M10 0a10 10 0 1 0 0 20 10 10 0 0 0 0-20Zm1 2.08a8 8 0 0 1 0 15.84V2.08Z" fill="currentColor"/>
           </svg>
         </span>
-        <span class="accessibility-icon" aria-label="Aumentar fonte" role="img">
+        <span class="accessibility-icon">
           <svg width="20" height="16" viewBox="0 0 20 16" fill="none" aria-hidden="true">
             <path d="M12 16V3H7V0h13v3h-5v13h-3ZM3 16V8H0V5h9v3H6v8H3Z" fill="currentColor"/>
           </svg>

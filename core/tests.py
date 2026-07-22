@@ -128,7 +128,9 @@ class IsolatedScreenSetupTests(TestCase):
 		self.assertEqual(context["paciente"], "Ricardo Augusto Oliveira")
 		self.assertEqual(context["sala"], "10")
 		self.assertEqual(context["tipo_atendimento"], "Ambulatorial")
+		self.assertEqual(context["mensagem"], "Se precisar de ajuda, procure a recepção.")
 		self.assertTrue(context["public_sans_font_url"].startswith("data:font/ttf;base64,"))
+		self.assertTrue(context["inter_font_url"].startswith("data:font/ttf;base64,"))
 
 	def test_paciente_chamado_route_renders_context_data(self):
 		response = self.client.get("/paciente-chamado/")
@@ -140,9 +142,12 @@ class IsolatedScreenSetupTests(TestCase):
 		self.assertNotContains(response, "fonts.googleapis.com")
 		self.assertNotContains(response, "styles.css")
 		self.assertContains(response, "Simular chamada")
+		self.assertContains(response, "642.857ms")
+		self.assertContains(response, "9000")
 		self.assertNotContains(response, "Entendi, estou a caminho")
 		self.assertContains(response, "navigator.vibrate")
-		self.assertContains(response, "4500")
+		self.assertContains(response, "[220, 120, 220, 120, 120]")
+		self.assertContains(response, "!reduceMotion.matches")
 		self.assertContains(response, "data:audio/mpeg;base64,")
 		self.assertContains(response, 'role="alert"')
 		self.assertContains(response, "prefers-reduced-motion")
@@ -160,6 +165,8 @@ class IsolatedScreenSetupTests(TestCase):
 		self.assertTemplateUsed(response, "core/checkin_assistido.html")
 		self.assertContains(response, "Siga para a Recepção")
 		self.assertContains(response, "Nossa equipe no balcão principal")
+		self.assertContains(response, "documento com foto em mãos.")
+		self.assertNotContains(response, "documentocom")
 		self.assertContains(response, "data:font/ttf;base64,")
 		self.assertContains(response, 'font-family: "Inter"')
 		self.assertNotContains(response, 'font-family: "Public Sans"')
@@ -178,7 +185,7 @@ class IsolatedScreenSetupTests(TestCase):
 		self.assertEqual(context["title"], "Confirmação presencial necessária")
 		self.assertEqual(context["next_step_title"], "Dirija-se à recepção")
 		self.assertEqual(context["location"], "Balcão da recepção")
-		self.assertEqual(context["status"], "Aguardando confirmação presencial")
+		self.assertEqual(context["status"], "Confirmação na recepção")
 		self.assertEqual(context["review_label"], "Revisar meus dados")
 		self.assertTrue(context["inter_font_url"].startswith("data:font/ttf;base64,"))
 		self.assertTrue(context["cer_logo_url"].startswith("data:image/svg+xml;base64,"))
@@ -191,7 +198,7 @@ class IsolatedScreenSetupTests(TestCase):
 		self.assertEqual(match.url_name, "bloqueio-direcionamento")
 		self.assertEqual(response.status_code, 200)
 		self.assertTemplateUsed(response, "core/bloqueio_direcionamento.html")
-		self.assertEqual(response.context["status"], "Aguardando confirmação presencial")
+		self.assertEqual(response.context["status"], "Confirmação na recepção")
 		self.assertContains(response, "Confirmação presencial necessária")
 		self.assertContains(response, "Dirija-se à recepção")
 		self.assertContains(response, "Balcão da recepção")
@@ -212,6 +219,63 @@ class IsolatedScreenSetupTests(TestCase):
 		self.assertContains(response, 'data-blocking-url="/bloqueio-direcionamento/"')
 		self.assertContains(response, 'cpfDigits === "00000000000"')
 		self.assertContains(response, 'screen.classList.add("is-validating")')
+		self.assertContains(response, "Preciso de ajuda")
+
+	def test_patient_flow_uses_clear_context_driven_copy(self):
+		checkin_response = self.client.get(reverse("checkin-concluido"))
+		self.assertEqual(checkin_response.status_code, 200)
+		self.assertContains(checkin_response, "Você já está na fila de atendimento")
+		self.assertContains(checkin_response, "Acompanhar fila")
+
+		tracking_response = self.client.get(reverse("acompanhamento-atendimento"))
+		self.assertEqual(tracking_response.status_code, 200)
+		self.assertContains(tracking_response, "Ambulatorial")
+
+	def test_inactive_mobile_accessibility_icons_are_not_false_controls(self):
+		for route_name in [
+			"identificacao-paciente",
+			"checkin-concluido",
+			"checkin-assistido",
+			"acompanhamento-atendimento",
+			"paciente-chamado",
+			"bloqueio-direcionamento",
+		]:
+			with self.subTest(route_name=route_name):
+				response = self.client.get(reverse(route_name))
+				self.assertEqual(response.status_code, 200)
+				self.assertNotContains(response, 'aria-label="Aumentar contraste"')
+				self.assertNotContains(response, 'aria-label="Aumentar fonte"')
+
+	def test_remany_mobile_screens_use_inter_typography(self):
+		route_names = [
+			"identificacao-paciente",
+			"checkin-concluido",
+			"checkin-assistido",
+			"acompanhamento-atendimento",
+			"paciente-chamado",
+			"bloqueio-direcionamento",
+		]
+
+		for route_name in route_names:
+			with self.subTest(route_name=route_name):
+				response = self.client.get(reverse(route_name))
+				self.assertEqual(response.status_code, 200)
+				self.assertContains(response, 'font-family: "Inter"')
+				self.assertNotContains(response, 'font-family: "Public Sans"')
+				self.assertNotContains(response, "fonts.googleapis.com")
+
+	def test_mobile_information_notices_share_the_same_visual_language(self):
+		for route_name in [
+			"acompanhamento-atendimento",
+			"paciente-chamado",
+			"bloqueio-direcionamento",
+		]:
+			with self.subTest(route_name=route_name):
+				response = self.client.get(reverse(route_name))
+				self.assertEqual(response.status_code, 200)
+				self.assertContains(response, "#f2f7fd")
+				self.assertContains(response, "#cfe2f8")
+				self.assertContains(response, "#3b82f6")
 
 	def test_list_team_screens_has_expected_registered_screens(self):
 		screens = list_team_screens()
