@@ -281,6 +281,39 @@ def get_checkin_assistido_context() -> dict:
     }
 
 
+def get_bloqueio_direcionamento_context() -> dict:
+    """Return the mocked payload for the in-person confirmation screen."""
+    return {
+        "page_title": "Bloqueio e Direcionamento para Recepção",
+        "title": "Confirmação presencial necessária",
+        "title_line_1": "Confirmação presencial",
+        "title_line_2": "necessária",
+        "subtitle": (
+            "Seus dados foram encontrados, mas seu atendimento precisa de "
+            "confirmação presencial."
+        ),
+        "next_step_label": "PRÓXIMO PASSO",
+        "next_step_title": "Dirija-se à recepção",
+        "next_step_description": (
+            "A equipe confirmará seus dados e orientará os próximos passos."
+        ),
+        "location_label": "Local",
+        "location": "Balcão da recepção",
+        "info_message": (
+            "Seu atendimento continuará após a confirmação na recepção."
+        ),
+        "status": "Aguardando confirmação presencial",
+        "review_label": "Revisar meus dados",
+        "footer_indicators": [
+            {"label": "LGPD", "detail": "Conforme", "icon": "lock"},
+            {"label": "Conexão", "detail": "Segura", "icon": "shield"},
+        ],
+        "cer_logo_url": _get_painel_chamada_asset_data_url("logo-cer.svg"),
+        "public_sans_font_url": _get_paciente_chamado_asset_data_url("public-sans.ttf"),
+        "inter_font_url": _get_painel_chamada_asset_data_url("fonts/Inter-Variable.ttf"),
+    }
+
+
 def get_identificacao_paciente_context() -> dict:
     """Return the mocked payload for the patient identification screen."""
     return {
@@ -618,6 +651,12 @@ def list_patient_screens() -> list[dict]:
             "title": "Check-in Assistido",
             "owner": "Remany",
             "path": reverse("checkin-assistido"),
+        },
+        {
+            "slug": "bloqueio-direcionamento",
+            "title": "Bloqueio e Direcionamento",
+            "owner": "Remany",
+            "path": reverse("bloqueio-direcionamento"),
         },
         {
             "slug": "pesquisa-satisfacao",

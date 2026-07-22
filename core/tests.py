@@ -3,6 +3,7 @@ from django.urls import resolve, reverse
 
 from core.dev_builders import build_fake_screen_list, build_mocked_screen_payload
 from core.services import (
+	get_bloqueio_direcionamento_context,
 	get_checkin_assistido_context,
 	get_dashboard_monitoramento_context,
 	get_painel_chamada_context,
@@ -48,6 +49,7 @@ class IsolatedScreenSetupTests(TestCase):
 			("acompanhamento-atendimento", "Acompanhamento de Atendimento", "Remany", "acompanhamento-atendimento"),
 			("paciente-chamado", "Paciente Chamado", "Remany", "paciente-chamado"),
 			("checkin-assistido", "Check-in Assistido", "Remany", "checkin-assistido"),
+			("bloqueio-direcionamento", "Bloqueio e Direcionamento", "Remany", "bloqueio-direcionamento"),
 			("pesquisa-satisfacao", "Pesquisa de satisfação", "Monaliza", "pesquisa_satisfacao"),
 			("agendamento-nao-encontrado", "Agendamento não encontrado", "Monaliza", "agendamento_nao_encontrado"),
 			("perdeu-chamada", "Perdeu a chamada", "Monaliza", "perdeu_chamada"),
@@ -169,6 +171,47 @@ class IsolatedScreenSetupTests(TestCase):
 		identification_response = self.client.get("/identificacao-paciente/")
 		self.assertEqual(identification_response.status_code, 200)
 		self.assertContains(identification_response, 'href="/checkin-assistido/"')
+
+	def test_bloqueio_direcionamento_context_has_expected_mock_data(self):
+		context = get_bloqueio_direcionamento_context()
+
+		self.assertEqual(context["title"], "Confirmação presencial necessária")
+		self.assertEqual(context["next_step_title"], "Dirija-se à recepção")
+		self.assertEqual(context["location"], "Balcão da recepção")
+		self.assertEqual(context["status"], "Aguardando confirmação presencial")
+		self.assertEqual(context["review_label"], "Revisar meus dados")
+		self.assertTrue(context["inter_font_url"].startswith("data:font/ttf;base64,"))
+		self.assertTrue(context["cer_logo_url"].startswith("data:image/svg+xml;base64,"))
+
+	def test_bloqueio_direcionamento_route_renders_safe_patient_guidance(self):
+		path = reverse("bloqueio-direcionamento")
+		match = resolve(path)
+		response = self.client.get(path)
+
+		self.assertEqual(match.url_name, "bloqueio-direcionamento")
+		self.assertEqual(response.status_code, 200)
+		self.assertTemplateUsed(response, "core/bloqueio_direcionamento.html")
+		self.assertEqual(response.context["status"], "Aguardando confirmação presencial")
+		self.assertContains(response, "Confirmação presencial necessária")
+		self.assertContains(response, "Dirija-se à recepção")
+		self.assertContains(response, "Balcão da recepção")
+		self.assertContains(response, 'href="/identificacao-paciente/"')
+		self.assertContains(response, 'role="status"')
+		self.assertNotContains(response, "Entendi")
+		self.assertNotContains(response, 'href="/checkin-concluido/"')
+		self.assertNotContains(response, 'href="/acompanhamento-atendimento/"')
+		self.assertNotContains(response, "fonts.googleapis.com")
+		self.assertNotContains(response, "cdn.")
+		self.assertNotContains(response, 'rel="stylesheet"')
+
+	def test_identification_keeps_normal_flow_and_exposes_blocking_demo_trigger(self):
+		response = self.client.get(reverse("identificacao-paciente"))
+
+		self.assertEqual(response.status_code, 200)
+		self.assertContains(response, 'href="/checkin-concluido/"')
+		self.assertContains(response, 'data-blocking-url="/bloqueio-direcionamento/"')
+		self.assertContains(response, 'cpfDigits === "00000000000"')
+		self.assertContains(response, 'screen.classList.add("is-validating")')
 
 	def test_list_team_screens_has_expected_registered_screens(self):
 		screens = list_team_screens()

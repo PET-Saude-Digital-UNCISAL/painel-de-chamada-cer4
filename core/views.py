@@ -15,6 +15,7 @@ from core.models import Paciente, UsuarioSistema
 from core.services import (
     get_acompanhamento_atendimento_context,
     get_auditoria_percurso_context,
+    get_bloqueio_direcionamento_context,
     get_cadastro_context,
     get_checkin_assistido_context,
     get_checkin_concluido_context,
@@ -77,6 +78,15 @@ def checkin_assistido_view(request):
         request,
         "core/checkin_assistido.html",
         get_checkin_assistido_context(),
+    )
+
+
+@xframe_options_sameorigin
+def bloqueio_direcionamento_view(request):
+    return render(
+        request,
+        "core/bloqueio_direcionamento.html",
+        get_bloqueio_direcionamento_context(),
     )
 
 

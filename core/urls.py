@@ -31,6 +31,11 @@ urlpatterns = [
         name="checkin-assistido",
     ),
     path(
+        "bloqueio-direcionamento/",
+        views.bloqueio_direcionamento_view,
+        name="bloqueio-direcionamento",
+    ),
+    path(
         "identificacao-paciente/",
         views.identificacao_paciente_view,
         name="identificacao-paciente",
