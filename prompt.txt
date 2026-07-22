@@ -1,0 +1,20 @@
+realize as seguintes atualizações no projeto para integrar novas telas aos painéis existentes:
+
+Adicione duas novas telas ao painel do paciente: No arquivo core/services.py, dentro da função list_patient_screens, adicione dois novos cards para as telas de "Visualizar Agendamento" e "Checagem de Documentos". O responsável por ambas é "Cristian".
+
+As configurações para os novos cards devem ser:
+
+Card 1 (Visualizar Agendamento):
+slug: visualizar-agendamento
+title: Visualizar Agendamento
+owner: Cristian
+path: use a rota nomeada screen-visualizar-agendamento.
+Card 2 (Checagem de Documentos):
+slug: checagem-documentos
+title: Checagem de Documentos
+owner: Cristian
+path: use a rota nomeada screen-checagem-documentos.
+Integre a Tela de Relatórios de Desempenho ao sistema interno: No arquivo core/views.py, na função sistema_interno_figma_view, localize o dicionário screens. Encontre a entrada com a chave "relatorios" e atualize o valor de "path" de None para o caminho correto da view, que é screen-relatorios-desempenho. Lembre-se de incluir o parâmetro ?interno=1 na URL.
+
+O objetivo é que essas telas, que já possuem rotas e views definidas, sejam corretamente listadas e acessíveis a partir dos painéis correspondentes.
+

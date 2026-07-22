@@ -672,6 +672,18 @@ def list_patient_screens() -> list[dict]:
             "owner": "Monaliza",
             "path": reverse("perdeu_chamada"),
         },
+        {
+            "slug": "visualizar-agendamento",
+            "title": "Visualizar Agendamento",
+            "owner": "Cristian",
+            "path": reverse("screen-visualizar-agendamento"),
+        },
+        {
+            "slug": "checagem-documentos",
+            "title": "Checagem de Documentos",
+            "owner": "Cristian",
+            "path": reverse("screen-checagem-documentos"),
+        },
     ]
 
 

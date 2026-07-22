@@ -248,7 +248,7 @@ def sistema_interno_figma_view(request):
     screens = {
         "auditoria": {"label": "Atendimentos do Dia", "path": f"{reverse('screen-auditoria-percurso-seguranca')}?interno=1"},
         "monitoramento": {"label": "Dashboard", "path": f"{reverse('dashboard-monitoramento')}?interno=1"},
-        "relatorios": {"label": "Relatorios de Desempenho", "path": None},
+        "relatorios": {"label": "Relatorios de Desempenho", "path": f"{reverse('screen-relatorios-desempenho')}?interno=1"},
         "qualidade": {"label": "Gestao de Qualidade", "path": f"{reverse('gestao_qualidade')}?interno=1"},
         "configuracoes": {"label": "Configuracoes", "path": f"{reverse('configuracoes')}?interno=1"},
         "perfil": {"label": "Meu Perfil", "path": f"{reverse('meu-perfil')}?interno=1"},
