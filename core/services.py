@@ -207,12 +207,13 @@ def get_paciente_chamado_context() -> dict:
         "sala": "10",
         "tipo_atendimento": "Ambulatorial",
         "status": "Chamada atual",
-        "mensagem": "Dirija-se à sala indicada acima para iniciar seu atendimento.",
+        "mensagem": "Se precisar de ajuda, procure a recepção.",
         "footer_indicators": [
             {"label": "LGPD", "detail": "Conforme", "icon": "lock"},
             {"label": "Conexão", "detail": "Segura", "icon": "shield"},
         ],
         "public_sans_font_url": _get_paciente_chamado_asset_data_url("public-sans.ttf"),
+        "inter_font_url": _get_painel_chamada_asset_data_url("fonts/Inter-Variable.ttf"),
     }
 
 
@@ -245,11 +246,11 @@ def get_checkin_concluido_context() -> dict:
     return {
         "page_title": "Check-in concluído",
         "title": "Check-in concluído",
-        "subtitle": "Paciente identificado com sucesso",
+        "subtitle": "Você já está na fila de atendimento",
         "paciente": "Ricardo Augusto Oliveira",
         "senha": "A012",
         "mensagem": "Acompanhe sua posição na fila e aguarde sua chamada.",
-        "texto_botao": "Acompanhar",
+        "texto_botao": "Acompanhar fila",
         "footer_indicators": [
             {"label": "LGPD", "detail": "Conforme", "icon": "lock"},
             {"label": "Conexão", "detail": "Segura", "icon": "shield"},
@@ -268,11 +269,6 @@ def get_checkin_assistido_context() -> dict:
             "Nossa equipe no balcão principal ajudará com seu check-in. "
             "Por favor, tenha um documento com foto em mãos."
         ),
-        "message_lines": [
-            "Nossa equipe no balcão principal ajudará com",
-            "seu check-in. Por favor, tenha um documento",
-            "com foto em mãos.",
-        ],
         "footer_indicators": [
             {"label": "LGPD", "detail": "Conforme", "icon": "lock"},
             {"label": "Conexão", "detail": "Segura", "icon": "shield"},
@@ -302,7 +298,7 @@ def get_bloqueio_direcionamento_context() -> dict:
         "info_message": (
             "Seu atendimento continuará após a confirmação na recepção."
         ),
-        "status": "Aguardando confirmação presencial",
+        "status": "Confirmação na recepção",
         "review_label": "Revisar meus dados",
         "footer_indicators": [
             {"label": "LGPD", "detail": "Conforme", "icon": "lock"},
@@ -347,7 +343,7 @@ def get_identificacao_paciente_context() -> dict:
             },
         ],
         "texto_botao_principal": "Realizar Check-in",
-        "texto_botao_assistido": "Check-in Assistido",
+        "texto_botao_assistido": "Preciso de ajuda",
         "validation_title": "Validando dados...",
         "validation_detail": "Conexão segura",
         "footer_indicators": [
