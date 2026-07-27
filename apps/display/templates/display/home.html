@@ -1,0 +1,28 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>{{ title }}</title>
+    <style>
+        * { box-sizing:border-box; }
+        body { min-height:100vh; margin:0; display:grid; place-items:center; padding:2rem; font-family:Inter,Arial,sans-serif; color:#172554; background:#f1f5f9; }
+        main { width:min(100%,880px); } h1 { margin:0; font-size:clamp(1.8rem,4vw,2.5rem); } .intro { color:#64748b; margin:.6rem 0 2rem; }
+        .grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(260px,1fr)); gap:1.25rem; }
+        .card { display:block; min-height:180px; padding:1.75rem; border:1px solid #dbeafe; border-radius:18px; color:inherit; text-decoration:none; background:#fff; box-shadow:0 12px 28px rgb(15 23 42 / 8%); transition:transform .2s,box-shadow .2s; }
+        .card:hover { transform:translateY(-4px); box-shadow:0 18px 34px rgb(15 23 42 / 13%); } .tag { color:#2563eb; font-size:.78rem; font-weight:700; text-transform:uppercase; letter-spacing:.08em; }
+        .card h2 { margin:.75rem 0 .5rem; font-size:1.35rem; } .card p { color:#64748b; line-height:1.55; } @media(max-width:640px) { .grid { grid-template-columns:1fr; } }
+    </style>
+</head>
+<body>
+    <main>
+        <h1>{{ title }}</h1>
+        <p class="intro">Escolha o fluxo que deseja visualizar.</p>
+        <div class="grid">
+            <a class="card" href="{% url 'fluxo-paciente' %}"><span class="tag">Fluxo externo</span><h2>Fluxo do Paciente (Mobile)</h2><p>Fluxo completo de check-in e acompanhamento para pacientes.</p></a>
+            <a class="card" href="{% url 'painel-chamada' %}"><span class="tag">Tempo real</span><h2>Painel de Chamada</h2><p>Painel TV com WebSocket para chamada de pacientes em tempo real.</p></a>
+            <a class="card" href="{% url 'login' %}"><span class="tag">&Aacute;rea institucional</span><h2>Sistema Interno</h2><p>Login, cadastro e painel de colaboradores, gerentes e SuperAdmin.</p></a>
+        </div>
+    </main>
+</body>
+</html>

@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pesquisa de Satisfação - Monaliza</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body class="bg-slate-100 font-sans min-h-screen flex items-center justify-center p-4">
+
+    <div class="bg-white w-full max-w-sm rounded-[32px] shadow-xl border border-slate-100 flex flex-col justify-between min-h-[640px] overflow-hidden relative p-6" id="app">
+
+        <div class="flex justify-end text-slate-400 hover:text-slate-600 cursor-pointer text-lg mb-4">
+            <i class="fa-solid fa-gear"></i>
+        </div>
+
+        <div class="flex flex-col items-center text-center mt-2">
+            <div class="w-16 h-16 bg-emerald-50 text-emerald-500 rounded-full flex items-center justify-center text-3xl mb-4 border border-emerald-100 shadow-sm" id="status-icon">
+                <i class="fa-solid fa-circle-check"></i>
+            </div>
+            <h1 class="text-2xl font-black text-blue-950 tracking-tight leading-tight" id="title-text">
+                Atendimento<br>finalizado
+            </h1>
+        </div>
+
+        <div class="bg-white border border-slate-100 rounded-2xl p-5 shadow-sm my-6 flex flex-col items-center text-center" id="survey-card">
+            <p class="text-blue-950 font-bold text-base px-2 leading-snug" id="survey-question">
+                Em uma escala de 1 a 5 estrelas, como você avaliaria sua experiência?
+            </p>
+
+            <div class="w-full border-2 border-dashed border-slate-200 bg-slate-50/50 rounded-xl py-6 px-2 mt-4 flex justify-center gap-1" id="stars-container">
+                <button class="star-btn text-slate-300 hover:scale-110 transition text-3xl" data-value="1">
+                    <i class="fa-solid fa-star"></i>
+                </button>
+                <button class="star-btn text-slate-300 hover:scale-110 transition text-3xl" data-value="2">
+                    <i class="fa-solid fa-star"></i>
+                </button>
+                <button class="star-btn text-slate-300 hover:scale-110 transition text-3xl" data-value="3">
+                    <i class="fa-solid fa-star"></i>
+                </button>
+                <button class="star-btn text-slate-300 hover:scale-110 transition text-3xl" data-value="4">
+                    <i class="fa-solid fa-star"></i>
+                </button>
+                <button class="star-btn text-slate-300 hover:scale-110 transition text-3xl" data-value="5">
+                    <i class="fa-solid fa-star"></i>
+                </button>
+            </div>
+
+            <textarea id="comentario" class="w-full mt-4 p-3 border border-slate-200 rounded-xl text-sm resize-none focus:outline-none focus:ring-2 focus:ring-blue-950/20" rows="2" placeholder="Quer deixar um comentário? (opcional)"></textarea>
+
+            <p id="feedback-msg" class="text-xs font-medium mt-2 hidden"></p>
+        </div>
+
+        <div class="w-full px-2 mb-6">
+            <button class="w-full bg-blue-950 hover:bg-blue-900 text-white font-bold py-3.5 px-6 rounded-full flex items-center justify-center gap-2 shadow-lg transition active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed" id="btn-enviar" disabled>
+                <span>Enviar Avaliação</span>
+                <i class="fa-solid fa-arrow-right text-sm"></i>
+            </button>
+        </div>
+
+        <footer class="border-t border-slate-100 pt-4 flex justify-between items-center text-[10px] text-slate-400 font-medium px-1">
+            <div class="flex items-center gap-1">
+                <i class="fa-solid fa-lock text-[9px]"></i>
+                <span>LGPD Conforme</span>
+            </div>
+            <div class="flex items-center gap-1">
+                <i class="fa-solid fa-shield-halved text-[9px]"></i>
+                <span>Conexão Segura</span>
+            </div>
+            <div class="flex items-center gap-2 text-slate-500 text-xs">
+                <button class="hover:text-slate-800"><i class="fa-solid fa-circle-half-stroke"></i></button>
+                <button class="hover:text-slate-800"><i class="fa-solid fa-text-height"></i></button>
+            </div>
+        </footer>
+    </div>
+
+<script>
+(function() {
+    var cpf = "{{ cpf|escapejs }}";
+    if (!cpf) {
+        var params = new URLSearchParams(window.location.search);
+        cpf = params.get("cpf") || "";
+    }
+
+    var notaSelecionada = 0;
+    var stars = document.querySelectorAll(".star-btn");
+    var btnEnviar = document.getElementById("btn-enviar");
+    var feedbackMsg = document.getElementById("feedback-msg");
+    var comentario = document.getElementById("comentario");
+    var surveyCard = document.getElementById("survey-card");
+    var titleText = document.getElementById("title-text");
+    var statusIcon = document.getElementById("status-icon");
+
+    function getStarColor(val) {
+        if (val === 1) return "text-red-600";
+        if (val === 2) return "text-red-500";
+        if (val === 3) return "text-amber-500";
+        if (val === 4) return "text-lime-400";
+        if (val === 5) return "text-emerald-400";
+        return "text-slate-300";
+    }
+
+    function updateStars(val) {
+        stars.forEach(function(btn) {
+            var v = parseInt(btn.getAttribute("data-value"));
+            if (v <= val) {
+                btn.className = "star-btn hover:scale-110 transition text-3xl " + getStarColor(v);
+            } else {
+                btn.className = "star-btn hover:scale-110 transition text-3xl text-slate-300";
+            }
+        });
+    }
+
+    stars.forEach(function(btn) {
+        btn.addEventListener("click", function() {
+            notaSelecionada = parseInt(btn.getAttribute("data-value"));
+            updateStars(notaSelecionada);
+            btnEnviar.disabled = false;
+        });
+        btn.addEventListener("mouseenter", function() {
+            var v = parseInt(btn.getAttribute("data-value"));
+            updateStars(v);
+        });
+        btn.addEventListener("mouseleave", function() {
+            updateStars(notaSelecionada);
+        });
+    });
+
+    btnEnviar.addEventListener("click", function() {
+        if (!notaSelecionada) return;
+        btnEnviar.disabled = true;
+        btnEnviar.innerHTML = '<svg class="animate-spin h-5 w-5" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" fill="none"/><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/></svg> Enviando...';
+
+        fetch("/api/v1/pesquisa-satisfacao/", {
+            method: "POST",
+            headers: {"Content-Type": "application/json"},
+            body: JSON.stringify({
+                cpf: cpf,
+                nota: notaSelecionada,
+                comentario: comentario.value,
+            }),
+        })
+        .then(function(r) { return r.json(); })
+        .then(function(data) {
+            if (data.ok) {
+                surveyCard.innerHTML = '<div class="py-4 text-center"><div class="w-16 h-16 bg-emerald-50 text-emerald-500 rounded-full flex items-center justify-center text-3xl mx-auto mb-3 border border-emerald-100 shadow-sm"><i class="fa-solid fa-check"></i></div><p class="text-blue-950 font-bold text-lg">Avaliação enviada!</p><p class="text-slate-500 text-xs mt-1">Obrigado pelo seu feedback.</p></div>';
+                btnEnviar.style.display = "none";
+            } else {
+                throw new Error(data.erro || "Erro ao enviar");
+            }
+        })
+        .catch(function(err) {
+            feedbackMsg.className = "text-xs font-medium mt-2 text-red-600";
+            feedbackMsg.textContent = "Erro: " + err.message + ". Tente novamente.";
+            feedbackMsg.classList.remove("hidden");
+            btnEnviar.disabled = false;
+            btnEnviar.innerHTML = '<span>Enviar Avaliação</span><i class="fa-solid fa-arrow-right text-sm"></i>';
+        });
+    });
+})();
+</script>
+</body>
+</html>

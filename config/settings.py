@@ -37,7 +37,14 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'core', # Adiciona nosso novo app
+    'channels',
+    'rest_framework',
+    'rest_framework.authtoken',
+    'django_filters',
+    'core',
+    'apps.mobile',
+    'apps.system',
+    'apps.display',
 ]
 
 MIDDLEWARE = [
@@ -69,6 +76,24 @@ TEMPLATES = [
 ]
 
 WSGI_APPLICATION = 'config.wsgi.application'
+ASGI_APPLICATION = 'config.asgi.application'
+
+redis_url = os.getenv('REDIS_URL')
+if redis_url:
+    CHANNEL_LAYERS = {
+        "default": {
+            "BACKEND": "channels_redis.core.RedisChannelLayer",
+            "CONFIG": {
+                "hosts": [redis_url],
+            },
+        },
+    }
+else:
+    CHANNEL_LAYERS = {
+        "default": {
+            "BACKEND": "channels.layers.InMemoryChannelLayer",
+        },
+    }
 
 
 # Database
@@ -150,4 +175,20 @@ STORAGES = {
     'staticfiles': {
         'BACKEND': 'whitenoise.storage.CompressedStaticFilesStorage',
     },
+}
+
+# Integração com sistema externo (Dias Conectado / módulo de atendimentos)
+INTEGRADOR_BASE_URL = os.getenv('INTEGRADOR_BASE_URL', '')
+INTEGRADOR_TOKEN = os.getenv('INTEGRADOR_TOKEN', '')
+
+REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': (
+        'rest_framework.authentication.SessionAuthentication',
+        'rest_framework.authentication.TokenAuthentication',
+    ),
+    'DEFAULT_PERMISSION_CLASSES': (
+        'rest_framework.permissions.AllowAny',
+    ),
+    'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
+    'PAGE_SIZE': 50,
 }

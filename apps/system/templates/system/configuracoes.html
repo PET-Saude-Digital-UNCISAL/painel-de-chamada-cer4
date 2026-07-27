@@ -1,0 +1,409 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Hierarquia de Acesso ao Sistema | CER III</title>
+    <link rel="stylesheet" href="{% static 'core/css/configuracoes.css' %}">
+    <script src="https://unpkg.com/lucide@0.468.0/dist/umd/lucide.min.js" defer></script>
+</head>
+<body>
+    <div id="app-layout">
+        {% if not interno %}
+        <aside class="drawer" aria-label="Navegação principal">
+            <div class="drawer-brand">CER III</div>
+            <a class="drawer-link" href="/"><img src="{% static 'core/icons/dasboard.svg' %}" alt="">Dashboard</a>
+            <a class="drawer-link" href="/telas/auditoria-percurso-seguranca/"><img src="{% static 'core/icons/auditoria-percurso.svg' %}" alt="">Auditoria</a>
+            <a class="drawer-link active" href="/configuracoes/"><img src="{% static 'core/icons/configuracoes.svg' %}" alt="">Configurações</a>
+            <a class="drawer-link" href="/telas/dev1/"><img src="{% static 'core/icons/meu-perfil.svg' %}" alt="">Meu Perfil</a>
+        </aside>
+        <button class="drawer-overlay" id="drawer-overlay" type="button" aria-label="Fechar menu"></button>
+        {% endif %}
+
+        <header class="topbar">
+            <div class="brand-group">
+                {% if not interno %}<button class="icon-button drawer-toggle" id="drawer-toggle" type="button" aria-label="Abrir menu" aria-expanded="false"><i data-lucide="menu"></i></button>{% endif %}
+                <div class="brand">CER III <span>— Configurações</span></div>
+            </div>
+            <div class="topbar-actions">
+                <div class="clock"><strong id="clock-time">--:--</strong><small id="clock-date">Carregando data...</small></div>
+                <div class="online">Sistema online</div>
+                {% if usuario_logado %}
+                <div class="user">
+                    {% if usuario_logado.foto_perfil %}
+                        <img src="{{ usuario_logado.foto_perfil.url }}" class="avatar avatar-img" alt="">
+                    {% else %}
+                        <span class="avatar">{{ usuario_logado.iniciais }}</span>
+                    {% endif %}
+                    <div><strong>{{ usuario_logado.nome_completo }}</strong><small>{{ usuario_logado.get_nivel_acesso_display }}</small></div>
+                </div>
+                {% endif %}
+            </div>
+        </header>
+
+        <div class="workspace">
+            <nav class="settings-nav" aria-label="Seções de configurações">
+                <button class="settings-tab active" type="button" data-module="access"><i data-lucide="circle-user-round"></i>Controle de Níveis de Acesso</button>
+                <button class="settings-tab" type="button" data-module="users"><i data-lucide="chart-no-axes-column"></i>Gestão de Usuários</button>
+                <button class="settings-tab" type="button" data-module="audit"><i data-lucide="shield-half"></i>Auditoria e Segurança</button>
+            </nav>
+
+            <main class="content module-view active" id="module-access">
+                <div class="content-head">
+                    <h1>Controle de Níveis de Acesso</h1>
+                    <p>Gerencie permissões e visibilidade de módulos para cada perfil institucional.</p>
+                </div>
+                <div class="hierarchy">
+                    <section aria-labelledby="profiles-title">
+                        <h2 class="eyebrow" id="profiles-title">PERFIS DISPONÍVEIS</h2>
+                        <div class="profile-list" role="tablist" aria-label="Níveis de acesso">
+                            <button class="profile active" type="button" role="tab" aria-selected="true" data-profile="recepcionista"><span class="profile-icon"><i data-lucide="user-round"></i></span><span><strong>Recepcionista</strong><small>Atendimento e Check-in</small></span></button>
+                            <button class="profile" type="button" role="tab" aria-selected="false" data-profile="coordenacao"><span class="profile-icon"><i data-lucide="panel-top"></i></span><span><strong>Coordenação</strong><small>Gestão de Fluxo e Relatórios</small></span></button>
+                            <button class="profile" type="button" role="tab" aria-selected="false" data-profile="super-admin"><span class="profile-icon"><i data-lucide="shield-check"></i></span><span><strong>Super Admin</strong><small>Acesso Total ao Sistema</small></span></button>
+                        </div>
+                        <div class="notice"><i data-lucide="info"></i><span>Alterações nestes níveis de acesso afetam imediatamente todos os usuários vinculados ao perfil selecionado.</span></div>
+                    </section>
+
+                    <section class="permissions" aria-labelledby="permissions-title">
+                        <div class="permissions-head">
+                            <div><h2 id="permissions-title">Permissões: Recepcionista</h2><p>Configure o que este perfil pode visualizar e operar.</p></div>
+                            <button class="save-button" id="save-button" type="button">Salvar Alterações</button>
+                        </div>
+                        <div class="permission-body">
+                            <section class="permission-group">
+                                <h3 class="group-title"><i data-lucide="briefcase-medical"></i>Módulo de Atendimento</h3>
+                                <div class="permission-list">
+                                    <div class="permission-row"><span class="permission-symbol"><i data-lucide="user-check"></i></span><span class="permission-copy"><strong>Módulo Check-in</strong><small>Permite realizar entrada de novos pacientes na fila.</small></span><label class="switch"><input type="checkbox" data-permission="checkin"><span></span></label></div>
+                                    <div class="permission-row is-restricted"><span class="permission-symbol"><i data-lucide="file-pen-line"></i></span><span class="permission-copy"><strong>Edição de Prontuário</strong><small>Editar informações clínicas e cadastrais.</small><span class="restricted">ACESSO RESTRITO</span></span><label class="switch"><input type="checkbox" data-permission="prontuario"><span></span></label></div>
+                                </div>
+                            </section>
+                            <section class="permission-group">
+                                <h3 class="group-title"><i data-lucide="chart-no-axes-combined"></i>Gestão &amp; Monitoramento</h3>
+                                <div class="permission-list">
+                                    <div class="permission-row"><span class="permission-symbol"><i data-lucide="users-round"></i></span><span class="permission-copy"><strong>Editar usuários</strong><small>Criar, editar e remover operadores do sistema.</small></span><label class="switch"><input type="checkbox" data-permission="usuarios"><span></span></label></div>
+                                </div>
+                            </section>
+                            <section class="permission-group">
+                                <h3 class="group-title"><i data-lucide="shield"></i>Segurança</h3>
+                                <div class="permission-list">
+                                    <div class="permission-row"><span class="permission-symbol"><i data-lucide="scroll-text"></i></span><span class="permission-copy"><strong>Auditoria de Logs</strong><small>Ver histórico detalhado de todas as ações no sistema.</small></span><label class="switch"><input type="checkbox" data-permission="auditoria"><span></span></label></div>
+                                    <div class="permission-row is-restricted"><span class="permission-symbol"><i data-lucide="trash-2"></i></span><span class="permission-copy"><strong>Deletar registros</strong><small>Excluir registros permanentemente do sistema.</small><span class="restricted">ACESSO RESTRITO</span></span><label class="switch"><input type="checkbox" data-permission="deletar"><span></span></label></div>
+                                </div>
+                            </section>
+                        </div>
+                    </section>
+                </div>
+            </main>
+
+            <main class="content audit-content module-view" id="module-audit" hidden>
+                <div class="audit-breadcrumb"><span>Configurações</span><i data-lucide="chevron-right"></i><strong>Segurança</strong></div>
+                <div class="audit-heading">
+                    <div><h1>Auditoria de Acesso</h1><p>Rastreabilidade completa de todas as ações executadas no sistema clínico.<br>Monitore permissões, logins e alterações críticas.</p></div>
+                    <button class="audit-export" type="button"><i data-lucide="download"></i>Exportar CSV</button>
+                </div>
+
+                <section class="audit-filters" aria-label="Filtros da auditoria">
+                    <button class="audit-filter white" type="button"><span class="audit-filter-icon"><i data-lucide="calendar-days"></i></span><span><small>PERÍODO</small><strong>01 Out 2023 - 31 Out 2023</strong></span></button>
+                    <button class="audit-filter white" type="button"><span class="audit-filter-icon"><i data-lucide="user-round"></i></span><span><small>USUÁRIO</small><strong>Todos os Usuários</strong></span></button>
+                    <button class="audit-filter" type="button"><span class="audit-filter-icon round"><i data-lucide="list-filter"></i></span><span><small>TIPO DE AÇÃO</small><strong>Todas as Atividades</strong></span></button>
+                    <button class="audit-filter" type="button"><span class="audit-filter-icon alert"><i data-lucide="notebook-tabs"></i></span><span><small>ALERTAS</small><strong>3 Potenciais Riscos</strong></span></button>
+                </section>
+
+                <section class="audit-table-card" aria-label="Registros de auditoria">
+                    <div class="audit-table-scroll"><table class="audit-table">
+                        <thead><tr><th>DATA / HORA</th><th>USUÁRIO</th><th>AÇÃO REALIZADA</th><th>ENTIDADE / OBJETO</th><th>ENDEREÇO IP</th><th>DETALHES</th></tr></thead>
+                        <tbody>
+                            <tr><td><strong>31/10/2023</strong><small>14:42:05</small></td><td><div class="audit-person"><span class="audit-avatar blue">RS</span><strong>Dr. Ricardo Silva</strong></div></td><td><span class="audit-action blue"><i data-lucide="list-checks"></i>Alteração de Permissões</span></td><td><span class="audit-object">Usuário ID #4492</span></td><td><code>192.168.1.104</code></td><td><button class="audit-detail" type="button" aria-label="Ver detalhes"><i data-lucide="arrow-right"></i></button></td></tr>
+                            <tr><td><strong>31/10/2023</strong><small>13:15:22</small></td><td><div class="audit-person"><span class="audit-avatar green">MC</span><strong>Enf. Mariana Costa</strong></div></td><td><span class="audit-action green"><i data-lucide="log-in"></i>Login efetuado</span></td><td><span class="audit-muted">Nenhum objeto específico</span></td><td><code>201.24.155.82</code></td><td><button class="audit-detail" type="button" aria-label="Ver detalhes"><i data-lucide="arrow-right"></i></button></td></tr>
+                            <tr><td><strong>31/10/2023</strong><small>11:04:59</small></td><td><div class="audit-person"><span class="audit-avatar blue">ADM</span><strong>Sistema Admin</strong></div></td><td><span class="audit-action blue"><i data-lucide="rows-3"></i>Fila reordenada</span></td><td><span class="audit-object blue-object">Setor: Ortopedia</span></td><td><code>Servidor-Local</code></td><td><button class="audit-detail" type="button" aria-label="Ver detalhes"><i data-lucide="arrow-right"></i></button></td></tr>
+                            <tr class="audit-risk"><td><strong>31/10/2023</strong><small>09:30:11</small></td><td><div class="audit-person"><span class="audit-avatar red">?</span><strong>Desconhecido</strong></div></td><td><span class="audit-action red"><i data-lucide="history"></i>Falha de Login (5x)</span></td><td><span class="audit-object red-object">Conta: adm_central</span></td><td><code>45.230.12.9</code></td><td><button class="audit-detail risk" type="button" aria-label="Ver alerta"><i data-lucide="triangle-alert"></i></button></td></tr>
+                        </tbody>
+                    </table></div>
+                    <div class="audit-table-footer"><span>Mostrando 1 a 15 de 4.289 registros</span><nav class="audit-pagination" aria-label="Paginação da auditoria"><button type="button"><i data-lucide="chevrons-left"></i></button><button class="current" type="button">1</button><button type="button">2</button><button type="button">3</button><button type="button"><i data-lucide="chevrons-right"></i></button></nav></div>
+                </section>
+
+                <section class="integrity-card">
+                    <span class="integrity-icon"><i data-lucide="shield-check"></i></span>
+                    <div class="integrity-copy"><h2>Integridade do Registro Ativa</h2><p>Todos os logs são criptografados e assinados digitalmente (SHA-256) na persistência. O sistema de auditoria garante que registros não possam ser apagados ou retroativamente modificados, assegurando conformidade total com a LGPD e normativas do CFM.</p></div>
+                    <div class="integrity-status"><small>ÚLTIMA INTEGRIDADE VERIFICADA</small><strong>Hoje, às 14:00 (Tempo Real)</strong></div>
+                </section>
+            </main>
+
+            <main class="content users-content module-view" id="module-users" hidden>
+                <div class="users-heading">
+                    <div>
+                        <h1>Gestão de Usuários</h1>
+                        <p>Controle os colaboradores e níveis de acesso institucional.</p>
+                    </div>
+                    {% if pode_criar %}<button class="new-user-button" id="open-user-modal" type="button"><i data-lucide="user-round-plus"></i>Novo Usuário</button>{% endif %}
+                </div>
+                {% if not is_admin %}<div class="notice" style="margin-bottom:16px"><i data-lucide="shield-alert"></i><span>Você tem acesso somente leitura. Apenas Super Admins podem criar, editar ou excluir usuários.</span></div>{% endif %}
+
+                <section class="user-tools" aria-label="Ferramentas de usuários">
+                    <label class="user-search"><i data-lucide="search"></i><input id="user-search" type="search" placeholder="Filtrar por nome ou CPF..." autocomplete="off"></label>
+                    <button class="filter-button" type="button"><i data-lucide="list-filter"></i>Filtros</button>
+                    <button class="export-button" type="button" aria-label="Exportar usuários" title="Exportar usuários"><i data-lucide="download"></i></button>
+                </section>
+
+                <section class="users-table-card" aria-label="Lista de colaboradores">
+                    <div class="users-table-scroll">
+                        <table class="users-table">
+                            <thead><tr><th>COLABORADOR</th><th>CPF</th><th>CARGO</th><th>CADASTRO</th><th>STATUS</th>{% if is_admin %}<th>AÇÕES</th>{% endif %}</tr></thead>
+                            <tbody>
+                                {% for usuario in usuarios %}
+                                <tr data-user-row data-search="{{ usuario.nome_completo|lower }} {{ usuario.cpf }}"><td><div class="collaborator"><span class="user-avatar blue">{{ usuario.iniciais }}</span><span><strong>{{ usuario.nome_completo }}</strong><small>{{ usuario.email_institucional }}</small></span></div></td><td>{{ usuario.cpf }}</td><td><span class="role-badge">{{ usuario.get_nivel_acesso_display }}</span></td><td><small>{{ usuario.criado_em|date:"d/m/Y" }}</small></td><td><span class="status-badge {% if usuario.usuario_ativo %}active{% else %}inactive{% endif %}">{% if usuario.usuario_ativo %}Ativo{% else %}Inativo{% endif %}</span></td>{% if is_admin %}<td><div class="row-actions"><form method="post" action="/configuracoes/" class="toggle-user-form">{% csrf_token %}<input type="hidden" name="action" value="toggle"><input type="hidden" name="usuario_id" value="{{ usuario.pk }}"><label class="switch"><input type="checkbox" {% if usuario.usuario_ativo %}checked{% endif %} aria-label="Alterar status de {{ usuario.nome_completo }}"><span></span></label></form><button class="edit-user-button" type="button" aria-label="Editar {{ usuario.nome_completo }}" data-user-id="{{ usuario.pk }}" data-user-name="{{ usuario.nome_completo }}" data-user-email="{{ usuario.email_institucional }}" data-user-cpf="{{ usuario.cpf }}" data-user-role="{{ usuario.nivel_acesso }}" data-user-active="{% if usuario.usuario_ativo %}true{% else %}false{% endif %}"><i data-lucide="pencil"></i></button></div></td>{% endif %}</tr>
+                                {% empty %}
+                                <tr class="empty-users-row"><td colspan="6">Nenhum usuário cadastrado.</td></tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="table-footer"><span id="users-result-count">Exibindo {{ usuarios|length }} de {{ page_obj.paginator.count }} usuário{{ page_obj.paginator.count|pluralize }}</span><nav class="pagination" aria-label="Paginação">{% if page_obj.has_previous %}<a href="?modulo=usuarios&pagina={{ page_obj.previous_page_number }}{% if interno %}&interno=1{% endif %}" type="button" aria-label="Página anterior"><i data-lucide="chevron-left"></i></a>{% else %}<button type="button" disabled aria-label="Página anterior"><i data-lucide="chevron-left"></i></button>{% endif %}{% for num in page_obj.paginator.page_range %}<a href="?modulo=usuarios&pagina={{ num }}{% if interno %}&interno=1{% endif %}" class="{% if page_obj.number == num %}current{% endif %}" type="button">{{ num }}</a>{% endfor %}{% if page_obj.has_next %}<a href="?modulo=usuarios&pagina={{ page_obj.next_page_number }}{% if interno %}&interno=1{% endif %}" type="button" aria-label="Próxima página"><i data-lucide="chevron-right"></i></a>{% else %}<button type="button" disabled aria-label="Próxima página"><i data-lucide="chevron-right"></i></button>{% endif %}</nav></div>
+                </section>
+
+                <div class="user-metrics">
+                    <article class="metric-card primary"><span class="metric-icon"><i data-lucide="shield-check"></i></span><span><strong>{{ usuarios_ativos }}</strong><small>Usuários Ativos</small></span></article>
+                    <article class="metric-card"><span class="metric-icon"><i data-lucide="users-round"></i></span><span><strong>3</strong><small>Perfis de Acesso</small></span></article>
+                </div>
+            </main>
+        </div>
+    </div>
+    <div class="activity-modal" id="activity-modal" role="dialog" aria-modal="true" aria-labelledby="activity-modal-title" hidden>
+        <button class="activity-modal-backdrop" type="button" data-close-activity-modal aria-label="Fechar detalhes"></button>
+        <div class="activity-modal-panel">
+            <header class="activity-modal-header"><div><h2 id="activity-modal-title">Detalhes da Atividade</h2><p>Informações completas sobre a ação selecionada para auditoria.</p></div><button type="button" data-close-activity-modal aria-label="Fechar"><i data-lucide="x"></i></button></header>
+            <div class="activity-modal-body">
+                <section class="activity-section"><h3><i data-lucide="user-round"></i>DADOS DO USUÁRIO</h3><div class="activity-user-grid"><div><small>NOME</small><strong>Dr. Ricardo Silva</strong></div><div><small>ID</small><strong>#4492</strong></div><div><small>CARGO</small><strong>Super Admin</strong></div></div></section>
+                <section class="activity-section"><h3><i data-lucide="info"></i>AÇÃO REALIZADA</h3><dl class="activity-definition"><div><dt>Tipo</dt><dd class="blue-value">Alteração de Permissões</dd></div><div><dt>Entidade</dt><dd>Usuário ID #4492</dd></div><div class="reason-row"><dt>Motivo</dt><dd>Ajuste de nível de acesso conforme solicitação da gestão.</dd></div></dl></section>
+                <section class="activity-section"><h3><i data-lucide="history"></i>RASTREABILIDADE</h3><div class="trace-grid"><div><small>DATA/HORA</small><strong>31/10/2023 - 14:42:05</strong></div><div><small>ENDEREÇO IP</small><code>192.168.1.104</code></div><div><small>DISPOSITIVO</small><strong>macOS / Chrome 118</strong></div></div></section>
+                <section class="activity-section raw-section"><h3><i data-lucide="code-2"></i>LOG BRUTO (RAW)</h3><pre>{
+  "action": "PERMISSION_CHANGE",
+  "target_id": 4492,
+  "changes": {
+    "role": ["EDITOR", "ADMIN"],
+    "access_level": [3, 5]
+  },
+  "timestamp": "2023-10-31T14:42:05Z"
+}</pre></section>
+            </div>
+            <footer class="activity-modal-footer"><button type="button" data-close-activity-modal>Fechar</button></footer>
+        </div>
+    </div>
+    <div class="edit-user-modal" id="edit-user-modal" role="dialog" aria-modal="true" aria-labelledby="edit-user-modal-title" hidden>
+        <button class="edit-modal-backdrop" type="button" data-close-edit-modal aria-label="Fechar modal"></button>
+        <div class="edit-modal-panel">
+            <div class="edit-modal-header"><div><h2 id="edit-user-modal-title">Editar Usuário</h2><p>Atualize as informações cadastrais do colaborador.</p></div><button class="edit-modal-close" type="button" data-close-edit-modal aria-label="Fechar"><i data-lucide="x"></i></button></div>
+            <form id="edit-user-form" method="post" action="{{ configuracoes_action_url }}">
+                {% csrf_token %}<input id="edit-action" type="hidden" name="action" value="update"><input id="edit-user-id" type="hidden" name="usuario_id">
+                {% if edit_form.errors %}<div class="edit-form-errors">Revise os campos. CPF e e-mail não podem estar duplicados.</div>{% endif %}
+                <div class="edit-form-body">
+                    <div class="edit-form-grid">
+                        <label class="form-field"><span>Nome Completo</span><input id="edit-user-name" name="nome_completo" type="text" required></label>
+                        <label class="form-field"><span>E-mail Institucional</span><input id="edit-user-email" name="email_institucional" type="email" required></label>
+                        <label class="form-field"><span>CPF</span><input id="edit-user-cpf" name="cpf" type="text" inputmode="numeric" maxlength="14" required></label>
+                        <label class="form-field"><span>Cargo / Função</span><select id="edit-user-role" name="nivel_acesso" required><option value="recepcionista">Recepcionista</option><option value="coordenacao">Coordenação</option><option value="super_admin">Super Admin</option></select></label>
+                    </div>
+                    <div class="edit-active-field"><i data-lucide="shield-check"></i><span><strong>Usuário Ativo</strong><small>Permitir acesso ao sistema</small></span><label class="switch"><input id="edit-user-active" name="usuario_ativo" type="checkbox" value="true"><span></span></label></div>
+                </div>
+                <div class="edit-modal-footer"><button class="delete-user-button" id="delete-user-button" type="button">Excluir usuário</button><div><button class="edit-cancel-button" type="button" data-close-edit-modal>Cancelar</button><button class="edit-save-button" type="submit">Salvar Alterações</button></div></div>
+            </form>
+        </div>
+    </div>
+    <div class="user-modal" id="user-modal" role="dialog" aria-modal="true" aria-labelledby="user-modal-title" hidden>
+        <button class="user-modal-backdrop" type="button" data-close-user-modal aria-label="Fechar modal"></button>
+        <div class="user-modal-panel">
+            <div class="user-modal-header"><h2 id="user-modal-title">Novo Usuário</h2></div>
+            <form class="new-user-form" id="new-user-form" method="post" action="{{ configuracoes_action_url }}">
+                {% csrf_token %}<input type="hidden" name="action" value="create">
+                {% if usuario_form.errors %}<div class="form-errors">Revise os campos. CPF e e-mail não podem estar duplicados.</div>{% endif %}
+                <label class="form-field"><span>Nome Completo</span><input id="new-user-name" name="nome_completo" type="text" value="{{ usuario_form.nome_completo.value|default:'' }}" placeholder="Ex: Ana Maria Silva" autocomplete="name" required></label>
+                <label class="form-field"><span>E-mail Institucional</span><input name="email_institucional" type="email" value="{{ usuario_form.email_institucional.value|default:'' }}" placeholder="ana.silva@clinicalcentral.com.br" autocomplete="email" required></label>
+                <div class="invite-note"><i data-lucide="info"></i><span>Um link de convite para ativação da conta será enviado para o e-mail institucional informado.</span></div>
+                <div class="form-columns">
+                    <label class="form-field"><span>CPF</span><input id="new-user-cpf" name="cpf" type="text" value="{{ usuario_form.cpf.value|default:'' }}" inputmode="numeric" placeholder="000.000.000-00" maxlength="14" required></label>
+                    <label class="form-field"><span>Cargo/Nível de Acesso</span><select name="nivel_acesso" required><option value="recepcionista" {% if usuario_form.nivel_acesso.value == 'recepcionista' %}selected{% endif %}>Recepcionista</option><option value="coordenacao" {% if usuario_form.nivel_acesso.value == 'coordenacao' %}selected{% endif %}>Coordenação</option><option value="super_admin" {% if usuario_form.nivel_acesso.value == 'super_admin' %}selected{% endif %}>Super Admin</option></select></label>
+                </div>
+                <div class="active-field"><span><strong>Usuário Ativo</strong><small>O usuário terá acesso imediato ao sistema</small></span><label class="switch"><input name="usuario_ativo" type="checkbox" value="true" {% if usuario_form.usuario_ativo.value is not False %}checked{% endif %}><span></span></label></div>
+                <div class="modal-actions"><button class="cancel-user-button" type="button" data-close-user-modal>Cancelar</button><button class="register-user-button" type="submit">Cadastrar Usuário</button></div>
+            </form>
+        </div>
+    </div>
+    <div class="toast" id="toast" role="status">Alterações salvas no protótipo.</div>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", () => {
+            if (window.lucide) window.lucide.createIcons();
+            const clockTime = document.getElementById("clock-time");
+            const clockDate = document.getElementById("clock-date");
+            const monthNames = ["janeiro", "fevereiro", "março", "abril", "maio", "junho", "julho", "agosto", "setembro", "outubro", "novembro", "dezembro"];
+            function renderClock() {
+                const now = new Date();
+                const hours = String(now.getHours()).padStart(2, "0");
+                const minutes = String(now.getMinutes()).padStart(2, "0");
+                const day = String(now.getDate()).padStart(2, "0");
+                clockTime.textContent = `${hours}:${minutes}`;
+                clockDate.textContent = `${day} de ${monthNames[now.getMonth()]} de ${now.getFullYear()}`;
+            }
+            renderClock();
+            window.setInterval(renderClock, 15000);
+
+            const profiles = {
+                recepcionista: { title: "Recepcionista", active: ["checkin"] },
+                coordenacao: { title: "Coordenação", active: ["checkin", "prontuario", "usuarios", "auditoria"] },
+                "super-admin": { title: "Super Admin", active: ["checkin", "prontuario", "usuarios", "auditoria", "deletar"] }
+            };
+            const profileButtons = document.querySelectorAll("[data-profile]");
+            const permissionInputs = document.querySelectorAll("[data-permission]");
+            const title = document.getElementById("permissions-title");
+            function selectProfile(key) {
+                const profile = profiles[key];
+                title.textContent = `Permissões: ${profile.title}`;
+                profileButtons.forEach((button) => {
+                    const selected = button.dataset.profile === key;
+                    button.classList.toggle("active", selected);
+                    button.setAttribute("aria-selected", String(selected));
+                });
+                permissionInputs.forEach((input) => { input.checked = profile.active.includes(input.dataset.permission); });
+            }
+            profileButtons.forEach((button) => button.addEventListener("click", () => selectProfile(button.dataset.profile)));
+            selectProfile("recepcionista");
+
+            const moduleButtons = document.querySelectorAll("[data-module]");
+            const moduleViews = document.querySelectorAll(".module-view");
+            function selectModule(button) {
+                moduleButtons.forEach((item) => item.classList.toggle("active", item === button));
+                moduleViews.forEach((view) => {
+                    const selected = view.id === `module-${button.dataset.module}`;
+                    view.hidden = !selected;
+                    view.classList.toggle("active", selected);
+                });
+            }
+            moduleButtons.forEach((button) => button.addEventListener("click", () => selectModule(button)));
+            {% if abrir_gestao_usuarios %}selectModule(document.querySelector('[data-module="users"]'));{% endif %}
+
+            const userSearch = document.getElementById("user-search");
+            const userRows = document.querySelectorAll("[data-user-row]");
+            const resultCount = document.getElementById("users-result-count");
+            userSearch.addEventListener("input", () => {
+                const textTerm = userSearch.value.trim().toLocaleLowerCase("pt-BR").normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+                const term = textTerm.replace(/\D/g, "");
+                let visible = 0;
+                userRows.forEach((row) => {
+                    const matches = row.dataset.search.includes(textTerm) || (term && row.dataset.search.includes(term));
+                    row.hidden = !matches;
+                    if (matches) visible += 1;
+                });
+                resultCount.textContent = userSearch.value ? `${visible} usuário(s) encontrado(s)` : `Exibindo ${userRows.length} usuário(s)`;
+            });
+
+            const userModal = document.getElementById("user-modal");
+            const openUserModal = document.getElementById("open-user-modal");
+            const userForm = document.getElementById("new-user-form");
+            const userNameInput = document.getElementById("new-user-name");
+            function setUserModal(open) {
+                userModal.hidden = !open;
+                document.body.classList.toggle("modal-open", open);
+                if (open) window.setTimeout(() => userNameInput.focus(), 0);
+                else openUserModal.focus();
+            }
+            openUserModal.addEventListener("click", () => setUserModal(true));
+            document.querySelectorAll("[data-close-user-modal]").forEach((button) => button.addEventListener("click", () => setUserModal(false)));
+            document.getElementById("new-user-cpf").addEventListener("input", (event) => {
+                const digits = event.target.value.replace(/\D/g, "").slice(0, 11);
+                event.target.value = digits.replace(/(\d{3})(\d)/, "$1.$2").replace(/(\d{3})(\d)/, "$1.$2").replace(/(\d{3})(\d{1,2})$/, "$1-$2");
+            });
+            {% if usuario_form.errors %}setUserModal(true);{% endif %}
+            const editModal = document.getElementById("edit-user-modal");
+            const editForm = document.getElementById("edit-user-form");
+            const editAction = document.getElementById("edit-action");
+            const editFields = {
+                id: document.getElementById("edit-user-id"),
+                name: document.getElementById("edit-user-name"),
+                email: document.getElementById("edit-user-email"),
+                cpf: document.getElementById("edit-user-cpf"),
+                role: document.getElementById("edit-user-role"),
+                active: document.getElementById("edit-user-active")
+            };
+            let lastEditButton = null;
+            function setEditModal(open, button = null) {
+                if (button) {
+                    lastEditButton = button;
+                    editFields.id.value = button.dataset.userId;
+                    editFields.name.value = button.dataset.userName;
+                    editFields.email.value = button.dataset.userEmail;
+                    editFields.cpf.value = button.dataset.userCpf;
+                    editFields.role.value = button.dataset.userRole;
+                    editFields.active.checked = button.dataset.userActive === "true";
+                    editAction.value = "update";
+                }
+                editModal.hidden = !open;
+                document.body.classList.toggle("modal-open", open);
+                if (open) window.setTimeout(() => editFields.name.focus(), 0);
+                else if (lastEditButton) lastEditButton.focus();
+            }
+            document.querySelectorAll(".edit-user-button").forEach((button) => button.addEventListener("click", () => setEditModal(true, button)));
+            document.querySelectorAll("[data-close-edit-modal]").forEach((button) => button.addEventListener("click", () => setEditModal(false)));
+            document.querySelectorAll(".toggle-user-form input[type='checkbox']").forEach((input) => input.addEventListener("change", () => input.form.submit()));
+            document.getElementById("delete-user-button").addEventListener("click", () => {
+                if (!window.confirm(`Excluir permanentemente ${editFields.name.value}?`)) return;
+                editAction.value = "delete";
+                editForm.submit();
+            });
+            document.getElementById("edit-user-cpf").addEventListener("input", (event) => {
+                const digits = event.target.value.replace(/\D/g, "").slice(0, 11);
+                event.target.value = digits.replace(/(\d{3})(\d)/, "$1.$2").replace(/(\d{3})(\d)/, "$1.$2").replace(/(\d{3})(\d{1,2})$/, "$1-$2");
+            });
+            {% if edit_form.errors and edit_user %}
+            setEditModal(true, {
+                dataset: { userId: "{{ edit_user.pk }}", userName: "{{ edit_form.nome_completo.value|escapejs }}", userEmail: "{{ edit_form.email_institucional.value|escapejs }}", userCpf: "{{ edit_form.cpf.value|escapejs }}", userRole: "{{ edit_form.nivel_acesso.value|escapejs }}", userActive: "{% if edit_form.usuario_ativo.value %}true{% else %}false{% endif %}" },
+                focus: () => {}
+            });
+            {% endif %}
+            {% if resultado %}
+            const createdToast = document.getElementById("toast");
+            const resultMessages = { criado: "Usuário cadastrado com sucesso.", atualizado: "Usuário atualizado com sucesso.", status: "Status atualizado com sucesso.", excluido: "Usuário excluído com sucesso." };
+            createdToast.textContent = resultMessages["{{ resultado|escapejs }}"] || "Alteração concluída.";
+            createdToast.classList.add("visible");
+            window.setTimeout(() => createdToast.classList.remove("visible"), 2200);
+            {% endif %}
+
+            const activityModal = document.getElementById("activity-modal");
+            let lastActivityButton = null;
+            function setActivityModal(open, trigger = null) {
+                if (trigger) lastActivityButton = trigger;
+                activityModal.hidden = !open;
+                document.body.classList.toggle("modal-open", open);
+                if (!open && lastActivityButton) lastActivityButton.focus();
+            }
+            document.querySelectorAll(".audit-detail").forEach((button) => button.addEventListener("click", () => setActivityModal(true, button)));
+            document.querySelectorAll("[data-close-activity-modal]").forEach((button) => button.addEventListener("click", () => setActivityModal(false)));
+
+            const layout = document.getElementById("app-layout");
+            const drawerToggle = document.getElementById("drawer-toggle");
+            const overlay = document.getElementById("drawer-overlay");
+            function setDrawer(open) {
+                layout.classList.toggle("drawer-opened", open);
+                document.body.classList.toggle("drawer-open", open);
+                drawerToggle.setAttribute("aria-expanded", String(open));
+            }
+            drawerToggle.addEventListener("click", () => setDrawer(!layout.classList.contains("drawer-opened")));
+            overlay.addEventListener("click", () => setDrawer(false));
+            document.addEventListener("keydown", (event) => {
+                if (event.key !== "Escape") return;
+                if (!activityModal.hidden) setActivityModal(false);
+                else if (!editModal.hidden) setEditModal(false);
+                else if (!userModal.hidden) setUserModal(false);
+                else setDrawer(false);
+            });
+
+            document.getElementById("save-button").addEventListener("click", () => {
+                // Future integration point: persist the selected profile permissions.
+                const toast = document.getElementById("toast");
+                toast.classList.add("visible");
+                window.setTimeout(() => toast.classList.remove("visible"), 2200);
+            });
+        });
+    </script>
+</body>
+</html>

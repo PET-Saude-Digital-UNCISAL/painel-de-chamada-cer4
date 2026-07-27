@@ -1,0 +1,734 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ page_title }}</title>
+    <style>
+      @font-face {
+        font-family: "Inter";
+        src: url("{{ inter_font_url }}") format("truetype");
+        font-style: normal;
+        font-weight: 100 900;
+        font-display: swap;
+      }
+
+      :root {
+        --blue-950: #09286b;
+        --blue-900: #092e85;
+        --blue-800: #123a94;
+        --blue-700: #153684;
+        --blue-500: #3f60ff;
+        --ink: #11192b;
+        --muted: #64748b;
+        --line: #d8e3f0;
+        --green: #047857;
+      }
+
+      * { box-sizing: border-box; }
+
+      html, body {
+        width: 100%;
+        height: 100%;
+        margin: 0;
+      }
+
+      body {
+        display: grid;
+        place-items: center;
+        overflow: hidden;
+        background: #e8edf4;
+        font-family: "Inter", sans-serif;
+      }
+
+      .call-panel {
+        container-type: inline-size;
+        display: grid;
+        grid-template-rows: 16.4% 78.4% 5.2%;
+        width: 100vw;
+        height: 100vh;
+        max-width: 100vw;
+        max-height: 100vh;
+        overflow: hidden;
+        color: var(--ink);
+        background: #fff;
+      }
+
+      .panel-header > *,
+      .panel-content > * {
+        min-width: 0;
+      }
+
+      .panel-header,
+      .panel-content,
+      .notice-bar {
+        width: 100%;
+        min-width: 0;
+      }
+
+      .panel-header {
+        display: grid;
+        grid-template-columns: 34cqw 1fr 11.8cqw;
+        align-items: center;
+        padding: 0 4.6cqw 0 4cqw;
+        background: #fff;
+      }
+
+      .reception-info {
+        position: relative;
+        top: -.42cqw;
+        display: flex;
+        align-items: center;
+        gap: 1.5cqw;
+      }
+
+      .reception-name {
+        min-width: 14.45cqw;
+        padding: .7cqw 1cqw;
+        border-radius: .2cqw;
+        color: #fff;
+        background: var(--blue-900);
+        font-size: 1.8cqw;
+        font-weight: 900;
+        line-height: 1;
+        text-align: center;
+      }
+
+      .panel-date {
+        margin: 0;
+        color: #092e84;
+        font-size: 1.18cqw;
+        font-weight: 900;
+        line-height: 1.18;
+      }
+
+      .panel-date span { display: block; font-weight: 600; }
+      .panel-date [data-current-date] { display: inline; font-weight: 900; }
+
+      .institutional-logos {
+        display: flex;
+        align-items: center;
+        justify-content: flex-start;
+        gap: 2.45cqw;
+        height: 6.1cqw;
+        margin-left: 6.8cqw;
+      }
+
+      .logo-cer,
+      .logo-uncisal,
+      .logo-sus {
+        display: block;
+        flex: 0 0 auto;
+        object-fit: contain;
+      }
+
+      .logo-cer { width: 12.1cqw; height: 3.5cqw; }
+      .logo-uncisal { position: relative; top: -.3cqw; width: 9.63cqw; height: 2.86cqw; }
+      .logo-sus { width: 8.4cqw; height: 4.8cqw; object-fit: contain; }
+
+      .current-time {
+        position: relative;
+        top: -.42cqw;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: .62cqw;
+        width: 11.8cqw;
+        height: 3.9cqw;
+        padding: 0;
+        border-radius: .68cqw;
+        color: #fff;
+        background: #0a2f87;
+        box-shadow: 0 .2cqw .8cqw rgba(55, 122, 117, .18);
+      }
+
+      .current-time-icon {
+        width: 1.65cqw;
+        height: 1.65cqw;
+        fill: none;
+        stroke: currentColor;
+        stroke-linecap: round;
+        stroke-linejoin: round;
+        stroke-width: 2;
+      }
+
+      .current-time-value {
+        font-size: 1.48cqw;
+        font-weight: 800;
+        font-variant-numeric: tabular-nums;
+        letter-spacing: .02cqw;
+      }
+
+      .visually-hidden {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        padding: 0;
+        margin: -1px;
+        overflow: hidden;
+        clip: rect(0, 0, 0, 0);
+        white-space: nowrap;
+        border: 0;
+      }
+
+      .recent-calls h2 svg {
+        width: 1.55cqw;
+        fill: none;
+        stroke: currentColor;
+        stroke-linecap: round;
+        stroke-linejoin: round;
+        stroke-width: 2;
+      }
+
+      .panel-content {
+        display: grid;
+        grid-template-columns: 19.35cqw 49.5cqw minmax(0, 1fr);
+        min-height: 0;
+      }
+
+      .position-card {
+        position: relative;
+        align-self: start;
+        width: 17.1cqw;
+        height: 37.7cqw;
+        margin-top: 1cqw;
+        margin-left: 3.6cqw;
+        overflow: hidden;
+        border: .11cqw solid #d3d3d3;
+        border-radius: 1.1cqw;
+        background: linear-gradient(180deg, #fff 28%, #f3f3f3 135%);
+        box-shadow: .12cqw .22cqw .22cqw rgba(0,0,0,.04);
+      }
+
+      .position-card h2 {
+        margin: 1.1cqw .8cqw 0;
+        color: #01265d;
+        font-size: clamp(1rem, 1.3cqw, 1.56rem);
+        font-weight: 900;
+        text-align: center;
+      }
+
+      .qr-code-slot {
+        display: grid;
+        place-items: center;
+        width: 9.45cqw;
+        aspect-ratio: 1 / 1;
+        margin: .64cqw auto 1.61cqw;
+        overflow: hidden;
+      }
+
+      .qr-code {
+        display: block;
+        width: 96%;
+        height: 96%;
+        border-radius: .7cqw;
+        object-fit: contain;
+        clip-path: inset(.25cqw);
+      }
+
+      .libras-label {
+        position: relative;
+        z-index: 2;
+        display: flex;
+        align-items: center;
+        gap: .62cqw;
+        margin-left: 2.5cqw;
+        color: #081e42;
+        font-size: 1.14cqw;
+      }
+
+      .libras-label span {
+        display: grid;
+        place-items: center;
+        width: 2.05cqw;
+        height: 2.05cqw;
+        border-radius: 50%;
+        background: #103794;
+      }
+
+      .libras-label img { display: block; width: 1.25cqw; height: 1.25cqw; }
+
+      .libras-slot {
+        position: absolute;
+        left: 50%;
+        bottom: -.3cqw;
+        display: grid;
+        place-items: center;
+        width: 12.7cqw;
+        height: 19.05cqw;
+        overflow: hidden;
+        transform: translateX(-50%);
+      }
+
+      .libras-avatar {
+        display: block;
+        width: 100%;
+        height: 100%;
+        object-fit: contain;
+        object-position: top center;
+        transform: scaleX(-1);
+      }
+
+      .libras-slot > video,
+      .libras-slot > iframe {
+        display: block;
+        width: 100%;
+        height: 100%;
+        border: 0;
+        object-fit: contain;
+      }
+
+      .current-call {
+        position: relative;
+        left: .8cqw;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        padding-top: 4.45cqw;
+        font-family: "Inter", sans-serif;
+      }
+
+      .call-label {
+        position: relative;
+        left: .6cqw;
+        display: flex;
+        align-items: center;
+        gap: 1cqw;
+        width: 21.6cqw;
+        margin: 0;
+        height: 4.35cqw;
+        min-height: 0;
+        padding: 0 2.9cqw;
+        border-radius: .7cqw;
+        color: #fff;
+        background: linear-gradient(90deg, #113996, #092e85);
+        font-family: "Inter", sans-serif;
+        font-size: 1.3cqw;
+        font-weight: 800;
+        white-space: nowrap;
+      }
+
+      .call-bell-icon {
+        flex: 0 0 auto;
+        width: 1.75cqw;
+        height: 1.75cqw;
+        object-fit: contain;
+      }
+
+      .ticket-number {
+        position: relative;
+        left: -.85cqw;
+        margin-top: 3.9cqw;
+        color: var(--blue-900);
+        font-family: "Inter", sans-serif;
+        font-size: clamp(11rem, 15.5cqw, 18.6rem);
+        font-weight: 800;
+        line-height: .75;
+        letter-spacing: -.3cqw;
+      }
+
+      .ticket-number--announcing {
+        animation: call-attention .3s steps(1, end) 9;
+        will-change: opacity;
+      }
+
+      .patient-name {
+        position: relative;
+        top: -.26cqw;
+        left: -.15cqw;
+        margin: 1.94cqw 0 2cqw;
+        color: #11192b;
+        font-family: "Inter", sans-serif;
+        font-size: clamp(2rem, 3.15cqw, 3.8rem);
+        font-weight: 700;
+        letter-spacing: .05cqw;
+        line-height: 1;
+      }
+
+      .service-info {
+        position: relative;
+        top: .1cqw;
+        display: flex;
+        align-items: center;
+        width: 38.7cqw;
+        min-height: 5.9cqw;
+        padding: 0 2.75cqw;
+        border: .06cqw solid #d1dbe6;
+        border-radius: 2.15cqw;
+        background: #fbfdff;
+        box-shadow: .25cqw .3cqw 1.7cqw rgba(0,0,0,.07);
+      }
+
+      .room-number, .service-type { font-size: 1.67cqw; font-weight: 800; }
+      .room-icon { width: 3.25cqw; height: 3.25cqw; margin-right: .65cqw; object-fit: contain; }
+      .room-number { color: #183b8c; white-space: nowrap; }
+      .service-divider { align-self: stretch; width: .1cqw; margin: 1.4cqw 1.25cqw; background: #c8d4e6; }
+      .service-icon { width: 3.25cqw; height: 3.25cqw; margin-right: .65cqw; object-fit: contain; }
+      .service-type { color: var(--green); }
+
+      .demo-call-button {
+        position: absolute;
+        right: 2.4cqw;
+        bottom: 1.15cqw;
+        display: inline-flex;
+        align-items: center;
+        gap: .5cqw;
+        min-height: 2.45cqw;
+        padding: .45cqw .9cqw;
+        border: .06cqw solid rgba(24, 59, 140, .2);
+        border-radius: 999px;
+        color: #183b8c;
+        background: rgba(255, 255, 255, .78);
+        box-shadow: 0 .28cqw 1.15cqw rgba(9, 46, 133, .12);
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
+        font: 700 .82cqw/1 "Inter", sans-serif;
+        opacity: 1;
+        cursor: pointer;
+      }
+
+      .demo-call-button svg {
+        width: 1.05cqw;
+        height: 1.05cqw;
+        fill: none;
+        stroke: currentColor;
+        stroke-linecap: round;
+        stroke-linejoin: round;
+        stroke-width: 2;
+      }
+
+      .recent-calls {
+        width: 100%;
+        min-width: 0;
+        padding: 3.6cqw 3cqw 0 1.6cqw;
+      }
+
+      .recent-calls h2 {
+        display: flex;
+        align-items: center;
+        gap: .8cqw;
+        margin: 0;
+        padding: 0 0 .9cqw;
+        border-bottom: .16cqw solid #e3e1f4;
+        color: var(--blue-900);
+        font-size: 1.47cqw;
+        font-weight: 800;
+      }
+
+      .recent-calls-list { display: grid; min-width: 0; gap: .85cqw; padding-top: 1.8cqw; }
+
+      .recent-call-card {
+        position: relative;
+        height: 5.3cqw;
+        padding: .4cqw 1.35cqw;
+        overflow: hidden;
+        border: .08cqw solid #dedede;
+        border-radius: 1cqw;
+        color: #0c2d7b;
+        background: #fff;
+        box-shadow: 0 .8cqw 3.8cqw rgba(0,0,0,.055);
+      }
+
+      .recent-call-main { display: flex; align-items: center; height: 2.55cqw; }
+      .recent-call-main strong { width: 8.1cqw; font-family: "Inter", sans-serif; font-size: 2.65cqw; font-weight: 800; line-height: 1; }
+      .recent-call-main span { padding-left: 1cqw; border-left: .09cqw solid var(--line); color: var(--blue-500); font-size: 1.29cqw; font-weight: 700; }
+      .recent-call-card p { margin: .02cqw 0 0; font-size: 1.1cqw; font-weight: 700; text-transform: uppercase; }
+      .recent-call-card time { position: absolute; top: 1.15cqw; right: .85cqw; display: flex; align-items: center; gap: .38cqw; color: var(--muted); font-size: .86cqw; font-weight: 700; }
+
+      .small-clock { position: relative; width: 1.3cqw; height: 1.3cqw; border: .13cqw solid currentColor; border-radius: 50%; }
+      .small-clock::before { content: ""; position: absolute; left: 50%; top: 22%; width: .12cqw; height: .42cqw; margin-left: -.06cqw; border-radius: 99px; background: currentColor; }
+      .small-clock::after { content: ""; position: absolute; left: 50%; top: 50%; width: .43cqw; height: .12cqw; margin-top: -.06cqw; border-radius: 99px; background: currentColor; transform: rotate(35deg); transform-origin: left center; }
+
+      .recent-call-card--highlighted { border-color: var(--blue-900); color: #fff; background: var(--blue-900); }
+      .recent-call-card--highlighted .recent-call-main span,
+      .recent-call-card--highlighted time { color: #fff; }
+      .recent-call-card--highlighted .recent-call-main span { border-color: rgba(255,255,255,.65); }
+
+      .notice-bar { display: grid; grid-template-columns: 7.35% 1fr; color: #fff; background: var(--blue-950); }
+      .notice-bar > strong { display: grid; place-items: center; background: #0a1525; font-size: 1.22cqw; letter-spacing: .1cqw; }
+      .notice-ticker { min-width: 0; overflow: hidden; }
+      .notice-track { display: flex; width: max-content; height: 100%; animation: notice-scroll 70s linear infinite; will-change: transform; }
+      .notice-message { align-self: center; flex: 0 0 auto; margin: 0; padding: 0 9cqw 0 1.1cqw; white-space: nowrap; font-size: clamp(.72rem, 1.12cqw, 1.375rem); font-weight: 700; }
+      .notice-message span { padding: 0 3.5cqw; }
+      .notice-message .notice-date { padding: 0; }
+
+      @keyframes call-attention {
+        0%, 49.99%, 100% { opacity: 1; }
+        50%, 99.99% { opacity: .08; }
+      }
+
+      @keyframes notice-scroll {
+        to { transform: translateX(-50%); }
+      }
+
+      @media (prefers-reduced-motion: reduce) {
+        .ticket-number--announcing { animation: none; }
+        .notice-track { animation: none; }
+      }
+    </style>
+  </head>
+  <body>
+    <main class="call-panel" aria-label="Painel de chamada da {{ reception_name|lower }}">
+      <header class="panel-header">
+        <section class="reception-info" aria-label="Identificação da recepção">
+          <strong class="reception-name">{{ reception_name }}</strong>
+          <p class="panel-date"><span data-current-weekday>{{ weekday }}</span> <span data-current-date>{{ current_date }}</span></p>
+        </section>
+
+        <section class="institutional-logos" aria-label="Instituições">
+          <img class="logo-cer" src="{{ logo_cer_url }}" alt="CER — Centro Especializado em Reabilitação">
+          <img class="logo-uncisal" src="{{ logo_uncisal_url }}" alt="UNCISAL">
+          <img class="logo-sus" src="{{ logo_sus_url }}" alt="SUS">
+        </section>
+
+        <div class="current-time" aria-label="Horário atual">
+          <svg class="current-time-icon" aria-hidden="true" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"></circle><path d="M12 7v5l3.5 2"></path></svg>
+          <time class="current-time-value" datetime="{{ current_time }}" data-current-time>{{ current_time }}</time>
+        </div>
+      </header>
+
+      <div class="panel-content">
+        <aside class="position-card">
+          <h2>ACOMPANHA SUA POSIÇÃO</h2>
+
+          <div class="qr-code-slot">
+            <img class="qr-code" src="{{ qr_code_url }}" alt="QR Code para acompanhar posição">
+          </div>
+
+          <div class="libras-label">
+            <span aria-hidden="true">
+              <img src="{{ libras_icon_url }}" alt="">
+            </span>
+            <strong>LIBRAS</strong>
+          </div>
+
+          <div class="libras-slot">
+            <img class="libras-avatar" src="{{ libras_avatar_url }}" alt="Avatar de Libras">
+          </div>
+        </aside>
+
+        <section class="current-call" aria-labelledby="current-call-title">
+          <h1 id="current-call-title" class="call-label">
+            <img class="call-bell-icon" src="{{ call_bell_icon_url }}" alt="">
+            CHAMADA ATUAL
+          </h1>
+          <strong class="ticket-number" data-current-ticket>{{ current_call.ticket }}</strong>
+          <p class="patient-name">{{ current_call.patient_name }}</p>
+
+          <div class="service-info">
+            <img class="room-icon" src="{{ room_icon_url }}" alt="">
+            <strong class="room-number">{{ current_call.room }}</strong>
+            <span class="service-divider" aria-hidden="true"></span>
+            <img class="service-icon" src="{{ service_icon_url }}" alt="">
+            <strong class="service-type">{{ current_call.service_type }}</strong>
+          </div>
+
+          <button class="demo-call-button" type="button" data-announcement="Senha {{ current_call.ticket }}, {{ current_call.patient_name }}, dirija-se à {{ current_call.room }}">
+            <svg aria-hidden="true" viewBox="0 0 24 24"><path d="M11 5 6.5 9H3v6h3.5L11 19z"></path><path d="M15 9.5a4 4 0 0 1 0 5"></path><path d="M18 7a7 7 0 0 1 0 10"></path></svg>
+            Simular chamada
+          </button>
+          <audio data-chamada-audio preload="auto" src="{{ chamada_audio_url }}"></audio>
+        </section>
+
+        <aside class="recent-calls" aria-labelledby="recent-calls-title">
+          <h2 id="recent-calls-title">
+            <svg aria-hidden="true" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8"></circle><path d="M12 7v5l3.5 2"></path></svg>
+            ÚLTIMOS CHAMADOS
+          </h2>
+
+          <div class="recent-calls-list">
+            {% for call in recent_calls %}
+              <article class="recent-call-card{% if call.highlighted %} recent-call-card--highlighted{% endif %}">
+                <div class="recent-call-main"><strong>{{ call.ticket }}</strong><span>{{ call.room }}</span></div>
+                <p>{{ call.patient_name }}</p>
+                <time datetime="{{ call.time }}"><span class="small-clock" aria-hidden="true"></span>{{ call.time }}</time>
+              </article>
+            {% endfor %}
+          </div>
+        </aside>
+      </div>
+
+      <footer class="notice-bar">
+        <strong>AVISO</strong>
+        <div class="notice-ticker" aria-label="Avisos da recepção">
+          <div class="notice-track">
+            {% for repetition in "12" %}
+              <p class="notice-message"{% if forloop.last %} aria-hidden="true"{% endif %}>{% for item in notice_items %}{% if forloop.last %}<span class="notice-date" data-notice-date>{{ item }}</span>{% else %}{{ item }}<span>•</span>{% endif %}{% endfor %}</p>
+            {% endfor %}
+          </div>
+        </div>
+      </footer>
+    </main>
+    <script>
+      (() => {
+        const timeZone = "America/Sao_Paulo";
+        const timeElement = document.querySelector("[data-current-time]");
+        const weekdayElement = document.querySelector("[data-current-weekday]");
+        const dateElement = document.querySelector("[data-current-date]");
+        const noticeDateElements = document.querySelectorAll("[data-notice-date]");
+        const ticketElement = document.querySelector("[data-current-ticket]");
+        const demoButton = document.querySelector(".demo-call-button");
+        const chamadaAudio = document.querySelector("[data-chamada-audio]");
+        const timeFormatter = new Intl.DateTimeFormat("pt-BR", {
+          timeZone,
+          hour: "2-digit",
+          minute: "2-digit",
+          second: "2-digit",
+          hourCycle: "h23"
+        });
+        const weekdayFormatter = new Intl.DateTimeFormat("pt-BR", {
+          timeZone,
+          weekday: "long"
+        });
+        const dateFormatter = new Intl.DateTimeFormat("pt-BR", {
+          timeZone,
+          day: "2-digit",
+          month: "long",
+          year: "numeric"
+        });
+
+        const updateDateTime = () => {
+          const now = new Date();
+          const currentTime = timeFormatter.format(now);
+          const currentWeekday = weekdayFormatter.format(now).toLocaleUpperCase("pt-BR");
+          const currentDate = dateFormatter.format(now).toLocaleUpperCase("pt-BR");
+
+          timeElement.textContent = currentTime;
+          timeElement.dateTime = currentTime;
+          weekdayElement.textContent = `${currentWeekday},`;
+          dateElement.textContent = currentDate;
+          noticeDateElements.forEach((element) => {
+            element.textContent = `HOJE É ${currentWeekday}, ${currentDate}`;
+          });
+        };
+
+        updateDateTime();
+        window.setInterval(updateDateTime, 1000);
+        ticketElement.addEventListener("animationend", () => {
+          ticketElement.classList.remove("ticket-number--announcing");
+        });
+        chamadaAudio.addEventListener("error", () => {
+          console.error("Não foi possível carregar o áudio simulado de chamada.");
+        });
+        demoButton.addEventListener("click", () => {
+          ticketElement.classList.remove("ticket-number--announcing");
+          void ticketElement.offsetWidth;
+          ticketElement.classList.add("ticket-number--announcing");
+
+          try {
+            chamadaAudio.currentTime = 0;
+            const playback = chamadaAudio.play();
+            if (playback) {
+              playback.catch((error) => {
+                console.error("Não foi possível reproduzir o áudio simulado de chamada.", error);
+              });
+            }
+          } catch (error) {
+            console.error("Não foi possível reproduzir o áudio simulado de chamada.", error);
+          }
+        });
+      })();
+
+      (function () {
+        const protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
+        const wsUrl = protocol + "//" + window.location.host + "/ws/painel-chamada/";
+        var ws = null;
+
+        function connectWs() {
+          try {
+            ws = new WebSocket(wsUrl);
+          } catch (e) {
+            console.warn("WebSocket indisponível, reconectando em 5s...");
+            setTimeout(connectWs, 5000);
+            return;
+          }
+
+          ws.onopen = function () {
+            console.log("WebSocket painel conectado.");
+          };
+
+          function renderRecentCalls(calls) {
+            var container = document.querySelector(".recent-calls-list");
+            if (!container || !calls) return;
+            container.innerHTML = "";
+            calls.forEach(function (call) {
+              var article = document.createElement("article");
+              article.className = "recent-call-card";
+              var mainDiv = document.createElement("div");
+              mainDiv.className = "recent-call-main";
+              var strong = document.createElement("strong");
+              strong.textContent = call.ticket;
+              var span = document.createElement("span");
+              span.textContent = call.room;
+              mainDiv.appendChild(strong);
+              mainDiv.appendChild(span);
+              var p = document.createElement("p");
+              p.textContent = call.patient_name;
+              var time = document.createElement("time");
+              time.dateTime = call.time;
+              var clock = document.createElement("span");
+              clock.className = "small-clock";
+              clock.setAttribute("aria-hidden", "true");
+              time.appendChild(clock);
+              time.appendChild(document.createTextNode(call.time));
+              article.appendChild(mainDiv);
+              article.appendChild(p);
+              article.appendChild(time);
+              container.appendChild(article);
+            });
+          }
+
+          function updateCurrentCall(senha, nome, sala) {
+            var ticketEl = document.querySelector("[data-current-ticket]");
+            var patientEl = document.querySelector(".patient-name");
+            var roomEl = document.querySelector(".room-number");
+            if (ticketEl) ticketEl.textContent = senha;
+            if (patientEl) patientEl.textContent = nome;
+            if (roomEl) roomEl.textContent = sala;
+            if (ticketEl) {
+              ticketEl.classList.remove("ticket-number--announcing");
+              void ticketEl.offsetWidth;
+              ticketEl.classList.add("ticket-number--announcing");
+            }
+            try {
+              var audio = document.querySelector("[data-chamada-audio]");
+              if (audio) {
+                audio.currentTime = 0;
+                var p = audio.play();
+                if (p) p.catch(function () {});
+              }
+            } catch (e) {}
+          }
+
+          ws.onmessage = function (event) {
+            var msg;
+            try {
+              msg = JSON.parse(event.data);
+            } catch (e) {
+              return;
+            }
+
+            if (msg.tipo === "paciente_chamado") {
+              updateCurrentCall(msg.senha, msg.nome, msg.sala);
+            } else if (msg.tipo === "fila_atualizada") {
+              if (msg.recent_calls) {
+                renderRecentCalls(msg.recent_calls);
+              }
+            }
+          };
+
+          ws.onclose = function () {
+            console.warn("WebSocket desconectado, reconectando em 5s...");
+            setTimeout(connectWs, 5000);
+          };
+
+          ws.onerror = function () {
+            ws.close();
+          };
+        }
+
+        connectWs();
+      })();
+    </script>
+  </body>
+</html>

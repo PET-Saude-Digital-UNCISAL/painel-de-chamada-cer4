@@ -1,20 +1,73 @@
-<!DOCTYPE html>
-<html lang="pt-br">
+<!doctype html>
+<html lang="pt-BR">
 <head>
     <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>{{ title }}</title>
+    <style>
+        * { box-sizing:border-box; }
+        body { min-height:100vh; margin:0; padding:2rem; font-family:Inter,Arial,sans-serif; color:#172554; background:#f1f5f9; }
+        main { width:min(100%,960px); margin:auto; }
+        h1 { margin:0; font-size:clamp(1.6rem,3.5vw,2.2rem); }
+        .intro { color:#64748b; margin:.5rem 0 2rem; }
+        .grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(260px,1fr)); gap:1.25rem; }
+        .card { display:flex; flex-direction:column; min-height:180px; padding:1.75rem; border:1px solid #dbeafe; border-radius:18px; color:inherit; text-decoration:none; background:#fff; box-shadow:0 12px 28px rgb(15 23 42 / 8%); transition:transform .2s,box-shadow .2s; }
+        .card:hover { transform:translateY(-4px); box-shadow:0 18px 34px rgb(15 23 42 / 13%); }
+        .tag { color:#2563eb; font-size:.78rem; font-weight:700; text-transform:uppercase; letter-spacing:.08em; }
+        .card h2 { margin:.75rem 0 .5rem; font-size:1.35rem; }
+        .card p { color:#64748b; line-height:1.55; margin:0 0 auto; }
+        .card .count { display:inline-block; margin-top:.75rem; font-size:.85rem; color:#64748b; }
+        .nav-grid { margin-bottom:2.5rem; }
+        .fake-section { border-top:2px solid #e2e8f0; padding-top:1.5rem; }
+        .fake-section h2 { font-size:1.15rem; color:#64748b; margin:0 0 .25rem; }
+        .fake-section .intro { font-size:.9rem; margin:0 0 1.25rem; }
+        .fake-card { min-height:140px; padding:1.25rem; border:1px solid #e2e8f0; border-radius:14px; background:#fafbfe; }
+        .fake-card h3 { margin:.5rem 0 .25rem; font-size:1rem; }
+        .fake-card .owner { color:#94a3b8; font-size:.85rem; }
+        .fake-card .open { margin-top:auto; padding-top:12px; color:#1d4ed8; font-size:.85rem; font-weight:700; text-decoration:none; }
+        @media(max-width:640px) { body { padding:1.25rem; } .grid { grid-template-columns:1fr; } }
+    </style>
 </head>
 <body>
-    <h1>{{ title }}</h1>
-    <p>Ambiente oculto para desenvolvimento com dados fake.</p>
+    <main>
+        <h1>{{ title }}</h1>
+        <p class="intro">Ambiente oculto para desenvolvimento com dados fake.</p>
 
-    <ul>
-        {% for card in cards %}
-            <li>
-                {{ card.title }} - {{ card.owner }}
-                (<a href="{{ card.path }}">abrir mock</a>)
-            </li>
-        {% endfor %}
-    </ul>
+        <div class="grid nav-grid">
+            <a class="card" href="{{ mobile_group.path }}">
+                <span class="tag">Fluxo externo</span>
+                <h2>{{ mobile_group.title }}</h2>
+                <p>{{ mobile_group.desc }}</p>
+                <span class="count">{{ mobile_group.count }} telas dispon&iacute;veis &rarr;</span>
+            </a>
+            <a class="card" href="{{ tv_group.path }}">
+                <span class="tag">Tempo real</span>
+                <h2>{{ tv_group.title }}</h2>
+                <p>{{ tv_group.desc }}</p>
+                <span class="count">Acessar painel &rarr;</span>
+            </a>
+            <a class="card" href="{{ system_group.path }}">
+                <span class="tag">&Aacute;rea institucional</span>
+                <h2>{{ system_group.title }}</h2>
+                <p>{{ system_group.desc }}</p>
+                <span class="count">Acessar sistema &rarr;</span>
+            </a>
+        </div>
+
+        <section class="fake-section">
+            <h2>Mocks de Desenvolvimento</h2>
+            <p class="intro">Cards avulsos gerados artificialmente para testes isolados de componentes.</p>
+            <div class="grid">
+                {% for card in fake_cards %}
+                    <article class="card fake-card">
+                        <span class="tag">mock</span>
+                        <h3>{{ card.title }}</h3>
+                        <p class="owner">{{ card.owner }} &middot; {{ card.status }}</p>
+                        <a class="open" href="{{ card.path }}">Abrir mock &rarr;</a>
+                    </article>
+                {% endfor %}
+            </div>
+        </section>
+    </main>
 </body>
 </html>

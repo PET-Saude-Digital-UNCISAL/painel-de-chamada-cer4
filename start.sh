@@ -3,4 +3,4 @@ set -o errexit
 
 python manage.py collectstatic --noinput
 python manage.py migrate --noinput
-exec gunicorn config.wsgi:application --bind "0.0.0.0:${PORT:-8000}"
+exec daphne config.asgi:application --bind "0.0.0.0" --port "${PORT:-8000}"

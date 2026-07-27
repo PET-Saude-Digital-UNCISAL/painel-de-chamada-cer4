@@ -1,0 +1,603 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Monitoramento do Fluxo</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+  <style>
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap");
+:root {
+  --bg-main: #F4F5F9;
+  --bg-card: #FFFFFF;
+  --text-dark: #0f172a;
+  --text-muted: #64748b;
+  --text-light: #94a3b8;
+  --primary-blue: #0A2B6F;
+  --border-color: #E5E7EB;
+  --color-green: #13c15d;
+  --bg-green-light: #e2fbeb;
+  --color-red: #ff5247;
+  --bg-red-light: #ffecea;
+  --color-orange: #f59e0b;
+  --shadow-sm: 0 1px 3px rgba(0,0,0,0.06);
+  --radius: 16px;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  font-family: "Inter", -apple-system, sans-serif;
+  background: var(--bg-main);
+  color: var(--text-dark);
+  line-height: 1.5;
+}
+button { font: inherit; cursor: pointer; }
+.dashboard-container {
+  width: 100%; max-width: 1440px; margin: 0 auto;
+  padding: 20px 32px 32px;
+  min-height: calc(100vh - 66px);
+}
+.topbar {
+  height: 66px; display: flex; align-items: center;
+  justify-content: space-between; padding: 0 28px;
+  background: #fff; border-bottom: 1px solid #edf0f4;
+}
+.topbar .brand-group, .topbar-actions { display: flex; align-items: center; gap: 14px; }
+.topbar .brand { color: #071d38; font-size: 17px; font-weight: 800; }
+.topbar .brand span { font-weight: 500; }
+.topbar .icon-button {
+  width: 36px; height: 36px; display: grid; place-items: center;
+  border: 1px solid #dce2e9; border-radius: 6px; background: #fff; color: #071d38;
+}
+.topbar-actions { gap: 18px; }
+.topbar-clock { text-align: right; }
+.topbar-clock strong { display: block; font-size: 16px; color: #071d38; }
+.topbar-clock small { color: #667085; font-size: 9px; }
+.topbar-online {
+  display: flex; align-items: center; gap: 7px;
+  padding: 10px 13px; border: 1px solid #bde4d7; border-radius: 7px;
+  background: #effaf6; color: #087d5a; font-size: 11px; font-weight: 700;
+}
+.topbar-online::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: #0aaf7b; }
+.topbar-user { display: flex; align-items: center; gap: 10px; padding-left: 17px; border-left: 1px solid #e6eaf0; }
+.topbar-avatar {
+  width: 31px; height: 31px; display: grid; place-items: center;
+  border-radius: 6px; background: #071d38; color: #fff; font-size: 11px;
+}
+.topbar-user strong, .topbar-user small { display: block; }
+.topbar-user strong { font-size: 11px; color: #171b22; }
+.topbar-user small { margin-top: 2px; color: #687180; font-size: 9px; }
+
+/* Filter Bar */
+.filter-bar {
+  background: var(--bg-card); border: 1px solid var(--border-color);
+  border-radius: var(--radius); padding: 16px 20px; margin-bottom: 20px;
+  box-shadow: var(--shadow-sm);
+}
+.filter-row { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+.filter-group { display: flex; align-items: center; gap: 6px; }
+.filter-label { font-size: 12px; font-weight: 600; color: var(--text-muted); white-space: nowrap; }
+.date-chips { display: flex; gap: 4px; }
+.date-chip {
+  padding: 5px 12px; border: 1px solid var(--border-color); border-radius: 20px;
+  background: transparent; font-size: 12px; font-weight: 500; color: var(--text-muted);
+  transition: all 150ms;
+}
+.date-chip:hover { border-color: var(--primary-blue); color: var(--primary-blue); }
+.date-chip.is-active { background: var(--primary-blue); color: #fff; border-color: var(--primary-blue); }
+.filter-select {
+  padding: 5px 10px; border: 1px solid var(--border-color); border-radius: 8px;
+  font-size: 12px; font-weight: 500; background: #fff; color: var(--text-dark);
+  min-width: 120px;
+}
+.filter-divider { width: 1px; height: 28px; background: var(--border-color); }
+.btn-export {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 6px 14px; border: 1px solid var(--primary-blue); border-radius: 8px;
+  background: var(--primary-blue); color: #fff; font-size: 12px; font-weight: 600;
+  transition: opacity 150ms;
+}
+.btn-export:hover { opacity: 0.9; }
+.btn-export-outline {
+  background: transparent; color: var(--primary-blue);
+}
+.export-group { display: flex; gap: 4px; margin-left: auto; }
+
+/* KPIs */
+.kpi-grid {
+  display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 20px;
+}
+.kpi-card {
+  background: var(--bg-card); border: 1px solid var(--border-color);
+  border-radius: var(--radius); padding: 20px; box-shadow: var(--shadow-sm);
+  display: flex; flex-direction: column; gap: 8px;
+}
+.kpi-top { display: flex; justify-content: space-between; align-items: flex-start; }
+.kpi-title { font-size: 13px; font-weight: 500; color: var(--text-muted); }
+.kpi-icon { width: 36px; height: 36px; border-radius: 10px; display: grid; place-items: center; }
+.kpi-icon.primary { background: #eef2ff; color: var(--primary-blue); }
+.kpi-icon.blue { background: #eff6ff; color: #2563eb; }
+.kpi-icon.red { background: #fef2f2; color: #dc2626; }
+.kpi-icon.green { background: #f0fdf4; color: #16a34a; }
+.kpi-value { font-size: 32px; font-weight: 700; line-height: 1; letter-spacing: -0.02em; }
+.kpi-footer { font-size: 11px; color: var(--text-light); }
+
+/* Chart Section */
+.chart-section {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 20px;
+}
+.card {
+  background: var(--bg-card); border: 1px solid var(--border-color);
+  border-radius: var(--radius); padding: 20px; box-shadow: var(--shadow-sm);
+}
+.card-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 16px; }
+.card-title { font-size: 16px; font-weight: 700; }
+.card-subtitle { font-size: 12px; color: var(--text-muted); margin-top: 2px; }
+.chart-bars {
+  display: flex; align-items: flex-end; gap: 12px; height: 160px; margin-top: auto;
+}
+.bar-col { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 8px; height: 100%; }
+.bar-wrap { flex: 1; width: 100%; display: flex; align-items: flex-end; justify-content: center; }
+.bar {
+  width: 32px; max-width: 100%; background: var(--primary-blue);
+  border-radius: 8px 8px 0 0; transition: height 400ms ease;
+}
+.bar-label { font-size: 10px; font-weight: 600; color: var(--text-muted); text-transform: uppercase; }
+
+/* Totals row */
+.totals-row {
+  display: flex; gap: 16px; flex-wrap: wrap;
+}
+.total-chip {
+  display: flex; align-items: center; gap: 6px;
+  padding: 8px 14px; border-radius: 10px; font-size: 13px; font-weight: 600;
+}
+.total-chip.blue { background: #eff6ff; color: #2563eb; }
+.total-chip.orange { background: #fff7ed; color: #ea580c; }
+.total-chip.green { background: #f0fdf4; color: #16a34a; }
+
+/* Skeleton Loading */
+.skeleton {
+  background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+  background-size: 200% 100%; animation: shimmer 1.5s infinite;
+  border-radius: 6px;
+}
+@keyframes shimmer { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
+.skeleton-card { height: 120px; }
+.skeleton-value { height: 36px; width: 60%; margin-top: 8px; }
+.skeleton-text { height: 14px; width: 40%; margin-top: 4px; }
+
+/* Empty state */
+.empty-state { text-align: center; padding: 48px 24px; color: var(--text-muted); }
+.empty-state svg { width: 48px; height: 48px; margin-bottom: 12px; stroke: var(--text-light); }
+.empty-state h3 { font-size: 16px; font-weight: 600; margin-bottom: 4px; color: var(--text-dark); }
+.empty-state p { font-size: 13px; }
+
+/* Detailed Metric Cards */
+.metric-details { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 20px; }
+.metric-detail-card {
+  background: var(--bg-card); border: 1px solid var(--border-color);
+  border-radius: var(--radius); padding: 20px; box-shadow: var(--shadow-sm);
+  display: flex; flex-direction: column;
+}
+.metric-detail-card .card-header { margin-bottom: 12px; }
+.metric-detail-card .card-title { font-size: 15px; font-weight: 700; display: flex; align-items: center; gap: 8px; }
+.metric-detail-card .card-subtitle { font-size: 11px; color: var(--text-muted); margin-top: 2px; }
+.metric-detail-card .card-badge {
+  display: inline-flex; align-items: center; gap: 4px;
+  padding: 3px 10px; border-radius: 99px; font-size: 10px; font-weight: 700;
+  text-transform: uppercase; letter-spacing: 0.04em;
+}
+.card-badge.primary { background: #eef2ff; color: var(--primary-blue); }
+.card-badge.red { background: #fef2f2; color: #dc2626; }
+.metric-detail-value { font-size: 42px; font-weight: 800; line-height: 1; letter-spacing: -0.03em; color: var(--text-dark); }
+.metric-detail-value .unit { font-size: 16px; font-weight: 600; color: var(--text-muted); margin-left: 4px; }
+.metric-chart-wrap { flex: 1; position: relative; min-height: 140px; margin-top: 8px; }
+.metric-meta { font-size: 12px; color: var(--text-muted); margin-top: 8px; display: flex; justify-content: space-between; }
+.metric-meta .meta-label { font-weight: 500; }
+.metric-meta .meta-value { font-weight: 600; color: var(--text-dark); }
+.metric-meta .meta-value.warn { color: #dc2626; }
+.metric-meta .meta-value.ok { color: #16a34a; }
+
+@media (max-width: 1200px) {
+  .metric-details { grid-template-columns: 1fr; }
+}
+
+/* Responsive */
+@media (max-width: 1200px) {
+  .kpi-grid { grid-template-columns: repeat(2, 1fr); }
+  .chart-section { grid-template-columns: 1fr; }
+}
+@media (max-width: 840px) {
+  .dashboard-container { padding: 16px; }
+  .filter-bar { padding: 12px 16px; }
+  .filter-row { gap: 8px; }
+  .filter-divider { display: none; }
+  .export-group { margin-left: 0; width: 100%; }
+}
+@media (max-width: 640px) {
+  .kpi-grid { grid-template-columns: 1fr 1fr; }
+  .kpi-value { font-size: 24px; }
+  .filter-row { flex-direction: column; align-items: stretch; }
+  .date-chips { flex-wrap: wrap; }
+}
+  </style>
+</head>
+<body>
+<header class="topbar">
+    <div class="brand-group">
+        {% if not interno %}<button class="icon-button" id="drawer-toggle" type="button" aria-label="Abrir menu" aria-expanded="false"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg></button>{% endif %}
+        <div class="brand">CER III <span>&#8212; Dashboard</span></div>
+    </div>
+    <div class="topbar-actions">
+        <div class="topbar-clock"><strong id="clock-time">--:--</strong><small id="clock-date">Carregando data...</small></div>
+        <div class="topbar-online">Sistema online</div>
+        <div class="topbar-user">
+            {% if usuario_logado %}
+                {% if usuario_logado.foto_perfil %}
+                    <img src="{{ usuario_logado.foto_perfil.url }}" class="topbar-avatar" style="object-fit:cover;" alt="">
+                {% else %}
+                    <span class="topbar-avatar">{{ usuario_logado.iniciais }}</span>
+                {% endif %}
+                <div><strong>{{ usuario_logado.nome_completo }}</strong><small>{{ usuario_logado.get_nivel_acesso_display }}</small></div>
+            {% endif %}
+        </div>
+    </div>
+</header>
+<div class="dashboard-container" id="app">
+
+  <!-- Filter Bar -->
+  <div class="filter-bar">
+    <div class="filter-row">
+      <div class="filter-group">
+        <span class="filter-label">Período:</span>
+        <div class="date-chips" id="date-chips">
+          <button class="date-chip is-active" data-days="0">Hoje</button>
+          <button class="date-chip" data-days="7">7 dias</button>
+          <button class="date-chip" data-days="15">15 dias</button>
+          <button class="date-chip" data-days="20">20 dias</button>
+          <button class="date-chip" data-days="30">30 dias</button>
+        </div>
+      </div>
+      <div class="filter-divider"></div>
+      <div class="filter-group">
+        <span class="filter-label">Turno:</span>
+        <select class="filter-select" id="filter-shift">
+          <option value="">Todos</option>
+          <option value="MANHA">Manhã</option>
+          <option value="TARDE">Tarde</option>
+          <option value="NOITE">Noite</option>
+        </select>
+      </div>
+      <div class="filter-divider"></div>
+      <div class="filter-group">
+        <span class="filter-label">Tipo:</span>
+        <select class="filter-select" id="filter-type">
+          <option value="">Todos</option>
+          <option value="CONSULTA">Consulta</option>
+          <option value="EXAME">Exame</option>
+          <option value="TERAPIA">Terapia</option>
+        </select>
+      </div>
+      <div class="export-group">
+        <button class="btn-export" id="btn-export-csv" type="button">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+          Exportar CSV
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- KPIs -->
+  <div class="kpi-grid" id="kpi-grid">
+    {% for card in kpis %}
+    <div class="kpi-card">
+      <div class="kpi-top">
+        <span class="kpi-title">{{ card.title }}</span>
+        <span class="kpi-icon {{ card.badge_class }}">{% if forloop.first %}<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>{% elif forloop.counter == 2 %}<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>{% elif forloop.counter == 3 %}<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>{% else %}<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>{% endif %}</span>
+      </div>
+      <div class="kpi-value">{{ card.value }}</div>
+      <div class="kpi-footer">{{ card.footer }}</div>
+    </div>
+    {% endfor %}
+  </div>
+
+  <!-- Metric Detail Cards -->
+  <div class="metric-details" id="metric-details">
+    <div class="metric-detail-card">
+      <div class="card-header">
+        <div class="card-title">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--primary-blue)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+          Tempo Médio de Espera
+          <span class="card-badge primary" id="tme-badge">CONSOLIDADO</span>
+        </div>
+        <div class="card-subtitle">Tempo médio entre a chegada e o início do atendimento</div>
+      </div>
+      <div>
+        <span class="metric-detail-value" id="tme-value">0<span class="unit">min</span></span>
+      </div>
+      <div class="metric-chart-wrap">
+        <canvas id="tmeChart" width="400" height="120"></canvas>
+      </div>
+      <div class="metric-meta">
+        <span class="meta-label">Tempo médio por recepção</span>
+        <span class="meta-value" id="tme-reception-count">—</span>
+      </div>
+    </div>
+    <div class="metric-detail-card">
+      <div class="card-header">
+        <div class="card-title">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#dc2626" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
+          Índice de Absenteísmo
+          <span class="card-badge red" id="abs-badge">META 5%</span>
+        </div>
+        <div class="card-subtitle">Percentual de faltas sem justificativa no período</div>
+      </div>
+      <div>
+        <span class="metric-detail-value" id="abs-value">0<span class="unit">%</span></span>
+      </div>
+      <div class="metric-chart-wrap">
+        <canvas id="absChart" width="400" height="120"></canvas>
+      </div>
+      <div class="metric-meta">
+        <span class="meta-label">Comparativo ao período anterior</span>
+        <span class="meta-value" id="abs-compare">—</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Charts -->
+  <div class="chart-section">
+    <div class="card">
+      <div class="card-header">
+        <div>
+          <div class="card-title">Atendimentos por Dia</div>
+          <div class="card-subtitle">Período selecionado</div>
+        </div>
+      </div>
+      <div class="chart-bars" id="chart-bars">
+        {% for bar in chart.bars %}
+        <div class="bar-col">
+          <div class="bar-wrap"><div class="bar" style="height: {{ bar.height }}%"></div></div>
+          <span class="bar-label">{{ bar.label }}</span>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-header">
+        <div>
+          <div class="card-title">Resumo</div>
+          <div class="card-subtitle">Status dos atendimentos</div>
+        </div>
+      </div>
+      <div class="totals-row" id="totals-row">
+        <span class="total-chip orange">Aguardando: <strong id="total-aguardando">{{ kpis.1.value }}</strong></span>
+        <span class="total-chip blue">Em Atendimento: <strong id="total-atendimento">0</strong></span>
+        <span class="total-chip green">Concluídos: <strong id="total-concluidos">{{ kpis.3.value }}</strong></span>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+(function() {
+  var ctime = document.getElementById("clock-time");
+  var cdate = document.getElementById("clock-date");
+  var months = ["janeiro","fevereiro","março","abril","maio","junho","julho","agosto","setembro","outubro","novembro","dezembro"];
+  function updateClock() {
+    var n = new Date();
+    ctime.textContent = String(n.getHours()).padStart(2,"0")+":"+String(n.getMinutes()).padStart(2,"0");
+    cdate.textContent = String(n.getDate()).padStart(2,"0")+" de "+months[n.getMonth()]+" de "+n.getFullYear();
+  }
+  updateClock();
+  setInterval(updateClock, 15000);
+
+  // === Dashboard Metrics ===
+  var kpiGrid = document.getElementById("kpi-grid");
+  var chartBars = document.getElementById("chart-bars");
+  var totalsRow = document.getElementById("totals-row");
+
+  // === TME Chart (horizontal bar by reception) ===
+  var tmeCanvas = document.getElementById("tmeChart");
+  var tmeCtx = tmeCanvas ? tmeCanvas.getContext("2d") : null;
+  var tmeChart = null;
+  if (tmeCtx) {
+    tmeChart = new Chart(tmeCtx, {
+      type: "bar",
+      data: { labels: [], datasets: [{
+        label: "Tempo médio (min)",
+        data: [],
+        backgroundColor: ["#6366f1","#3b82f6","#06b6d4","#10b981","#f59e0b","#ef4444"],
+        borderRadius: 4,
+        borderSkipped: false,
+        barThickness: 16,
+      }]},
+      options: {
+        indexAxis: "y",
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: { legend: { display: false }, tooltip: { callbacks: { label: function(c) { return c.raw + " min"; } } } },
+        scales: {
+          x: { beginAtZero: true, grid: { display: false }, ticks: { font: { size: 10 }, stepSize: 5 } },
+          y: { grid: { display: false }, ticks: { font: { size: 10 } } }
+        }
+      }
+    });
+  }
+
+  // === Absenteísmo Chart (doughnut gauge) ===
+  var absCanvas = document.getElementById("absChart");
+  var absCtx = absCanvas ? absCanvas.getContext("2d") : null;
+  var absChart = null;
+  if (absCtx) {
+    absChart = new Chart(absCtx, {
+      type: "doughnut",
+      data: {
+        labels: ["Absenteísmo", "Comparecimento"],
+        datasets: [{
+          data: [0, 100],
+          backgroundColor: ["#ef4444", "#e5e7eb"],
+          borderWidth: 0,
+          cutout: "70%",
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: { display: false },
+          tooltip: {
+            callbacks: {
+              label: function(c) { return c.label + ": " + c.raw + "%"; }
+            }
+          }
+        }
+      }
+    });
+  }
+
+  function formatDate(d) {
+    return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0");
+  }
+
+  function getActiveDays() {
+    var active = document.querySelector("#date-chips .date-chip.is-active");
+    return active ? parseInt(active.getAttribute("data-days")) : 0;
+  }
+
+  function getDatesFromDays(days) {
+    var end = new Date();
+    var start = new Date();
+    start.setDate(start.getDate() - days);
+    return { start_date: formatDate(start), end_date: formatDate(end) };
+  }
+
+  function getFilters() {
+    var days = getActiveDays();
+    var dates = getDatesFromDays(days);
+    return {
+      start_date: dates.start_date,
+      end_date: dates.end_date,
+      shift: document.getElementById("filter-shift").value,
+      service_type: document.getElementById("filter-type").value,
+    };
+  }
+
+  function showSkeletons() {
+    kpiGrid.innerHTML = "";
+    for (var i = 0; i < 4; i++) {
+      kpiGrid.innerHTML += '<div class="kpi-card"><div class="skeleton skeleton-card"></div><div class="skeleton skeleton-value"></div><div class="skeleton skeleton-text"></div></div>';
+    }
+    chartBars.innerHTML = '<div class="empty-state"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><polyline points="16 12 12 8 8 12"/><line x1="12" y1="16" x2="12" y2="8"/></svg><h3>Carregando...</h3></div>';
+  }
+
+  function renderKPIs(data) {
+    var colors = ["primary", "blue", "red", "green"];
+    var icons = [
+      '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>',
+      '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>',
+      '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>',
+      '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>'
+    ];
+    kpiGrid.innerHTML = "";
+    data.kpis.forEach(function(kpi, i) {
+      kpiGrid.innerHTML += '<div class="kpi-card">' +
+        '<div class="kpi-top"><span class="kpi-title">' + kpi.title + '</span><span class="kpi-icon ' + (colors[i] || 'primary') + '">' + (icons[i] || '') + '</span></div>' +
+        '<div class="kpi-value">' + kpi.value + '</div>' +
+        '<div class="kpi-footer">' + (kpi.footer || '&nbsp;') + '</div>' +
+      '</div>';
+    });
+
+    if (data.totals) {
+      document.getElementById("total-aguardando").textContent = data.totals.aguardando || "0";
+      document.getElementById("total-atendimento").textContent = data.totals.atendimento || "0";
+      document.getElementById("total-concluidos").textContent = data.totals.concluidos || "0";
+    }
+  }
+
+  function renderChart(bars) {
+    if (!bars || bars.length === 0) {
+      chartBars.innerHTML = '<div class="empty-state"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="9" y1="21" x2="9" y2="9"/></svg><h3>Sem dados para o período</h3><p>Tente selecionar um período maior ou alterar os filtros.</p></div>';
+      return;
+    }
+    var maxVal = Math.max.apply(null, bars.map(function(b) { return b.height; }));
+    maxVal = Math.max(maxVal, 1);
+    chartBars.innerHTML = "";
+    bars.forEach(function(bar) {
+      var pct = (bar.height / maxVal) * 100;
+      chartBars.innerHTML += '<div class="bar-col"><div class="bar-wrap"><div class="bar" style="height:' + pct + '%"></div></div><span class="bar-label">' + bar.label + '</span></div>';
+    });
+  }
+
+  function fetchMetrics() {
+    var f = getFilters();
+    var url = "/api/dashboard/metrics/?start_date=" + encodeURIComponent(f.start_date) + "&end_date=" + encodeURIComponent(f.end_date);
+    if (f.shift) url += "&shift=" + encodeURIComponent(f.shift);
+    if (f.service_type) url += "&service_type=" + encodeURIComponent(f.service_type);
+
+    showSkeletons();
+    fetch(url)
+      .then(function(r) { if (!r.ok) throw new Error("Erro " + r.status); return r.json(); })
+      .then(function(data) {
+        renderKPIs(data);
+        renderChart(data.chart_bars);
+        renderDashboardDetail(data);
+      })
+      .catch(function(err) {
+        kpiGrid.innerHTML = '<div class="empty-state" style="grid-column:1/-1"><svg viewBox="0 0 24 24" fill="none" stroke="#dc2626" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg><h3>Erro ao carregar dados</h3><p>' + err.message + '</p></div>';
+      });
+  }
+
+  function renderDashboardDetail(data) {
+    // TME
+    var tmeAvg = data.tme_average || "0";
+    document.getElementById("tme-value").innerHTML = tmeAvg + '<span class="unit">min</span>';
+    if (data.tme_by_reception && tmeChart) {
+      var labels = data.tme_by_reception.map(function(r) { return r.name; });
+      var vals = data.tme_by_reception.map(function(r) { return parseFloat(r.avg) || 0; });
+      tmeChart.data.labels = labels;
+      tmeChart.data.datasets[0].data = vals;
+      tmeChart.update();
+    }
+    var tmeCount = data.tme_reception_count || "—";
+    document.getElementById("tme-reception-count").textContent = tmeCount;
+
+    // Absenteísmo
+    var absPct = data.absenteismo_percentage || "0";
+    document.getElementById("abs-value").innerHTML = absPct + '<span class="unit">%</span>';
+    if (absChart) {
+      var safePct = Math.min(parseFloat(absPct) || 0, 100);
+      absChart.data.datasets[0].data = [safePct, Math.max(100 - safePct, 0)];
+      absChart.data.datasets[0].backgroundColor = safePct <= 5 ? ["#16a34a", "#e5e7eb"] : safePct <= 10 ? ["#f59e0b", "#e5e7eb"] : ["#ef4444", "#e5e7eb"];
+      absChart.update();
+    }
+    var absCompare = data.absenteismo_compare || "—";
+    document.getElementById("abs-compare").innerHTML = absCompare;
+  }
+
+  // Date chips
+  document.querySelectorAll("#date-chips .date-chip").forEach(function(chip) {
+    chip.addEventListener("click", function() {
+      document.querySelectorAll("#date-chips .date-chip").forEach(function(c) { c.classList.remove("is-active"); });
+      chip.classList.add("is-active");
+      fetchMetrics();
+    });
+  });
+
+  // Select filters
+  document.getElementById("filter-shift").addEventListener("change", fetchMetrics);
+  document.getElementById("filter-type").addEventListener("change", fetchMetrics);
+
+  // Export CSV
+  document.getElementById("btn-export-csv").addEventListener("click", function() {
+    var f = getFilters();
+    var url = "/api/dashboard/metrics/export/?start_date=" + encodeURIComponent(f.start_date) + "&end_date=" + encodeURIComponent(f.end_date);
+    if (f.shift) url += "&shift=" + encodeURIComponent(f.shift);
+    if (f.service_type) url += "&service_type=" + encodeURIComponent(f.service_type);
+    window.location.href = url;
+  });
+})();
+</script>
+</body>
+</html>
