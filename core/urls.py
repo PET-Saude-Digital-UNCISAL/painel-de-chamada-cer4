@@ -4,6 +4,7 @@ from core import views
 
 
 urlpatterns = [
+    path("health/", views.health_check_view, name="health-check"),
     path("", views.home_view, name="home"),
     path("pacientes/", views.painel_pacientes_view, name="painel-pacientes"),
     path("sistema-interno/", views.sistema_interno_figma_view, name="sistema-interno"),

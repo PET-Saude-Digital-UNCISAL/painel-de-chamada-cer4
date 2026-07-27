@@ -1437,6 +1437,10 @@ def paciente_status_api_view(request):
 
 
 
+def health_check_view(request):
+
+    return JsonResponse({"status": "healthy"})
+
 @xframe_options_sameorigin
 
 def home_view(request):
