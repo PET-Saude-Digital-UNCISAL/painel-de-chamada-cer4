@@ -27,6 +27,10 @@ render_host = os.getenv('RENDER_EXTERNAL_HOSTNAME')
 if render_host:
     ALLOWED_HOSTS.append(render_host)
 
+render_origin = os.getenv('RENDER_EXTERNAL_URL')
+if render_origin:
+    CSRF_TRUSTED_ORIGINS = [render_origin]
+
 
 # Application definition
 
@@ -39,8 +43,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'channels',
     'rest_framework',
-    'rest_framework.authtoken',
-    'django_filters',
+    'apps.core_domain',
     'core',
     'apps.mobile',
     'apps.system',
@@ -184,7 +187,6 @@ INTEGRADOR_TOKEN = os.getenv('INTEGRADOR_TOKEN', '')
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (
         'rest_framework.authentication.SessionAuthentication',
-        'rest_framework.authentication.TokenAuthentication',
     ),
     'DEFAULT_PERMISSION_CLASSES': (
         'rest_framework.permissions.AllowAny',
