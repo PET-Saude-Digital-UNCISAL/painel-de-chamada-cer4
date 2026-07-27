@@ -16,7 +16,7 @@
             <a class="drawer-link" href="/"><img src="{% static 'core/icons/dasboard.svg' %}" alt="">Dashboard</a>
             <a class="drawer-link" href="/telas/auditoria-percurso-seguranca/"><img src="{% static 'core/icons/auditoria-percurso.svg' %}" alt="">Auditoria</a>
             <a class="drawer-link active" href="/configuracoes/"><img src="{% static 'core/icons/configuracoes.svg' %}" alt="">Configurações</a>
-            <a class="drawer-link" href="/telas/dev1/"><img src="{% static 'core/icons/meu-perfil.svg' %}" alt="">Meu Perfil</a>
+            <a class="drawer-link" href="{% url 'meu-perfil' %}"><img src="{% static 'core/icons/meu-perfil.svg' %}" alt="">Meu Perfil</a>
         </aside>
         <button class="drawer-overlay" id="drawer-overlay" type="button" aria-label="Fechar menu"></button>
         {% endif %}
