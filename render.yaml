@@ -10,6 +10,11 @@ services:
         fromDatabase:
           name: painel-de-chamada-cer4-db
           property: connectionString
+      - key: REDIS_URL
+        fromService:
+          type: redis
+          name: painel-de-chamada-cer4-redis
+          property: connectionString
       - key: SECRET_KEY
         generateValue: true
       - key: DEBUG
@@ -17,4 +22,8 @@ services:
 
 databases:
   - name: painel-de-chamada-cer4-db
+    plan: free
+
+redis:
+  - name: painel-de-chamada-cer4-redis
     plan: free

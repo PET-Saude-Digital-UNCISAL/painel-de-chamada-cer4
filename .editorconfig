@@ -1,0 +1,15 @@
+root = true
+
+[*]
+charset = utf-8
+end_of_line = lf
+indent_style = space
+indent_size = 4
+trim_trailing_whitespace = true
+insert_final_newline = true
+
+[*.{html,py,js,css,json,yml,yaml,md,txt}]
+charset = utf-8
+
+[*.{png,jpg,gif,ico,pdf,ttf,woff,woff2}]
+charset = unset

@@ -1,0 +1,1847 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>{{ page_title }}</title>
+  <style>
+    @font-face {
+      font-family: "Inter";
+      src: url("{{ inter_font_url }}") format("truetype");
+      font-style: normal;
+      font-weight: 100 900;
+      font-display: swap;
+    }
+
+    *, *::before, *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    html, body {
+      min-height: 100%;
+    }
+
+    body {
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+      overflow-x: hidden;
+      color: #001b56;
+      background: #e8edf2;
+      font-family: "Inter", Arial, sans-serif;
+      font-synthesis: none;
+    }
+
+    button, input, a {
+      color: inherit;
+      font: inherit;
+    }
+
+    .screen {
+      position: relative;
+      width: 390px;
+      min-height: max(844px, 100svh);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      background: #f7f9fb;
+    }
+
+    .screen-section {
+      display: none;
+      flex-direction: column;
+      min-height: max(844px, 100svh);
+    }
+
+    .screen-section.is-active {
+      display: flex;
+    }
+
+    .topbar {
+      position: sticky;
+      top: 0;
+      z-index: 10;
+      width: 100%;
+      height: 68px;
+      flex: 0 0 68px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 16px 24px;
+      background: rgba(247, 249, 251, 0.8);
+      box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+      backdrop-filter: blur(12px);
+    }
+
+    .topbar-logo {
+      width: 132px;
+      height: 36px;
+      display: block;
+      object-fit: contain;
+      object-position: left center;
+    }
+
+    .icon-button {
+      width: 36px;
+      height: 36px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 8px;
+      background: transparent;
+      border: 0;
+      border-radius: 9999px;
+      text-decoration: none;
+    }
+
+    .icon-button[aria-hidden="true"] {
+      pointer-events: none;
+    }
+
+    .icon-button:hover, .icon-button:focus-visible {
+      background: #eef2f6;
+      outline: none;
+    }
+
+    .icon-button:focus-visible {
+      box-shadow: 0 0 0 3px rgba(0, 71, 141, 0.2);
+    }
+
+    main {
+      width: 100%;
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      padding: 20px 24px 22px;
+    }
+
+    /* ============ IDENTIFICAÇÃO ============ */
+    .welcome {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding-top: 0;
+      text-align: center;
+    }
+
+    .title {
+      margin-top: 0;
+      color: #001b56;
+      font-family: "Inter", Arial, sans-serif;
+      font-size: 30px;
+      font-weight: 800;
+      line-height: 36px;
+      letter-spacing: -0.35px;
+    }
+
+    .subtitle {
+      max-width: 290px;
+      margin-top: 6px;
+      color: #466178;
+      font-family: "Inter", Arial, sans-serif;
+      font-size: 16px;
+      font-weight: 500;
+      line-height: 23px;
+    }
+
+    .identification-form {
+      display: grid;
+      gap: 14px;
+      margin-top: 20px;
+    }
+
+    .field-label {
+      display: block;
+      margin: 0 0 7px 3px;
+      color: #466178;
+      font-family: "Inter", Arial, sans-serif;
+      font-size: 12px;
+      font-weight: 700;
+      line-height: 15px;
+      letter-spacing: 0.6px;
+      text-transform: uppercase;
+    }
+
+    .input-shell {
+      height: 62px;
+      display: flex;
+      align-items: center;
+      gap: 13px;
+      padding: 0 18px;
+      color: #466178;
+      background: #fff;
+      border: 1px solid #e1e7ee;
+      border-radius: 16px;
+      box-shadow: 0 4px 14px rgba(0, 27, 86, 0.06);
+      transition: border-color 160ms ease, box-shadow 160ms ease;
+    }
+
+    .input-shell:focus-within {
+      border-color: #5b8fc7;
+      box-shadow: 0 0 0 4px rgba(0, 71, 141, 0.1), 0 6px 18px rgba(0, 27, 86, 0.08);
+    }
+
+    .field-icon {
+      width: 20px;
+      height: 20px;
+      flex: 0 0 20px;
+    }
+
+    .field-input {
+      width: 100%;
+      min-width: 0;
+      height: 100%;
+      color: #001b56;
+      background: transparent;
+      border: 0;
+      outline: 0;
+      font-family: "Inter", Arial, sans-serif;
+      font-size: 17px;
+      font-weight: 600;
+      line-height: 24px;
+    }
+
+    .field-input::placeholder {
+      color: #64748b;
+      font-weight: 500;
+      opacity: 1;
+    }
+
+    .actions {
+      display: grid;
+      gap: 12px;
+      margin-top: 20px;
+    }
+
+    .action-button {
+      width: 100%;
+      min-height: 60px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      padding: 14px 22px;
+      border: 0;
+      border-radius: 9999px;
+      text-decoration: none;
+      font-size: 18px;
+      font-weight: 700;
+      line-height: 26px;
+      cursor: pointer;
+    }
+
+    .action-button:focus-visible {
+      outline: 3px solid rgba(0, 71, 141, 0.28);
+      outline-offset: 3px;
+    }
+
+    .action-primary {
+      color: #fff;
+      background: #001b56;
+      box-shadow: 0 9px 14px -3px rgba(0, 71, 141, 0.2), 0 4px 6px -4px rgba(0, 71, 141, 0.2);
+    }
+
+    .action-primary:active {
+      transform: translateY(1px);
+    }
+
+    .action-secondary {
+      color: #001b56;
+      background: #c7e3fe;
+    }
+
+    .footer {
+      position: relative;
+      z-index: 10;
+      width: 100%;
+      min-height: 85px;
+      flex: 0 0 auto;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 12px 24px max(12px, env(safe-area-inset-bottom));
+      border-top: 1px solid rgba(194, 198, 212, 0.1);
+      background: #f7f9fb;
+    }
+
+    .footer-indicators {
+      display: flex;
+      align-items: center;
+      gap: 24px;
+    }
+
+    .footer-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .footer-text {
+      color: #466178;
+      font-family: "Inter", Arial, sans-serif;
+      font-size: 12px;
+      font-weight: 500;
+      line-height: 16px;
+    }
+
+    .footer-actions {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .accessibility-icon {
+      width: 36px;
+      height: 36px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 0;
+      color: #466178;
+      background: transparent;
+      border: 0;
+      border-radius: 9999px;
+    }
+
+    .accessibility-icon[aria-hidden="true"] {
+      pointer-events: none;
+    }
+
+    /* ============ VALIDAÇÃO ============ */
+    .validation-layer {
+      position: fixed;
+      top: 68px;
+      bottom: 85px;
+      left: 50%;
+      z-index: 9;
+      width: min(390px, 100vw);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+      overflow: hidden;
+      background: radial-gradient(circle at 50% 18%, #fff 0, #f7f9fb 52%, #f7f9fb 100%);
+      opacity: 0;
+      visibility: hidden;
+      pointer-events: none;
+      transform: translateX(-50%) scale(1.012);
+      transition: opacity 260ms ease, visibility 0s linear 260ms, transform 520ms cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    .screen-section.is-validating main {
+      opacity: 0;
+      filter: blur(10px);
+      pointer-events: none;
+      transform: scale(0.985);
+    }
+
+    .screen-section.is-validating .validation-layer {
+      opacity: 1;
+      visibility: visible;
+      pointer-events: auto;
+      transform: translateX(-50%) scale(1);
+      transition-delay: 0s;
+    }
+
+    .screen-section.is-validating .footer {
+      position: fixed;
+      right: auto;
+      bottom: 0;
+      left: 50%;
+      width: min(390px, 100vw);
+      transform: translateX(-50%);
+    }
+
+    .validation-progress {
+      position: absolute;
+      top: 0;
+      right: 0;
+      left: 0;
+      height: 3px;
+      overflow: hidden;
+      background: #dce6f2;
+    }
+
+    .validation-progress-bar {
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(90deg, #8bb7e3 0%, #25569f 58%, #001b56 100%);
+      box-shadow: 0 0 12px rgba(37, 86, 159, 0.3);
+      transform: scaleX(0);
+      transform-origin: left center;
+    }
+
+    .screen-section.is-validating .validation-progress-bar {
+      animation: validation-progress 2850ms cubic-bezier(0.22, 1, 0.36, 1) 80ms both;
+    }
+
+    .validation-status {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      color: #001b56;
+      font-family: "Inter", Arial, sans-serif;
+      text-align: center;
+      outline: 0;
+    }
+
+    .validation-spinner {
+      width: 48px;
+      height: 48px;
+      margin-bottom: 22px;
+      animation: validation-spin 950ms linear infinite;
+    }
+
+    .validation-title {
+      font-size: 21px;
+      font-weight: 700;
+      line-height: 28px;
+      letter-spacing: -0.15px;
+    }
+
+    .validation-security {
+      display: flex;
+      align-items: center;
+      gap: 9px;
+      margin-top: 15px;
+      color: #5b7187;
+      font-size: 16px;
+      font-weight: 500;
+      line-height: 24px;
+    }
+
+    @keyframes validation-spin {
+      to { transform: rotate(360deg); }
+    }
+
+    @keyframes validation-progress {
+      0% { transform: scaleX(0); }
+      62% { transform: scaleX(0.78); }
+      100% { transform: scaleX(1); }
+    }
+
+    /* ============ CHECKIN ASSISTIDO ============ */
+    .content-area {
+      width: 100%;
+      flex: 1;
+      min-height: 0;
+      display: flex;
+      overflow-y: auto;
+      overscroll-behavior-y: contain;
+      -webkit-overflow-scrolling: touch;
+      padding: 28px 14px;
+    }
+
+    .assisted-content {
+      width: 100%;
+      max-width: 360px;
+      margin: auto;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+    }
+
+    .support-badge {
+      width: 56px;
+      height: 56px;
+      display: grid;
+      flex: 0 0 56px;
+      place-items: center;
+      color: #0c307f;
+      background: #e5ebf6;
+      border-radius: 50%;
+    }
+
+    .support-icon { width: 28px; height: 25px; }
+
+    /* ============ CHECKIN CONCLUÍDO ============ */
+    .success-area {
+      width: 100%;
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      padding: 0 24px;
+      text-align: center;
+    }
+
+    .success-check {
+      width: 72px;
+      height: 72px;
+      display: grid;
+      place-items: center;
+      border-radius: 100%;
+      background: #e4f2f0;
+      margin-bottom: 24px;
+    }
+
+    .success-title {
+      font-size: 32px;
+      font-weight: 800;
+      color: #001a4d;
+      letter-spacing: -0.64px;
+      line-height: 1.1;
+    }
+
+    .success-subtitle {
+      font-size: 15px;
+      font-weight: 500;
+      color: #4b6076;
+      margin: 6px 0 0;
+      line-height: 1.4;
+    }
+
+    .ticket {
+      width: 100%;
+      margin: 32px 0;
+      padding: 32px 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      border-top: 1px dashed #d0d9e6;
+      border-bottom: 1px dashed #d0d9e6;
+    }
+
+    .ticket-label {
+      font-size: 12px;
+      font-weight: 800;
+      color: #647a8f;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+    }
+
+    .ticket-senha {
+      font-size: 48px;
+      font-weight: 800;
+      color: #001a4d;
+      letter-spacing: 0.06em;
+      margin-top: 8px;
+    }
+
+    .ticket-name {
+      font-size: 16px;
+      font-weight: 600;
+      color: #1e374e;
+      margin-top: 4px;
+    }
+
+    .info-message {
+      font-size: 14px;
+      font-weight: 500;
+      color: #4b6076;
+      line-height: 1.5;
+      margin-bottom: 28px;
+    }
+
+    .btn-primary {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      width: 100%;
+      min-height: 60px;
+      padding: 14px 22px;
+      border: 0;
+      border-radius: 9999px;
+      background: #001a4d;
+      color: #fff;
+      font-size: 18px;
+      font-weight: 700;
+      text-decoration: none;
+      box-shadow: 0 8px 10px -3px rgba(0, 45, 100, 0.13), 0 3px 6px -4px rgba(0, 45, 100, 0.1);
+      cursor: pointer;
+    }
+
+    .btn-primary:focus-visible {
+      outline: 3px solid rgba(0, 71, 141, 0.28);
+      outline-offset: 3px;
+    }
+
+    .btn-primary:active {
+      transform: translateY(1px);
+    }
+
+    /* ============ ACOMPANHAMENTO ============ */
+    .queue-container {
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .queue-header {
+      text-align: center;
+      margin-bottom: 28px;
+    }
+
+    .queue-header h1 {
+      font-size: 22px;
+      font-weight: 800;
+      line-height: 1.15;
+      letter-spacing: -0.22px;
+    }
+
+    .queue-header .subtitle {
+      max-width: 300px;
+      margin: 6px auto 0;
+      font-size: 15px;
+      font-weight: 500;
+      color: #4b6076;
+    }
+
+    .queue-status {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin-bottom: 24px;
+    }
+
+    .queue-card {
+      padding: 16px;
+      border-radius: 16px;
+      background: #f0f4fa;
+      text-align: center;
+    }
+
+    .queue-card.-attending {
+      background: #ddf1e8;
+    }
+
+    .queue-card label {
+      display: block;
+      font-size: 12px;
+      font-weight: 700;
+      color: #4b6076;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      margin-bottom: 6px;
+    }
+
+    .queue-card .value {
+      font-size: 32px;
+      font-weight: 800;
+      color: #001a4d;
+    }
+
+    .queue-card .value.-small {
+      font-size: 26px;
+    }
+
+    .queue-details {
+      background: #fff;
+      border: 1px solid #e6ecf3;
+      border-radius: 18px;
+      padding: 20px;
+      margin-bottom: 24px;
+    }
+
+    .queue-details h3 {
+      font-size: 13px;
+      font-weight: 700;
+      color: #647a8f;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      margin-bottom: 12px;
+    }
+
+    .detail-row {
+      display: flex;
+      justify-content: space-between;
+      padding: 8px 0;
+      border-bottom: 1px solid #f0f4fa;
+      font-size: 14px;
+    }
+
+    .detail-row:last-child { border-bottom: 0; }
+
+    .detail-row .label {
+      color: #4b6076;
+      font-weight: 500;
+    }
+
+    .detail-row .value {
+      color: #001b56;
+      font-weight: 700;
+    }
+
+    .queue-message {
+      font-size: 13px;
+      font-weight: 500;
+      color: #4b6076;
+      text-align: center;
+      line-height: 1.5;
+      margin-top: auto;
+      padding-top: 16px;
+    }
+
+    /* ============ BLOQUEIO ============ */
+    .block-content {
+      width: 100%;
+      max-width: 360px;
+      margin: auto;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+    }
+
+    .block-icon {
+      width: 56px;
+      height: 56px;
+      display: grid;
+      place-items: center;
+      border-radius: 50%;
+      background: #fef3e5;
+      margin-bottom: 20px;
+    }
+
+    .block-title {
+      font-size: 24px;
+      font-weight: 800;
+      line-height: 1.2;
+      letter-spacing: -0.3px;
+    }
+
+    .block-subtitle {
+      font-size: 15px;
+      font-weight: 500;
+      color: #466178;
+      margin-top: 8px;
+      line-height: 1.4;
+    }
+
+    .block-nextstep {
+      width: 100%;
+      margin: 28px 0;
+      padding: 20px;
+      border-radius: 18px;
+      background: #eef8f2;
+      text-align: left;
+    }
+
+    .block-nextstep .ns-label {
+      font-size: 11px;
+      font-weight: 700;
+      color: #2e7d5b;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+    }
+
+    .block-nextstep .ns-title {
+      font-size: 17px;
+      font-weight: 700;
+      margin-top: 4px;
+    }
+
+    .block-nextstep .ns-desc {
+      font-size: 13px;
+      font-weight: 500;
+      color: #3d6b5c;
+      margin-top: 4px;
+      line-height: 1.4;
+    }
+
+    .block-location {
+      width: 100%;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 16px 18px;
+      border-radius: 16px;
+      background: #f0f4fa;
+    }
+
+    .block-location svg { flex: 0 0 20px; }
+
+    .block-location .loc-label {
+      font-size: 12px;
+      font-weight: 600;
+      color: #466178;
+    }
+
+    .block-location .loc-value {
+      font-size: 14px;
+      font-weight: 700;
+      color: #001b56;
+    }
+
+    .block-info {
+      width: 100%;
+      margin-top: 20px;
+      padding: 14px 16px;
+      border-radius: 14px;
+      background: #f7f9fc;
+      border: 1px solid #e6ecf3;
+      font-size: 13px;
+      font-weight: 500;
+      color: #466178;
+      line-height: 1.5;
+      text-align: left;
+    }
+
+    .block-footer-link {
+      margin-top: 16px;
+      font-size: 14px;
+      font-weight: 600;
+      color: #2563eb;
+      text-decoration: none;
+    }
+
+    /* ============ AGENDAMENTO NÃO ENCONTRADO ============ */
+    .notfound-main {
+      width: 100%;
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      padding: 20px 24px 22px;
+    }
+
+    .notfound-card {
+      text-align: center;
+    }
+
+    .notfound-icon {
+      font-size: 60px;
+      color: #94a3b8;
+      margin-bottom: 16px;
+    }
+
+    .notfound-card h1 {
+      font-size: 24px;
+      font-weight: 800;
+      margin-bottom: 12px;
+    }
+
+    .notfound-card p {
+      font-size: 14px;
+      font-weight: 500;
+      color: #466178;
+      line-height: 1.5;
+      margin-bottom: 24px;
+    }
+
+    .notfound-card .btn-primary {
+      margin-top: 8px;
+    }
+
+    /* ============ PACIENTE CHAMADO ============ */
+    .called-main {
+      width: 100%;
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      padding-top: max(52px, env(safe-area-inset-top));
+    }
+
+    .called-header {
+      padding: 28px 24px 20px;
+      text-align: center;
+    }
+
+    .called-header h1 {
+      font-size: 26px;
+      font-weight: 800;
+      letter-spacing: -0.3px;
+      line-height: 1.2;
+    }
+
+    .called-header .subtitle {
+      font-size: 15px;
+      font-weight: 400;
+      margin-top: 4px;
+    }
+
+    .called-card {
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      margin: 0 24px;
+      padding: 32px;
+      border-radius: 32px;
+      background: #08204d;
+      background-image: radial-gradient(ellipse 120% 70% at 50% 100%, #19438a, #08204d);
+      box-shadow: 0 32px 32px -12px rgba(0, 20, 50, 0.3);
+    }
+
+    .called-card .status-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 14px;
+      border-radius: 9999px;
+      background: rgba(255, 255, 255, 0.15);
+      color: #c4daf5;
+      font-size: 13px;
+      font-weight: 700;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+    }
+
+    .called-card .senha-display {
+      font-size: 64px;
+      font-weight: 800;
+      color: #fff;
+      letter-spacing: 0.04em;
+      margin-top: 16px;
+      line-height: 1;
+    }
+
+    .called-card .sala-display {
+      font-size: 18px;
+      font-weight: 600;
+      color: #b5cdf0;
+      margin-top: 8px;
+    }
+
+    .called-card .paciente-nome {
+      font-size: 16px;
+      font-weight: 600;
+      color: #fff;
+      margin-top: 16px;
+      text-align: center;
+    }
+
+    .called-card .tipo-badge {
+      margin-top: 12px;
+      padding: 6px 16px;
+      border-radius: 9999px;
+      background: rgba(255, 255, 255, 0.1);
+      color: #b5cdf0;
+      font-size: 13px;
+      font-weight: 600;
+    }
+
+    .called-msg {
+      margin: 28px 24px 0;
+      font-size: 14px;
+      font-weight: 500;
+      color: #4b6076;
+      text-align: center;
+      line-height: 1.5;
+    }
+
+    .called-footer-links {
+      display: flex;
+      justify-content: center;
+      gap: 24px;
+      margin-top: 24px;
+    }
+
+    .called-footer-links a {
+      font-size: 14px;
+      font-weight: 600;
+      color: #2563eb;
+      text-decoration: none;
+    }
+
+    /* ============ PERDEU CHAMADA ============ */
+    .perdeu-main {
+      width: 100%;
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      padding: 20px 24px;
+    }
+
+    .perdeu-icon {
+      width: 96px;
+      height: 96px;
+      display: grid;
+      place-items: center;
+      border-radius: 50%;
+      background: #fef3e5;
+      margin-bottom: 24px;
+    }
+
+    .perdeu-main h1 {
+      font-size: 22px;
+      font-weight: 800;
+      line-height: 1.2;
+      text-transform: uppercase;
+      max-width: 280px;
+    }
+
+    .perdeu-main .senha-destaque {
+      display: block;
+      font-size: 28px;
+      color: #2563eb;
+      margin-top: 4px;
+    }
+
+    .perdeu-main .perdeu-desc {
+      font-size: 12px;
+      font-weight: 600;
+      color: #64748b;
+      margin-top: 16px;
+      line-height: 1.5;
+      max-width: 280px;
+    }
+
+    .perdeu-info {
+      width: 100%;
+      margin-top: 24px;
+      padding: 16px;
+      border-radius: 16px;
+      background: #f0f7ff;
+      border: 1px solid #dbeafe;
+      text-align: left;
+      display: flex;
+      gap: 12px;
+      font-size: 12px;
+      font-weight: 500;
+      color: #475569;
+      line-height: 1.5;
+    }
+
+    .perdeu-recepcao {
+      width: 100%;
+      margin-top: 12px;
+      padding: 16px;
+      border-radius: 16px;
+      background: #fffbeb;
+      border: 1px solid #fde68a;
+      text-align: left;
+      display: flex;
+      gap: 12px;
+      align-items: flex-start;
+    }
+
+    .perdeu-recepcao h3 {
+      font-size: 12px;
+      font-weight: 700;
+      color: #1e293b;
+      margin-bottom: 2px;
+    }
+
+    .perdeu-recepcao p {
+      font-size: 11px;
+      font-weight: 500;
+      color: #94a3b8;
+    }
+
+    .perdeu-dirija {
+      margin-top: 32px;
+      font-size: 14px;
+      font-weight: 700;
+      color: #334155;
+    }
+
+    @media (max-width: 430px) {
+      .screen, .screen-section { width: 100%; }
+    }
+
+    @media (max-width: 370px) {
+      .topbar, main, .called-header, .perdeu-main { padding-right: 18px; padding-left: 18px; }
+      .footer { padding-right: 16px; padding-left: 16px; }
+      .footer-indicators { gap: 15px; }
+      .title { font-size: 28px; }
+      .subtitle { font-size: 15px; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      main, .validation-layer { transition: none; }
+      .validation-spinner { animation: none; }
+      .screen-section.is-validating .validation-progress-bar { animation: none; transform: scaleX(1); }
+    }
+  </style>
+</head>
+<body>
+  <div class="screen">
+
+    {# ===================== IDENTIFICAÇÃO ===================== #}
+    <div class="screen-section{% if step == 'identificacao' %} is-active{% endif %}" data-step="identificacao">
+      <header class="topbar">
+        <img class="topbar-logo" src="{{ cer_logo_url }}" alt="CER">
+        <span class="icon-button" aria-hidden="true">
+          <svg width="21" height="20" viewBox="0 0 20.1 20" fill="none" aria-hidden="true">
+            <path d="M7.3 20L6.9 16.8C6.68333 16.7167 6.47917 16.6167 6.2875 16.5C6.09583 16.3833 5.90833 16.2583 5.725 16.125L2.75 17.375L0 12.625L2.575 10.675C2.55833 10.5583 2.55 10.4458 2.55 10.3375V9.6625C2.55 9.55417 2.55833 9.44167 2.575 9.325L0 7.375L2.75 2.625L5.725 3.875C5.90833 3.74167 6.1 3.61667 6.3 3.5C6.5 3.38333 6.7 3.28333 6.9 3.2L7.3 0H12.8L13.2 3.2C13.4167 3.28333 13.6208 3.38333 13.8125 3.5C14.0042 3.61667 14.1917 3.74167 14.375 3.875L17.35 2.625L20.1 7.375L17.525 9.325C17.5417 9.44167 17.55 9.55417 17.55 9.6625V10.3375C17.55 10.4458 17.5333 10.5583 17.5 10.675L20.075 12.625L17.325 17.375L14.375 16.125C14.1917 16.2583 14 16.3833 13.8 16.5C13.6 16.6167 13.4 16.7167 13.2 16.8L12.8 20H7.3ZM9.05 18H11.025L11.375 15.35C11.8917 15.2167 12.3708 15.0208 12.8125 14.7625C13.2542 14.5042 13.6583 14.1917 14.025 13.825L16.5 14.85L17.475 13.15L15.325 11.525C15.4083 11.2917 15.4667 11.0458 15.5 10.7875C15.5333 10.5292 15.55 10.2667 15.55 10C15.55 9.73333 15.5333 9.47083 15.5 9.2125C15.4667 8.95417 15.4083 8.70833 15.325 8.475L17.475 6.85L16.5 5.15L14.025 6.2C13.6583 5.81667 13.2542 5.49583 12.8125 5.2375C12.3708 4.97917 11.8917 4.78333 11.375 4.65L11.05 2H9.075L8.725 4.65C8.20833 4.78333 7.72917 4.97917 7.2875 5.2375C6.84583 5.49583 6.44167 5.80833 6.075 6.175L3.6 5.15L2.625 6.85L4.775 8.45C4.69167 8.7 4.63333 8.95 4.6 9.2C4.56667 9.45 4.55 9.71667 4.55 10C4.55 10.2667 4.56667 10.525 4.6 10.775C4.63333 11.025 4.69167 11.275 4.775 11.525L2.625 13.15L3.6 14.85L6.075 13.8C6.44167 14.1833 6.84583 14.5042 7.2875 14.7625C7.72917 15.0208 8.20833 15.2167 8.725 15.35L9.05 18ZM10.1 13.5C11.0667 13.5 11.8917 13.1583 12.575 12.475C13.2583 11.7917 13.6 10.9667 13.6 10C13.6 9.03333 13.2583 8.20833 12.575 7.525C11.8917 6.84167 11.0667 6.5 10.1 6.5C9.11667 6.5 8.2875 6.84167 7.6125 7.525C6.9375 8.20833 6.6 9.03333 6.6 10C6.6 10.9667 6.9375 11.7917 7.6125 12.475C8.2875 13.1583 9.11667 13.5 10.1 13.5Z" fill="#64748b"/>
+          </svg>
+        </span>
+      </header>
+
+      <main>
+        <section class="welcome" aria-labelledby="welcome-title">
+          <h1 class="title" id="welcome-title">{{ title }}</h1>
+          <p class="subtitle">{{ subtitle }}</p>
+        </section>
+
+        <form class="identification-form" method="post" action="{% url 'fluxo-paciente' %}?step=identificacao" novalidate>
+          {% csrf_token %}
+          {% for field in form %}
+            <div class="field-group">
+              <label class="field-label" for="{{ field.id_for_label }}">{{ field.label }}</label>
+              <div class="input-shell">
+                {% if field.name == "cpf" %}
+                  <svg class="field-icon" viewBox="0 0 20 20" fill="none" aria-hidden="true">
+                    <path d="M5.25 1.75h6.1L15.5 5.9v12.35H5.25V1.75Z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/>
+                    <path d="M11.25 1.9V6h4.05M7.8 9.25h5.2M7.8 12.25h5.2M7.8 15.25h3.4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+                  </svg>
+                {% elif field.name == "data_nascimento" %}
+                  <svg class="field-icon" viewBox="0 0 20 20" fill="none" aria-hidden="true">
+                    <rect x="2.5" y="4" width="15" height="13.5" rx="2.2" stroke="currentColor" stroke-width="1.6"/>
+                    <path d="M6 2v4M14 2v4M2.75 8h14.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
+                    <path d="M6.25 11.25h1.5v1.5h-1.5v-1.5ZM9.25 11.25h1.5v1.5h-1.5v-1.5ZM12.25 11.25h1.5v1.5h-1.5v-1.5Z" fill="currentColor"/>
+                  </svg>
+                {% else %}
+                  <svg class="field-icon" viewBox="0 0 20 20" fill="none" aria-hidden="true">
+                    <circle cx="10" cy="6.25" r="3.25" stroke="currentColor" stroke-width="1.6"/>
+                    <path d="M3.5 17c.45-3.25 2.62-5 6.5-5s6.05 1.75 6.5 5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
+                  </svg>
+                {% endif %}
+                {{ field }}
+              </div>
+              {% if field.errors %}
+                <p class="field-error" style="color:#dc2626;font-size:12px;margin:4px 0 0 4px;">{{ field.errors.0 }}</p>
+              {% endif %}
+            </div>
+          {% endfor %}
+        </form>
+
+        <div class="actions">
+          <button type="submit" class="action-button action-primary" data-checkin-action>
+            <span>{{ texto_botao_principal }}</span>
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+              <path d="M12.175 9H0V7h12.175l-5.6-5.6L8 0l8 8-8 8-1.425-1.4 5.6-5.6Z" fill="currentColor"/>
+            </svg>
+          </button>
+
+          <a class="action-button action-secondary" href="{% url 'fluxo-paciente' %}?step=checkin-assistido">
+            <svg width="20" height="18" viewBox="0 0 20 18" fill="none" aria-hidden="true">
+              <path d="M3 10V9a7 7 0 0 1 14 0v1M3 10H2a1 1 0 0 0-1 1v3a2 2 0 0 0 2 2h2v-6H3ZM17 10h1a1 1 0 0 1 1 1v3a2 2 0 0 1-2 2h-2v-6h2ZM15 16c-.8 1-2.25 1.5-4.35 1.5" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+            <span>{{ texto_botao_assistido }}</span>
+          </a>
+        </div>
+      </main>
+
+      <section class="validation-layer" data-validation-layer aria-hidden="true">
+        <div class="validation-progress" aria-hidden="true">
+          <div class="validation-progress-bar"></div>
+        </div>
+        <div class="validation-status" data-validation-status role="status" aria-live="polite" tabindex="-1">
+          <svg class="validation-spinner" viewBox="0 0 64 64" fill="none" aria-hidden="true">
+            <circle cx="32" cy="32" r="24" stroke="#dce5f0" stroke-width="4"/>
+            <circle cx="32" cy="32" r="24" stroke="#164483" stroke-width="4" stroke-linecap="round" stroke-dasharray="50 151" transform="rotate(-90 32 32)"/>
+          </svg>
+          <h2 class="validation-title">{{ validation_title }}</h2>
+          <p class="validation-security">
+            <svg width="14" height="17" viewBox="0 0 14 17" fill="none" aria-hidden="true">
+              <rect x="2" y="7" width="10" height="8" rx="1.5" stroke="currentColor" stroke-width="1.6"/>
+              <path d="M4.5 7V4.75a2.5 2.5 0 0 1 5 0V7M7 10.2v1.8" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
+            </svg>
+            <span>{{ validation_detail }}</span>
+          </p>
+        </div>
+      </section>
+
+      <footer class="footer">
+        <div class="footer-indicators">
+          {% for indicator in footer_indicators %}
+            <div class="footer-item">
+              {% if indicator.icon == "lock" %}
+                <svg width="10" height="13" viewBox="0 0 10 13" fill="none" aria-hidden="true">
+                  <path fill-rule="evenodd" clip-rule="evenodd" d="M5 0a3 3 0 0 0-3 3v1H1a1 1 0 0 0-1 1v7a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1V5a1 1 0 0 0-1-1H8V3a3 3 0 0 0-3-3H5Zm2 4H3V3a2 2 0 1 1 4 0v1ZM5 7a1 1 0 0 1 1 1v1a1 1 0 1 1-2 0V8a1 1 0 0 1 1-1Z" fill="#466178"/>
+                </svg>
+              {% else %}
+                <svg width="10" height="12" viewBox="0 0 10 12" fill="none" aria-hidden="true">
+                  <path fill-rule="evenodd" clip-rule="evenodd" d="M5 0 .5 1.75v3.56C.5 8.07 2.44 10.66 5 11.67c2.56-1.01 4.5-3.6 4.5-6.36V1.75L5 0Zm2.68 4.61L4.05 8.24 2.32 6.51l.83-.83.9.9 2.8-2.8.83.83Z" fill="#466178"/>
+                </svg>
+              {% endif %}
+              <p class="footer-text">{{ indicator.label }}<br>{{ indicator.detail }}</p>
+            </div>
+          {% endfor %}
+        </div>
+        <div class="footer-actions" aria-hidden="true">
+          <span class="accessibility-icon">
+            <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true">
+              <path fill-rule="evenodd" clip-rule="evenodd" d="M10 0a10 10 0 1 0 0 20 10 10 0 0 0 0-20Zm1 2.08a8 8 0 0 1 0 15.84V2.08Z" fill="currentColor"/>
+            </svg>
+          </span>
+          <span class="accessibility-icon">
+            <svg width="20" height="16" viewBox="0 0 20 16" fill="none" aria-hidden="true">
+              <path d="M12 16V3H7V0h13v3h-5v13h-3ZM3 16V8H0V5h9v3H6v8H3Z" fill="currentColor"/>
+            </svg>
+          </span>
+        </div>
+      </footer>
+    </div>
+
+    {# ===================== CHECK-IN ASSISTIDO ===================== #}
+    <div class="screen-section{% if step == 'checkin-assistido' %} is-active{% endif %}" data-step="checkin-assistido">
+      <header class="topbar">
+        <a class="icon-button" href="{% url 'fluxo-paciente' %}?step=identificacao" aria-label="Voltar">
+          <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true">
+            <path d="M16.25 10H3.75M9 4.75 3.75 10 9 15.25" stroke="#64748b" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </a>
+        <span class="icon-button" aria-hidden="true">
+          <svg width="21" height="20" viewBox="0 0 20.1 20" fill="none" aria-hidden="true">
+            <path d="M7.3 20L6.9 16.8C6.68333 16.7167 6.47917 16.6167 6.2875 16.5C6.09583 16.3833 5.90833 16.2583 5.725 16.125L2.75 17.375L0 12.625L2.575 10.675C2.55833 10.5583 2.55 10.4458 2.55 10.3375V9.6625C2.55 9.55417 2.55833 9.44167 2.575 9.325L0 7.375L2.75 2.625L5.725 3.875C5.90833 3.74167 6.1 3.61667 6.3 3.5C6.5 3.38333 6.7 3.28333 6.9 3.2L7.3 0H12.8L13.2 3.2C13.4167 3.28333 13.6208 3.38333 13.8125 3.5C14.0042 3.61667 14.1917 3.74167 14.375 3.875L17.35 2.625L20.1 7.375L17.525 9.325C17.5417 9.44167 17.55 9.55417 17.55 9.6625V10.3375C17.55 10.4458 17.5333 10.5583 17.5 10.675L20.075 12.625L17.325 17.375L14.375 16.125C14.1917 16.2583 14 16.3833 13.8 16.5C13.6 16.6167 13.4 16.7167 13.2 16.8L12.8 20H7.3ZM9.05 18H11.025L11.375 15.35C11.8917 15.2167 12.3708 15.0208 12.8125 14.7625C13.2542 14.5042 13.6583 14.1917 14.025 13.825L16.5 14.85L17.475 13.15L15.325 11.525C15.4083 11.2917 15.4667 11.0458 15.5 10.7875C15.5333 10.5292 15.55 10.2667 15.55 10C15.55 9.73333 15.5333 9.47083 15.5 9.2125C15.4667 8.95417 15.4083 8.70833 15.325 8.475L17.475 6.85L16.5 5.15L14.025 6.2C13.6583 5.81667 13.2542 5.49583 12.8125 5.2375C12.3708 4.97917 11.8917 4.78333 11.375 4.65L11.05 2H9.075L8.725 4.65C8.20833 4.78333 7.72917 4.97917 7.2875 5.2375C6.84583 5.49583 6.44167 5.80833 6.075 6.175L3.6 5.15L2.625 6.85L4.775 8.45C4.69167 8.7 4.63333 8.95 4.6 9.2C4.56667 9.45 4.55 9.71667 4.55 10C4.55 10.2667 4.56667 10.525 4.6 10.775C4.63333 11.025 4.69167 11.275 4.775 11.525L2.625 13.15L3.6 14.85L6.075 13.8C6.44167 14.1833 6.84583 14.5042 7.2875 14.7625C7.72917 15.0208 8.20833 15.2167 8.725 15.35L9.05 18ZM10.1 13.5C11.0667 13.5 11.8917 13.1583 12.575 12.475C13.2583 11.7917 13.6 10.9667 13.6 10C13.6 9.03333 13.2583 8.20833 12.575 7.525C11.8917 6.84167 11.0667 6.5 10.1 6.5C9.11667 6.5 8.2875 6.84167 7.6125 7.525C6.9375 8.20833 6.6 9.03333 6.6 10C6.6 10.9667 6.9375 11.7917 7.6125 12.475C8.2875 13.1583 9.11667 13.5 10.1 13.5Z" fill="#64748b"/>
+          </svg>
+        </span>
+      </header>
+
+      <main class="content-area">
+        <section class="assisted-content" aria-labelledby="assisted-title">
+          <div class="support-badge" aria-hidden="true">
+            <svg class="support-icon" viewBox="0 0 20 18" fill="none">
+              <path d="M3 10V9a7 7 0 0 1 14 0v1M3 10H2a1 1 0 0 0-1 1v3a2 2 0 0 0 2 2h2v-6H3ZM17 10h1a1 1 0 0 1 1 1v3a2 2 0 0 1-2 2h-2v-6h2ZM15 16c-.8 1-2.25 1.5-4.35 1.5" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </div>
+          <h1 class="title" id="assisted-title">{{ title }}</h1>
+          <p class="subtitle">{{ message }}</p>
+          <div class="actions" style="margin-top:32px;width:100%;">
+            <a class="action-button action-primary" href="{% url 'fluxo-paciente' %}?step=identificacao">
+              <span>Voltar</span>
+            </a>
+          </div>
+        </section>
+      </main>
+
+      <footer class="footer">
+        <div class="footer-indicators">
+          {% for indicator in footer_indicators %}
+            <div class="footer-item">
+              {% if indicator.icon == "lock" %}
+                <svg width="10" height="13" viewBox="0 0 10 13" fill="none" aria-hidden="true">
+                  <path fill-rule="evenodd" clip-rule="evenodd" d="M5 0a3 3 0 0 0-3 3v1H1a1 1 0 0 0-1 1v7a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1V5a1 1 0 0 0-1-1H8V3a3 3 0 0 0-3-3H5Zm2 4H3V3a2 2 0 1 1 4 0v1ZM5 7a1 1 0 0 1 1 1v1a1 1 0 1 1-2 0V8a1 1 0 0 1 1-1Z" fill="#466178"/>
+                </svg>
+              {% else %}
+                <svg width="10" height="12" viewBox="0 0 10 12" fill="none" aria-hidden="true">
+                  <path fill-rule="evenodd" clip-rule="evenodd" d="M5 0 .5 1.75v3.56C.5 8.07 2.44 10.66 5 11.67c2.56-1.01 4.5-3.6 4.5-6.36V1.75L5 0Zm2.68 4.61L4.05 8.24 2.32 6.51l.83-.83.9.9 2.8-2.8.83.83Z" fill="#466178"/>
+                </svg>
+              {% endif %}
+              <p class="footer-text">{{ indicator.label }}<br>{{ indicator.detail }}</p>
+            </div>
+          {% endfor %}
+        </div>
+        <div class="footer-actions" aria-hidden="true">
+          <span class="accessibility-icon">
+            <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true">
+              <path fill-rule="evenodd" clip-rule="evenodd" d="M10 0a10 10 0 1 0 0 20 10 10 0 0 0 0-20Zm1 2.08a8 8 0 0 1 0 15.84V2.08Z" fill="currentColor"/>
+            </svg>
+          </span>
+          <span class="accessibility-icon">
+            <svg width="20" height="16" viewBox="0 0 20 16" fill="none" aria-hidden="true">
+              <path d="M12 16V3H7V0h13v3h-5v13h-3ZM3 16V8H0V5h9v3H6v8H3Z" fill="currentColor"/>
+            </svg>
+          </span>
+        </div>
+      </footer>
+    </div>
+
+    {# ===================== CHECK-IN CONCLUÍDO ===================== #}
+    <div class="screen-section{% if step == 'checkin-concluido' %} is-active{% endif %}" data-step="checkin-concluido">
+      <header class="topbar" style="background:transparent;backdrop-filter:none;box-shadow:none;">
+        <div></div>
+        <span class="icon-button" aria-hidden="true">
+          <svg width="21" height="20" viewBox="0 0 20.1 20" fill="none" aria-hidden="true">
+            <path d="M7.3 20L6.9 16.8C6.68333 16.7167 6.47917 16.6167 6.2875 16.5C6.09583 16.3833 5.90833 16.2583 5.725 16.125L2.75 17.375L0 12.625L2.575 10.675C2.55833 10.5583 2.55 10.4458 2.55 10.3375V9.6625C2.55 9.55417 2.55833 9.44167 2.575 9.325L0 7.375L2.75 2.625L5.725 3.875C5.90833 3.74167 6.1 3.61667 6.3 3.5C6.5 3.38333 6.7 3.28333 6.9 3.2L7.3 0H12.8L13.2 3.2C13.4167 3.28333 13.6208 3.38333 13.8125 3.5C14.0042 3.61667 14.1917 3.74167 14.375 3.875L17.35 2.625L20.1 7.375L17.525 9.325C17.5417 9.44167 17.55 9.55417 17.55 9.6625V10.3375C17.55 10.4458 17.5333 10.5583 17.5 10.675L20.075 12.625L17.325 17.375L14.375 16.125C14.1917 16.2583 14 16.3833 13.8 16.5C13.6 16.6167 13.4 16.7167 13.2 16.8L12.8 20H7.3ZM9.05 18H11.025L11.375 15.35C11.8917 15.2167 12.3708 15.0208 12.8125 14.7625C13.2542 14.5042 13.6583 14.1917 14.025 13.825L16.5 14.85L17.475 13.15L15.325 11.525C15.4083 11.2917 15.4667 11.0458 15.5 10.7875C15.5333 10.5292 15.55 10.2667 15.55 10C15.55 9.73333 15.5333 9.47083 15.5 9.2125C15.4667 8.95417 15.4083 8.70833 15.325 8.475L17.475 6.85L16.5 5.15L14.025 6.2C13.6583 5.81667 13.2542 5.49583 12.8125 5.2375C12.3708 4.97917 11.8917 4.78333 11.375 4.65L11.05 2H9.075L8.725 4.65C8.20833 4.78333 7.72917 4.97917 7.2875 5.2375C6.84583 5.49583 6.44167 5.80833 6.075 6.175L3.6 5.15L2.625 6.85L4.775 8.45C4.69167 8.7 4.63333 8.95 4.6 9.2C4.56667 9.45 4.55 9.71667 4.55 10C4.55 10.2667 4.56667 10.525 4.6 10.775C4.63333 11.025 4.69167 11.275 4.775 11.525L2.625 13.15L3.6 14.85L6.075 13.8C6.44167 14.1833 6.84583 14.5042 7.2875 14.7625C7.72917 15.0208 8.20833 15.2167 8.725 15.35L9.05 18ZM10.1 13.5C11.0667 13.5 11.8917 13.1583 12.575 12.475C13.2583 11.7917 13.6 10.9667 13.6 10C13.6 9.03333 13.2583 8.20833 12.575 7.525C11.8917 6.84167 11.0667 6.5 10.1 6.5C9.11667 6.5 8.2875 6.84167 7.6125 7.525C6.9375 8.20833 6.6 9.03333 6.6 10C6.6 10.9667 6.9375 11.7917 7.6125 12.475C8.2875 13.1583 9.11667 13.5 10.1 13.5Z" fill="#64748b"/>
+          </svg>
+        </span>
+      </header>
+
+      <main>
+        <section class="success-area">
+          <div class="success-check">
+            <svg width="32" height="24" viewBox="0 0 32 24" fill="none" aria-hidden="true">
+              <path d="M2.67 12.67l8.66 8.66L28.67 3" stroke="#0b5e50" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </div>
+          <h1 class="success-title">{{ title }}</h1>
+          <p class="success-subtitle">{{ subtitle }}</p>
+
+          <div class="ticket">
+            <span class="ticket-label">SENHA DE ATENDIMENTO</span>
+            <span class="ticket-senha">{{ senha }}</span>
+            <span class="ticket-name">{{ paciente }}</span>
+          </div>
+
+          <p class="info-message">{{ mensagem }}</p>
+
+          <a class="btn-primary" href="{% url 'fluxo-paciente' %}?step=acompanhamento">
+            <span>{{ texto_botao }}</span>
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+              <path d="M12.175 9H0V7h12.175l-5.6-5.6L8 0l8 8-8 8-1.425-1.4 5.6-5.6Z" fill="currentColor"/>
+            </svg>
+          </a>
+        </section>
+      </main>
+
+      <footer class="footer">
+        <div class="footer-indicators">
+          {% for indicator in footer_indicators %}
+            <div class="footer-item">
+              {% if indicator.icon == "lock" %}
+                <svg width="10" height="13" viewBox="0 0 10 13" fill="none" aria-hidden="true">
+                  <path fill-rule="evenodd" clip-rule="evenodd" d="M5 0a3 3 0 0 0-3 3v1H1a1 1 0 0 0-1 1v7a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1V5a1 1 0 0 0-1-1H8V3a3 3 0 0 0-3-3H5Zm2 4H3V3a2 2 0 1 1 4 0v1ZM5 7a1 1 0 0 1 1 1v1a1 1 0 1 1-2 0V8a1 1 0 0 1 1-1Z" fill="#466178"/>
+                </svg>
+              {% else %}
+                <svg width="10" height="12" viewBox="0 0 10 12" fill="none" aria-hidden="true">
+                  <path fill-rule="evenodd" clip-rule="evenodd" d="M5 0 .5 1.75v3.56C.5 8.07 2.44 10.66 5 11.67c2.56-1.01 4.5-3.6 4.5-6.36V1.75L5 0Zm2.68 4.61L4.05 8.24 2.32 6.51l.83-.83.9.9 2.8-2.8.83.83Z" fill="#466178"/>
+                </svg>
+              {% endif %}
+              <p class="footer-text">{{ indicator.label }}<br>{{ indicator.detail }}</p>
+            </div>
+          {% endfor %}
+        </div>
+        <div class="footer-actions" aria-hidden="true">
+          <span class="accessibility-icon">
+            <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true">
+              <path fill-rule="evenodd" clip-rule="evenodd" d="M10 0a10 10 0 1 0 0 20 10 10 0 0 0 0-20Zm1 2.08a8 8 0 0 1 0 15.84V2.08Z" fill="currentColor"/>
+            </svg>
+          </span>
+          <span class="accessibility-icon">
+            <svg width="20" height="16" viewBox="0 0 20 16" fill="none" aria-hidden="true">
+              <path d="M12 16V3H7V0h13v3h-5v13h-3ZM3 16V8H0V5h9v3H6v8H3Z" fill="currentColor"/>
+            </svg>
+          </span>
+        </div>
+      </footer>
+    </div>
+
+    {# ===================== ACOMPANHAMENTO ===================== #}
+    <div class="screen-section{% if step == 'acompanhamento' %} is-active{% endif %}" data-step="acompanhamento">
+      <header class="topbar">
+        <img class="topbar-logo" src="{{ cer_logo_url }}" alt="CER">
+        <span class="icon-button" aria-hidden="true">
+          <svg width="21" height="20" viewBox="0 0 20.1 20" fill="none" aria-hidden="true">
+            <path d="M7.3 20L6.9 16.8C6.68333 16.7167 6.47917 16.6167 6.2875 16.5C6.09583 16.3833 5.90833 16.2583 5.725 16.125L2.75 17.375L0 12.625L2.575 10.675C2.55833 10.5583 2.55 10.4458 2.55 10.3375V9.6625C2.55 9.55417 2.55833 9.44167 2.575 9.325L0 7.375L2.75 2.625L5.725 3.875C5.90833 3.74167 6.1 3.61667 6.3 3.5C6.5 3.38333 6.7 3.28333 6.9 3.2L7.3 0H12.8L13.2 3.2C13.4167 3.28333 13.6208 3.38333 13.8125 3.5C14.0042 3.61667 14.1917 3.74167 14.375 3.875L17.35 2.625L20.1 7.375L17.525 9.325C17.5417 9.44167 17.55 9.55417 17.55 9.6625V10.3375C17.55 10.4458 17.5333 10.5583 17.5 10.675L20.075 12.625L17.325 17.375L14.375 16.125C14.1917 16.2583 14 16.3833 13.8 16.5C13.6 16.6167 13.4 16.7167 13.2 16.8L12.8 20H7.3ZM9.05 18H11.025L11.375 15.35C11.8917 15.2167 12.3708 15.0208 12.8125 14.7625C13.2542 14.5042 13.6583 14.1917 14.025 13.825L16.5 14.85L17.475 13.15L15.325 11.525C15.4083 11.2917 15.4667 11.0458 15.5 10.7875C15.5333 10.5292 15.55 10.2667 15.55 10C15.55 9.73333 15.5333 9.47083 15.5 9.2125C15.4667 8.95417 15.4083 8.70833 15.325 8.475L17.475 6.85L16.5 5.15L14.025 6.2C13.6583 5.81667 13.2542 5.49583 12.8125 5.2375C12.3708 4.97917 11.8917 4.78333 11.375 4.65L11.05 2H9.075L8.725 4.65C8.20833 4.78333 7.72917 4.97917 7.2875 5.2375C6.84583 5.49583 6.44167 5.80833 6.075 6.175L3.6 5.15L2.625 6.85L4.775 8.45C4.69167 8.7 4.63333 8.95 4.6 9.2C4.56667 9.45 4.55 9.71667 4.55 10C4.55 10.2667 4.56667 10.525 4.6 10.775C4.63333 11.025 4.69167 11.275 4.775 11.525L2.625 13.15L3.6 14.85L6.075 13.8C6.44167 14.1833 6.84583 14.5042 7.2875 14.7625C7.72917 15.0208 8.20833 15.2167 8.725 15.35L9.05 18ZM10.1 13.5C11.0667 13.5 11.8917 13.1583 12.575 12.475C13.2583 11.7917 13.6 10.9667 13.6 10C13.6 9.03333 13.2583 8.20833 12.575 7.525C11.8917 6.84167 11.0667 6.5 10.1 6.5C9.11667 6.5 8.2875 6.84167 7.6125 7.525C6.9375 8.20833 6.6 9.03333 6.6 10C6.6 10.9667 6.9375 11.7917 7.6125 12.475C8.2875 13.1583 9.11667 13.5 10.1 13.5Z" fill="#64748b"/>
+          </svg>
+        </span>
+      </header>
+
+      <main>
+        <section class="queue-container">
+          <div class="queue-header">
+            <h1>{{ title_line_1 }}<br>{{ title_line_2 }}</h1>
+            <p class="subtitle">{{ subtitle }}</p>
+          </div>
+
+          <div class="queue-status">
+            <div class="queue-card -attending">
+              <label>Chamando agora</label>
+              <span class="value">{{ chamando_agora }}</span>
+            </div>
+            <div class="queue-card">
+              <label>Pacientes na frente</label>
+              <span class="value -small">{{ pacientes_a_frente }}</span>
+            </div>
+          </div>
+
+          <div class="queue-details">
+            <h3>Meus dados</h3>
+            <div class="detail-row">
+              <span class="label">Paciente</span>
+              <span class="value">{{ paciente }}</span>
+            </div>
+            <div class="detail-row">
+              <span class="label">Senha</span>
+              <span class="value">{{ senha }}</span>
+            </div>
+            <div class="detail-row">
+              <span class="label">Sala prevista</span>
+              <span class="value">{{ sala_prevista }}</span>
+            </div>
+            <div class="detail-row">
+              <span class="label">Tipo de atendimento</span>
+              <span class="value">{{ tipo_atendimento }}</span>
+            </div>
+          </div>
+
+          <p class="queue-message">{{ mensagem }}</p>
+
+          {% if tipo_atendimento == "Exame" %}
+          <a class="doc-check-link" href="{% url 'screen-checagem-documentos' %}" style="display:flex;align-items:center;justify-content:center;gap:8px;margin:16px 0 0;padding:12px 18px;background:white;border:1px solid #cbd7e6;border-radius:14px;color:#001a4d;font-size:14px;font-weight:700;text-decoration:none;box-shadow:0 6px 18px rgba(0,26,77,0.08);">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+              <path d="M9 12L11 14L15 10M21 12C21 16.97 17.97 20 13 20C8.03 20 5 16.97 5 12C5 7.03 8.03 4 13 4C17.97 4 21 7.03 21 12Z" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+            Checar Documentos
+          </a>
+          {% endif %}
+        </section>
+      </main>
+
+      <footer class="footer">
+        <div class="footer-indicators">
+          {% for indicator in footer_indicators %}
+            <div class="footer-item">
+              {% if indicator.icon == "lock" %}
+                <svg width="10" height="13" viewBox="0 0 10 13" fill="none" aria-hidden="true">
+                  <path fill-rule="evenodd" clip-rule="evenodd" d="M5 0a3 3 0 0 0-3 3v1H1a1 1 0 0 0-1 1v7a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1V5a1 1 0 0 0-1-1H8V3a3 3 0 0 0-3-3H5Zm2 4H3V3a2 2 0 1 1 4 0v1ZM5 7a1 1 0 0 1 1 1v1a1 1 0 1 1-2 0V8a1 1 0 0 1 1-1Z" fill="#466178"/>
+                </svg>
+              {% else %}
+                <svg width="10" height="12" viewBox="0 0 10 12" fill="none" aria-hidden="true">
+                  <path fill-rule="evenodd" clip-rule="evenodd" d="M5 0 .5 1.75v3.56C.5 8.07 2.44 10.66 5 11.67c2.56-1.01 4.5-3.6 4.5-6.36V1.75L5 0Zm2.68 4.61L4.05 8.24 2.32 6.51l.83-.83.9.9 2.8-2.8.83.83Z" fill="#466178"/>
+                </svg>
+              {% endif %}
+              <p class="footer-text">{{ indicator.label }}<br>{{ indicator.detail }}</p>
+            </div>
+          {% endfor %}
+        </div>
+        <div class="footer-actions" aria-hidden="true">
+          <span class="accessibility-icon">
+            <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true">
+              <path fill-rule="evenodd" clip-rule="evenodd" d="M10 0a10 10 0 1 0 0 20 10 10 0 0 0 0-20Zm1 2.08a8 8 0 0 1 0 15.84V2.08Z" fill="currentColor"/>
+            </svg>
+          </span>
+          <span class="accessibility-icon">
+            <svg width="20" height="16" viewBox="0 0 20 16" fill="none" aria-hidden="true">
+              <path d="M12 16V3H7V0h13v3h-5v13h-3ZM3 16V8H0V5h9v3H6v8H3Z" fill="currentColor"/>
+            </svg>
+          </span>
+        </div>
+      </footer>
+    </div>
+
+    {# ===================== BLOQUEIO ===================== #}
+    <div class="screen-section{% if step == 'bloqueio' %} is-active{% endif %}" data-step="bloqueio">
+      <header class="topbar">
+        <img class="topbar-logo" src="{{ cer_logo_url }}" alt="CER">
+        <span class="icon-button" aria-hidden="true">
+          <svg width="21" height="20" viewBox="0 0 20.1 20" fill="none" aria-hidden="true">
+            <path d="M7.3 20L6.9 16.8C6.68333 16.7167 6.47917 16.6167 6.2875 16.5C6.09583 16.3833 5.90833 16.2583 5.725 16.125L2.75 17.375L0 12.625L2.575 10.675C2.55833 10.5583 2.55 10.4458 2.55 10.3375V9.6625C2.55 9.55417 2.55833 9.44167 2.575 9.325L0 7.375L2.75 2.625L5.725 3.875C5.90833 3.74167 6.1 3.61667 6.3 3.5C6.5 3.38333 6.7 3.28333 6.9 3.2L7.3 0H12.8L13.2 3.2C13.4167 3.28333 13.6208 3.38333 13.8125 3.5C14.0042 3.61667 14.1917 3.74167 14.375 3.875L17.35 2.625L20.1 7.375L17.525 9.325C17.5417 9.44167 17.55 9.55417 17.55 9.6625V10.3375C17.55 10.4458 17.5333 10.5583 17.5 10.675L20.075 12.625L17.325 17.375L14.375 16.125C14.1917 16.2583 14 16.3833 13.8 16.5C13.6 16.6167 13.4 16.7167 13.2 16.8L12.8 20H7.3ZM9.05 18H11.025L11.375 15.35C11.8917 15.2167 12.3708 15.0208 12.8125 14.7625C13.2542 14.5042 13.6583 14.1917 14.025 13.825L16.5 14.85L17.475 13.15L15.325 11.525C15.4083 11.2917 15.4667 11.0458 15.5 10.7875C15.5333 10.5292 15.55 10.2667 15.55 10C15.55 9.73333 15.5333 9.47083 15.5 9.2125C15.4667 8.95417 15.4083 8.70833 15.325 8.475L17.475 6.85L16.5 5.15L14.025 6.2C13.6583 5.81667 13.2542 5.49583 12.8125 5.2375C12.3708 4.97917 11.8917 4.78333 11.375 4.65L11.05 2H9.075L8.725 4.65C8.20833 4.78333 7.72917 4.97917 7.2875 5.2375C6.84583 5.49583 6.44167 5.80833 6.075 6.175L3.6 5.15L2.625 6.85L4.775 8.45C4.69167 8.7 4.63333 8.95 4.6 9.2C4.56667 9.45 4.55 9.71667 4.55 10C4.55 10.2667 4.56667 10.525 4.6 10.775C4.63333 11.025 4.69167 11.275 4.775 11.525L2.625 13.15L3.6 14.85L6.075 13.8C6.44167 14.1833 6.84583 14.5042 7.2875 14.7625C7.72917 15.0208 8.20833 15.2167 8.725 15.35L9.05 18ZM10.1 13.5C11.0667 13.5 11.8917 13.1583 12.575 12.475C13.2583 11.7917 13.6 10.9667 13.6 10C13.6 9.03333 13.2583 8.20833 12.575 7.525C11.8917 6.84167 11.0667 6.5 10.1 6.5C9.11667 6.5 8.2875 6.84167 7.6125 7.525C6.9375 8.20833 6.6 9.03333 6.6 10C6.6 10.9667 6.9375 11.7917 7.6125 12.475C8.2875 13.1583 9.11667 13.5 10.1 13.5Z" fill="#64748b"/>
+          </svg>
+        </span>
+      </header>
+
+      <main class="content-area">
+        <section class="block-content">
+          <div class="block-icon">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+              <circle cx="12" cy="8" r="5" stroke="#d97706" stroke-width="1.8"/>
+              <path d="M4 22c1-4 3.5-6 8-6s7 2 8 6" stroke="#d97706" stroke-width="1.8" stroke-linecap="round"/>
+              <path d="M18 2l4 4m0-4l-4 4" stroke="#d97706" stroke-width="2" stroke-linecap="round"/>
+            </svg>
+          </div>
+          <h1 class="block-title">{{ title_line_1 }}<br>{{ title_line_2 }}</h1>
+          <p class="block-subtitle">{{ subtitle }}</p>
+
+          <div class="block-nextstep">
+            <p class="ns-label">{{ next_step_label }}</p>
+            <p class="ns-title">{{ next_step_title }}</p>
+            <p class="ns-desc">{{ next_step_description }}</p>
+          </div>
+
+          <div class="block-location">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+              <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z" stroke="#001b56" stroke-width="1.8"/>
+              <circle cx="12" cy="9" r="2.5" fill="#001b56"/>
+            </svg>
+            <div>
+              <p class="loc-label">{{ location_label }}</p>
+              <p class="loc-value">{{ location }}</p>
+            </div>
+          </div>
+
+          <div class="block-info">{{ info_message }}</div>
+
+          <a class="block-footer-link" href="{% url 'fluxo-paciente' %}?step=identificacao">
+            &larr; {{ review_label }}
+          </a>
+        </section>
+      </main>
+
+      <footer class="footer">
+        <div class="footer-indicators">
+          {% for indicator in footer_indicators %}
+            <div class="footer-item">
+              {% if indicator.icon == "lock" %}
+                <svg width="10" height="13" viewBox="0 0 10 13" fill="none" aria-hidden="true">
+                  <path fill-rule="evenodd" clip-rule="evenodd" d="M5 0a3 3 0 0 0-3 3v1H1a1 1 0 0 0-1 1v7a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1V5a1 1 0 0 0-1-1H8V3a3 3 0 0 0-3-3H5Zm2 4H3V3a2 2 0 1 1 4 0v1ZM5 7a1 1 0 0 1 1 1v1a1 1 0 1 1-2 0V8a1 1 0 0 1 1-1Z" fill="#466178"/>
+                </svg>
+              {% else %}
+                <svg width="10" height="12" viewBox="0 0 10 12" fill="none" aria-hidden="true">
+                  <path fill-rule="evenodd" clip-rule="evenodd" d="M5 0 .5 1.75v3.56C.5 8.07 2.44 10.66 5 11.67c2.56-1.01 4.5-3.6 4.5-6.36V1.75L5 0Zm2.68 4.61L4.05 8.24 2.32 6.51l.83-.83.9.9 2.8-2.8.83.83Z" fill="#466178"/>
+                </svg>
+              {% endif %}
+              <p class="footer-text">{{ indicator.label }}<br>{{ indicator.detail }}</p>
+            </div>
+          {% endfor %}
+        </div>
+        <div class="footer-actions" aria-hidden="true">
+          <span class="accessibility-icon">
+            <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true">
+              <path fill-rule="evenodd" clip-rule="evenodd" d="M10 0a10 10 0 1 0 0 20 10 10 0 0 0 0-20Zm1 2.08a8 8 0 0 1 0 15.84V2.08Z" fill="currentColor"/>
+            </svg>
+          </span>
+          <span class="accessibility-icon">
+            <svg width="20" height="16" viewBox="0 0 20 16" fill="none" aria-hidden="true">
+              <path d="M12 16V3H7V0h13v3h-5v13h-3ZM3 16V8H0V5h9v3H6v8H3Z" fill="currentColor"/>
+            </svg>
+          </span>
+        </div>
+      </footer>
+    </div>
+
+    {# ===================== AGENDAMENTO NÃO ENCONTRADO ===================== #}
+    <div class="screen-section{% if step == 'agendamento-nao-encontrado' %} is-active{% endif %}" data-step="agendamento-nao-encontrado">
+      <header class="topbar">
+        <img class="topbar-logo" src="{{ cer_logo_url }}" alt="CER">
+        <span class="icon-button" aria-hidden="true">
+          <svg width="21" height="20" viewBox="0 0 20.1 20" fill="none" aria-hidden="true">
+            <path d="M7.3 20L6.9 16.8C6.68333 16.7167 6.47917 16.6167 6.2875 16.5C6.09583 16.3833 5.90833 16.2583 5.725 16.125L2.75 17.375L0 12.625L2.575 10.675C2.55833 10.5583 2.55 10.4458 2.55 10.3375V9.6625C2.55 9.55417 2.55833 9.44167 2.575 9.325L0 7.375L2.75 2.625L5.725 3.875C5.90833 3.74167 6.1 3.61667 6.3 3.5C6.5 3.38333 6.7 3.28333 6.9 3.2L7.3 0H12.8L13.2 3.2C13.4167 3.28333 13.6208 3.38333 13.8125 3.5C14.0042 3.61667 14.1917 3.74167 14.375 3.875L17.35 2.625L20.1 7.375L17.525 9.325C17.5417 9.44167 17.55 9.55417 17.55 9.6625V10.3375C17.55 10.4458 17.5333 10.5583 17.5 10.675L20.075 12.625L17.325 17.375L14.375 16.125C14.1917 16.2583 14 16.3833 13.8 16.5C13.6 16.6167 13.4 16.7167 13.2 16.8L12.8 20H7.3ZM9.05 18H11.025L11.375 15.35C11.8917 15.2167 12.3708 15.0208 12.8125 14.7625C13.2542 14.5042 13.6583 14.1917 14.025 13.825L16.5 14.85L17.475 13.15L15.325 11.525C15.4083 11.2917 15.4667 11.0458 15.5 10.7875C15.5333 10.5292 15.55 10.2667 15.55 10C15.55 9.73333 15.5333 9.47083 15.5 9.2125C15.4667 8.95417 15.4083 8.70833 15.325 8.475L17.475 6.85L16.5 5.15L14.025 6.2C13.6583 5.81667 13.2542 5.49583 12.8125 5.2375C12.3708 4.97917 11.8917 4.78333 11.375 4.65L11.05 2H9.075L8.725 4.65C8.20833 4.78333 7.72917 4.97917 7.2875 5.2375C6.84583 5.49583 6.44167 5.80833 6.075 6.175L3.6 5.15L2.625 6.85L4.775 8.45C4.69167 8.7 4.63333 8.95 4.6 9.2C4.56667 9.45 4.55 9.71667 4.55 10C4.55 10.2667 4.56667 10.525 4.6 10.775C4.63333 11.025 4.69167 11.275 4.775 11.525L2.625 13.15L3.6 14.85L6.075 13.8C6.44167 14.1833 6.84583 14.5042 7.2875 14.7625C7.72917 15.0208 8.20833 15.2167 8.725 15.35L9.05 18ZM10.1 13.5C11.0667 13.5 11.8917 13.1583 12.575 12.475C13.2583 11.7917 13.6 10.9667 13.6 10C13.6 9.03333 13.2583 8.20833 12.575 7.525C11.8917 6.84167 11.0667 6.5 10.1 6.5C9.11667 6.5 8.2875 6.84167 7.6125 7.525C6.9375 8.20833 6.6 9.03333 6.6 10C6.6 10.9667 6.9375 11.7917 7.6125 12.475C8.2875 13.1583 9.11667 13.5 10.1 13.5Z" fill="#64748b"/>
+          </svg>
+        </span>
+      </header>
+
+      <main class="notfound-main">
+        <section class="notfound-card">
+          <div class="notfound-icon">
+            <svg width="80" height="80" viewBox="0 0 80 80" fill="none" aria-hidden="true">
+              <rect x="25" y="10" width="30" height="22" rx="3" stroke="#94a3b8" stroke-width="2.5" fill="#f1f5f9"/>
+              <path d="M35 21h10M35 27h10" stroke="#94a3b8" stroke-width="2" stroke-linecap="round"/>
+              <circle cx="42" cy="38" r="18" stroke="#f59e0b" stroke-width="3" fill="#fffbeb"/>
+              <path d="M42 32v8M42 44v2" stroke="#f59e0b" stroke-width="2.5" stroke-linecap="round"/>
+            </svg>
+          </div>
+          <h1>Não foi possível localizar<br>seu agendamento</h1>
+          <p>Verificamos uma inconsistência nos dados informados ou ausência de agendamento vinculado.</p>
+          <div style="width:100%;padding:16px;border-radius:16px;background:#f0f4fa;text-align:left;font-size:13px;font-weight:500;color:#466178;line-height:1.5;margin-bottom:20px;">
+            <strong>Por favor, dirija-se ao balcão da recepção</strong> para atendimento assistido. Nossa equipe irá realizar a conferência manual dos seus dados e orientar o próximo passo.
+          </div>
+          <a class="btn-primary" href="{% url 'fluxo-paciente' %}?step=identificacao">Voltar e conferir dados</a>
+        </section>
+      </main>
+
+      <footer class="footer">
+        <div class="footer-indicators">
+          <div class="footer-item">
+            <svg width="10" height="13" viewBox="0 0 10 13" fill="none" aria-hidden="true">
+              <path fill-rule="evenodd" clip-rule="evenodd" d="M5 0a3 3 0 0 0-3 3v1H1a1 1 0 0 0-1 1v7a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1V5a1 1 0 0 0-1-1H8V3a3 3 0 0 0-3-3H5Zm2 4H3V3a2 2 0 1 1 4 0v1ZM5 7a1 1 0 0 1 1 1v1a1 1 0 1 1-2 0V8a1 1 0 0 1 1-1Z" fill="#466178"/>
+            </svg>
+            <p class="footer-text">LGPD<br>Conforme</p>
+          </div>
+          <div class="footer-item">
+            <svg width="10" height="12" viewBox="0 0 10 12" fill="none" aria-hidden="true">
+              <path fill-rule="evenodd" clip-rule="evenodd" d="M5 0 .5 1.75v3.56C.5 8.07 2.44 10.66 5 11.67c2.56-1.01 4.5-3.6 4.5-6.36V1.75L5 0Zm2.68 4.61L4.05 8.24 2.32 6.51l.83-.83.9.9 2.8-2.8.83.83Z" fill="#466178"/>
+            </svg>
+            <p class="footer-text">Conexão<br>Segura</p>
+          </div>
+        </div>
+        <div class="footer-actions" aria-hidden="true">
+          <span class="accessibility-icon">
+            <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true">
+              <path fill-rule="evenodd" clip-rule="evenodd" d="M10 0a10 10 0 1 0 0 20 10 10 0 0 0 0-20Zm1 2.08a8 8 0 0 1 0 15.84V2.08Z" fill="currentColor"/>
+            </svg>
+          </span>
+          <span class="accessibility-icon">
+            <svg width="20" height="16" viewBox="0 0 20 16" fill="none" aria-hidden="true">
+              <path d="M12 16V3H7V0h13v3h-5v13h-3ZM3 16V8H0V5h9v3H6v8H3Z" fill="currentColor"/>
+            </svg>
+          </span>
+        </div>
+      </footer>
+    </div>
+
+    {# ===================== PACIENTE CHAMADO ===================== #}
+    <div class="screen-section{% if step == 'paciente-chamado' %} is-active{% endif %}" data-step="paciente-chamado">
+      <div class="called-main">
+        <header class="called-header">
+          <h1>{{ title }}</h1>
+          <p class="subtitle">{{ subtitle }}</p>
+        </header>
+
+        <div class="called-card">
+          <span class="status-badge" data-status-badge>
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+              <circle cx="12" cy="12" r="6" fill="#4ade80"/>
+            </svg>
+            {{ status }}
+          </span>
+          <span class="senha-display">{{ senha }}</span>
+          <span class="sala-display">Sala {{ sala }}</span>
+          <span class="paciente-nome">{{ paciente }}</span>
+          <span class="tipo-badge">{{ tipo_atendimento }}</span>
+        </div>
+
+        <p class="called-msg">{{ mensagem }}</p>
+
+        <div class="called-footer-links">
+          <a href="{% url 'fluxo-paciente' %}?step=acompanhamento">Acompanhar fila</a>
+          <a href="{% url 'fluxo-paciente' %}?step=identificacao">Novo check-in</a>
+        </div>
+      </div>
+    </div>
+
+    {# ===================== PERDEU CHAMADA ===================== #}
+    <div class="screen-section{% if step == 'perdeu-chamada' %} is-active{% endif %}" data-step="perdeu-chamada">
+      <header class="topbar">
+        <a class="icon-button" href="{% url 'fluxo-paciente' %}?step=acompanhamento" aria-label="Voltar">
+          <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true">
+            <path d="M16.25 10H3.75M9 4.75 3.75 10 9 15.25" stroke="#64748b" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </a>
+        <span class="icon-button" aria-hidden="true">
+          <svg width="21" height="20" viewBox="0 0 20.1 20" fill="none" aria-hidden="true">
+            <path d="M7.3 20L6.9 16.8C6.68333 16.7167 6.47917 16.6167 6.2875 16.5C6.09583 16.3833 5.90833 16.2583 5.725 16.125L2.75 17.375L0 12.625L2.575 10.675C2.55833 10.5583 2.55 10.4458 2.55 10.3375V9.6625C2.55 9.55417 2.55833 9.44167 2.575 9.325L0 7.375L2.75 2.625L5.725 3.875C5.90833 3.74167 6.1 3.61667 6.3 3.5C6.5 3.38333 6.7 3.28333 6.9 3.2L7.3 0H12.8L13.2 3.2C13.4167 3.28333 13.6208 3.38333 13.8125 3.5C14.0042 3.61667 14.1917 3.74167 14.375 3.875L17.35 2.625L20.1 7.375L17.525 9.325C17.5417 9.44167 17.55 9.55417 17.55 9.6625V10.3375C17.55 10.4458 17.5333 10.5583 17.5 10.675L20.075 12.625L17.325 17.375L14.375 16.125C14.1917 16.2583 14 16.3833 13.8 16.5C13.6 16.6167 13.4 16.7167 13.2 16.8L12.8 20H7.3ZM9.05 18H11.025L11.375 15.35C11.8917 15.2167 12.3708 15.0208 12.8125 14.7625C13.2542 14.5042 13.6583 14.1917 14.025 13.825L16.5 14.85L17.475 13.15L15.325 11.525C15.4083 11.2917 15.4667 11.0458 15.5 10.7875C15.5333 10.5292 15.55 10.2667 15.55 10C15.55 9.73333 15.5333 9.47083 15.5 9.2125C15.4667 8.95417 15.4083 8.70833 15.325 8.475L17.475 6.85L16.5 5.15L14.025 6.2C13.6583 5.81667 13.2542 5.49583 12.8125 5.2375C12.3708 4.97917 11.8917 4.78333 11.375 4.65L11.05 2H9.075L8.725 4.65C8.20833 4.78333 7.72917 4.97917 7.2875 5.2375C6.84583 5.49583 6.44167 5.80833 6.075 6.175L3.6 5.15L2.625 6.85L4.775 8.45C4.69167 8.7 4.63333 8.95 4.6 9.2C4.56667 9.45 4.55 9.71667 4.55 10C4.55 10.2667 4.56667 10.525 4.6 10.775C4.63333 11.025 4.69167 11.275 4.775 11.525L2.625 13.15L3.6 14.85L6.075 13.8C6.44167 14.1833 6.84583 14.5042 7.2875 14.7625C7.72917 15.0208 8.20833 15.2167 8.725 15.35L9.05 18ZM10.1 13.5C11.0667 13.5 11.8917 13.1583 12.575 12.475C13.2583 11.7917 13.6 10.9667 13.6 10C13.6 9.03333 13.2583 8.20833 12.575 7.525C11.8917 6.84167 11.0667 6.5 10.1 6.5C9.11667 6.5 8.2875 6.84167 7.6125 7.525C6.9375 8.20833 6.6 9.03333 6.6 10C6.6 10.9667 6.9375 11.7917 7.6125 12.475C8.2875 13.1583 9.11667 13.5 10.1 13.5Z" fill="#64748b"/>
+          </svg>
+        </span>
+      </header>
+
+      <main class="perdeu-main">
+        <div class="perdeu-icon">
+          <svg width="40" height="40" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+            <path d="M12 9v4M12 17h0" stroke="#f59e0b" stroke-width="2.5" stroke-linecap="round"/>
+            <path d="M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18z" stroke="#f59e0b" stroke-width="2"/>
+          </svg>
+        </div>
+
+        <h1>Você perdeu a<br>chamada da senha <span class="senha-destaque">{{ atendimento.senha }}</span></h1>
+
+        <p class="perdeu-desc">Identificamos que sua senha foi acionada e ainda não houve confirmação de presença no setor <strong>{{ atendimento.setor }}</strong>.</p>
+
+        <div class="perdeu-info">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true" style="flex:0 0 20px;">
+            <circle cx="12" cy="12" r="10" stroke="#2563eb" stroke-width="1.5"/>
+            <path d="M12 16v-4M12 8h0" stroke="#2563eb" stroke-width="2" stroke-linecap="round"/>
+          </svg>
+          <p>Sua senha permanece válida por um tempo limitado. Após esse período, será necessário realizar um novo check-in para atendimento.</p>
+        </div>
+
+        <div class="perdeu-recepcao">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" aria-hidden="true" style="flex:0 0 24px;color:#d97706;">
+            <circle cx="12" cy="8" r="4" stroke="currentColor" stroke-width="1.5"/>
+            <path d="M4 22c1-3.5 3.5-5.5 8-5.5s7 2 8 5.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+          </svg>
+          <div>
+            <h3>Procure a recepção para reativação do atendimento.</h3>
+            <p>Nossa equipe irá verificar e orientar o próximo passo.</p>
+          </div>
+        </div>
+
+        <p class="perdeu-dirija">Dirija-se até a recepção</p>
+      </main>
+    </div>
+
+  </div>
+
+  <script>
+    (() => {
+      const maskedInputs = document.querySelectorAll("[data-mask]");
+      const uppercaseInputs = document.querySelectorAll("[data-uppercase]");
+
+      const formatCpf = (digits) => {
+        const value = digits.slice(0, 11);
+        return value
+          .replace(/^(\d{3})(\d)/, "$1.$2")
+          .replace(/^(\d{3})\.(\d{3})(\d)/, "$1.$2.$3")
+          .replace(/^(\d{3})\.(\d{3})\.(\d{3})(\d)/, "$1.$2.$3-$4");
+      };
+
+      const formatDate = (digits) => {
+        const value = digits.slice(0, 8);
+        return value
+          .replace(/^(\d{2})(\d)/, "$1/$2")
+          .replace(/^(\d{2})\/(\d{2})(\d)/, "$1/$2/$3");
+      };
+
+      const caretAfterDigits = (value, digitCount) => {
+        if (digitCount <= 0) return 0;
+        let seen = 0;
+        for (let index = 0; index < value.length; index += 1) {
+          if (/\d/.test(value[index])) seen += 1;
+          if (seen === digitCount) return index + 1;
+        }
+        return value.length;
+      };
+
+      maskedInputs.forEach((input) => {
+        input.addEventListener("beforeinput", (event) => {
+          if (event.inputType === "insertText" && event.data && /\D/.test(event.data)) {
+            event.preventDefault();
+          }
+        });
+
+        input.addEventListener("input", () => {
+          const currentCaret = input.selectionStart ?? input.value.length;
+          const digitsBeforeCaret = input.value.slice(0, currentCaret).replace(/\D/g, "").length;
+          const digits = input.value.replace(/\D/g, "");
+          const formatted = input.dataset.mask === "cpf" ? formatCpf(digits) : formatDate(digits);
+
+          input.value = formatted;
+          const nextCaret = caretAfterDigits(formatted, digitsBeforeCaret);
+          input.setSelectionRange(nextCaret, nextCaret);
+        });
+      });
+
+      uppercaseInputs.forEach((input) => {
+        input.addEventListener("input", () => {
+          const selectionStart = input.selectionStart;
+          const selectionEnd = input.selectionEnd;
+          input.value = input.value.toLocaleUpperCase("pt-BR");
+          if (selectionStart !== null && selectionEnd !== null) {
+            input.setSelectionRange(selectionStart, selectionEnd);
+          }
+        });
+      });
+    })();
+
+    (() => {
+      const screen = document.querySelector(".screen");
+      const identificationSection = document.querySelector("[data-step='identificacao']");
+      if (!identificationSection) return;
+      const form = identificationSection.querySelector(".identification-form");
+      const checkinAction = identificationSection.querySelector("[data-checkin-action]");
+      const validationLayer = identificationSection.querySelector("[data-validation-layer]");
+      const validationStatus = identificationSection.querySelector("[data-validation-status]");
+      const main = identificationSection.querySelector("main");
+      const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
+      let redirectTimer;
+
+      const resetValidation = () => {
+        window.clearTimeout(redirectTimer);
+        identificationSection.classList.remove("is-validating");
+        identificationSection.removeAttribute("aria-busy");
+        if (main) {
+          main.removeAttribute("aria-hidden");
+          main.removeAttribute("inert");
+        }
+        if (validationLayer) validationLayer.setAttribute("aria-hidden", "true");
+      };
+
+      if (checkinAction && form) {
+        checkinAction.addEventListener("click", (event) => {
+          if (identificationSection.classList.contains("is-validating")) {
+            event.preventDefault();
+            return;
+          }
+          event.preventDefault();
+          identificationSection.classList.add("is-validating");
+          identificationSection.setAttribute("aria-busy", "true");
+          if (main) {
+            main.setAttribute("aria-hidden", "true");
+            main.setAttribute("inert", "");
+          }
+          if (validationLayer) validationLayer.setAttribute("aria-hidden", "false");
+          if (validationStatus) validationStatus.focus({ preventScroll: true });
+
+          redirectTimer = window.setTimeout(() => {
+            form.submit();
+          }, reduceMotion.matches ? 650 : 3000);
+        });
+      }
+
+      window.addEventListener("pageshow", (event) => {
+        if (event.persisted) resetValidation();
+      });
+    })();
+
+    (() => {
+      var cpfPoll = "{{ cpf|escapejs }}";
+      if (!cpfPoll) return;
+      var step = "{{ step|escapejs }}";
+
+      var wsProtocol = window.location.protocol === "https:" ? "wss:" : "ws:";
+      var wsUrl = wsProtocol + "//" + window.location.host + "/ws/paciente/" + encodeURIComponent(cpfPoll) + "/";
+      var ws = null;
+      var callbacks = [];
+      function onWsEvent(cb) { callbacks.push(cb); }
+      function connectPacienteWs() {
+        try { ws = new WebSocket(wsUrl); } catch (e) { setTimeout(connectPacienteWs, 5000); return; }
+        ws.onmessage = function (e) {
+          var msg;
+          try { msg = JSON.parse(e.data); } catch (x) { return; }
+
+          if (msg.tipo === "paciente_chamado") {
+            window.location.assign("{% url 'paciente-chamado' %}");
+          } else if (msg.tipo === "paciente_concluido") {
+            window.location.assign("/pesquisa-satisfacao/?cpf=" + encodeURIComponent(cpfPoll));
+          } else if (msg.tipo === "paciente_ausente") {
+            window.location.assign("{% url 'perdeu_chamada' %}");
+          }
+
+          for (var i = 0; i < callbacks.length; i++) {
+            callbacks[i](msg);
+          }
+        };
+        ws.onclose = function () { setTimeout(connectPacienteWs, 5000); };
+        ws.onerror = function () { if (ws) ws.close(); };
+      }
+      connectPacienteWs();
+
+      if (step === "acompanhamento") {
+
+        var aheadCount = document.querySelector(".queue-card .value.-small");
+        var currentCallEl = document.querySelector(".queue-card.-attending .value");
+
+        function atualizarFila() {
+          fetch("/api/v1/fila/atual/?cpf=" + encodeURIComponent(cpfPoll))
+            .then(function(r) { return r.json(); })
+            .then(function(data) {
+              if (currentCallEl && data.chamando_agora) {
+                currentCallEl.textContent = data.chamando_agora.senha;
+              } else if (currentCallEl) {
+                currentCallEl.textContent = "---";
+              }
+              if (aheadCount && data.meu_encaixe) {
+                var numAhead = Number(data.meu_encaixe.pacientes_a_frente);
+                aheadCount.textContent = numAhead === 1 ? "Voc\u00ea ser\u00e1 o pr\u00f3ximo." : String(numAhead);
+              }
+            })
+            .catch(function() {});
+        }
+        atualizarFila();
+        setInterval(atualizarFila, 5000);
+      }
+
+      if (step === "paciente-chamado") {
+        var badgeEl = document.querySelector("[data-status-badge]");
+        var calledCard = document.querySelector(".called-card");
+        var reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
+
+        onWsEvent(function (msg) {
+          if (msg.tipo === "paciente_chamado" && msg.senha) {
+            var ticketEl = document.querySelector(".senha-display");
+            var nameEl = document.querySelector(".paciente-nome");
+            var salaEl = document.querySelector(".sala-display");
+            if (ticketEl) ticketEl.textContent = msg.senha;
+            if (nameEl) nameEl.textContent = (msg.nome || "").toUpperCase();
+            if (salaEl) salaEl.textContent = "Sala " + (msg.sala || "");
+            if (calledCard) {
+              calledCard.classList.remove("is-announcing");
+              void calledCard.offsetWidth;
+              calledCard.classList.add("is-announcing");
+              setTimeout(function () { calledCard.classList.remove("is-announcing"); }, 9000);
+            }
+            if (!reduceMotion.matches && "vibrate" in navigator) {
+              navigator.vibrate([220, 120, 220, 120, 120]);
+            }
+          } else if (msg.tipo === "paciente_atendimento") {
+            if (badgeEl) badgeEl.innerHTML = '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle cx="12" cy="12" r="6" fill="#3b82f6"/></svg> EM ATENDIMENTO';
+          }
+        });
+
+        var lastStatus = "";
+        function checkStatus() {
+          fetch("/api/paciente-status/?cpf=" + encodeURIComponent(cpfPoll))
+            .then(function(r) { return r.json(); })
+            .then(function(data) {
+              if (data.status === "atendimento" && lastStatus !== "atendimento") {
+                lastStatus = "atendimento";
+                if (badgeEl) badgeEl.innerHTML = '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle cx="12" cy="12" r="6" fill="#3b82f6"/></svg> EM ATENDIMENTO';
+              } else if (data.status === "concluido" && lastStatus !== "concluido") {
+                lastStatus = "concluido";
+                window.location.assign("/pesquisa-satisfacao/?cpf=" + encodeURIComponent(cpfPoll));
+              } else if (data.status !== "atendimento") {
+                lastStatus = data.status;
+              }
+            })
+            .catch(function() {});
+        }
+        checkStatus();
+        setInterval(checkStatus, 5000);
+      }
+    })();
+  </script>
+</body>
+</html>

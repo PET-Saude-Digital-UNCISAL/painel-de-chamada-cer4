@@ -40,6 +40,8 @@ class EncaixeForm(forms.Form):
 
 
 class UsuarioSistemaForm(forms.ModelForm):
+    cpf = forms.CharField(max_length=14)
+
     class Meta:
         model = UsuarioSistema
         fields = ("nome_completo", "email_institucional", "cpf", "nivel_acesso", "usuario_ativo")
@@ -48,7 +50,7 @@ class UsuarioSistemaForm(forms.ModelForm):
         digits = re.sub(r"\D", "", self.cleaned_data["cpf"])
         if len(digits) != 11:
             raise forms.ValidationError("Informe um CPF com 11 dígitos.")
-        return f"{digits[:3]}.{digits[3:6]}.{digits[6:9]}-{digits[9:]}"
+        return digits
 
 
 class PacientePerfilForm(forms.ModelForm):
@@ -69,6 +71,58 @@ class PacientePerfilForm(forms.ModelForm):
         if email and qs.exists():
             raise forms.ValidationError("Este e-mail já está em uso por outro cadastro.")
         return email
+
+
+class IdentificacaoForm(forms.Form):
+    """Formulário da tela de Identificação do Paciente (check-in)."""
+
+    cpf = forms.CharField(
+        label="CPF",
+        max_length=14,
+        widget=forms.TextInput(
+            attrs={
+                "class": "field-input",
+                "placeholder": "000.000.000-00",
+                "inputmode": "numeric",
+                "autocomplete": "username",
+                "data-mask": "cpf",
+                "maxlength": "14",
+            }
+        ),
+    )
+    data_nascimento = forms.DateField(
+        label="Data de Nascimento",
+        required=False,
+        input_formats=["%d/%m/%Y", "%Y-%m-%d"],
+        widget=forms.DateInput(
+            attrs={
+                "class": "field-input",
+                "placeholder": "DD/MM/AAAA",
+                "inputmode": "numeric",
+                "autocomplete": "bday",
+                "data-mask": "date",
+                "maxlength": "10",
+            }
+        ),
+    )
+    nome_mae = forms.CharField(
+        label="Nome da Mãe",
+        required=False,
+        max_length=150,
+        widget=forms.TextInput(
+            attrs={
+                "class": "field-input",
+                "placeholder": "Nome completo da mãe",
+                "autocapitalize": "characters",
+                "data-uppercase": "",
+            }
+        ),
+    )
+
+    def clean_cpf(self):
+        import re
+        cpf = self.cleaned_data["cpf"]
+        return re.sub(r"\D", "", cpf)
 
 
 class MeuPerfilForm(forms.ModelForm):
@@ -119,6 +173,25 @@ class LoginPacienteForm(forms.Form):
         if not cpf_e_valido(cpf):
             raise forms.ValidationError("CPF inválido.")
         return re.sub(r"\D", "", cpf)
+
+    def clean(self):
+        cleaned = super().clean()
+        cpf = cleaned.get("cpf")
+        senha = cleaned.get("senha")
+
+        if cpf and senha:
+            usuario = UsuarioSistema.objects.filter(cpf=cpf, usuario_ativo=True).first()
+            if usuario and usuario.checar_senha(senha):
+                cleaned["usuario_autenticado"] = usuario
+                return cleaned
+
+            paciente = Paciente.objects.filter(cpf=cpf, paciente_ativo=True).first()
+            if paciente and paciente.checar_senha(senha):
+                cleaned["paciente_autenticado"] = paciente
+                return cleaned
+
+            raise forms.ValidationError("CPF ou senha inválidos.")
+        return cleaned
 
 
 class CadastroPacienteForm(forms.ModelForm):

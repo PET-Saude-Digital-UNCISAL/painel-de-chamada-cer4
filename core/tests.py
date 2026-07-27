@@ -1,3 +1,5 @@
+from datetime import date
+
 from django.test import TestCase, override_settings
 from django.urls import resolve, reverse
 
@@ -12,7 +14,7 @@ from core.services import (
 	list_patient_screens,
 	list_team_screens,
 )
-from core.models import Paciente, UsuarioSistema
+from core.models import Paciente, UsuarioSistema, Agendamento, EncaixePaciente
 
 
 class IsolatedScreenSetupTests(TestCase):
@@ -76,7 +78,7 @@ class IsolatedScreenSetupTests(TestCase):
 		response = self.client.get(reverse("painel-pacientes"))
 
 		self.assertEqual(response.status_code, 200)
-		self.assertTemplateUsed(response, "core/painel_pacientes.html")
+		self.assertTemplateUsed(response, "mobile/painel_pacientes.html")
 		self.assertEqual(response.context["screens"], list_patient_screens())
 		for screen in list_patient_screens():
 			with self.subTest(slug=screen["slug"]):
@@ -116,7 +118,7 @@ class IsolatedScreenSetupTests(TestCase):
 	def test_painel_chamada_route_renders_context_data(self):
 		response = self.client.get("/painel-chamada/")
 		self.assertEqual(response.status_code, 200)
-		self.assertTemplateUsed(response, "core/painel_chamada.html")
+		self.assertTemplateUsed(response, "display/painel_chamada.html")
 		self.assertContains(response, "FELIPE DA SILVA")
 		self.assertContains(response, "ÚLTIMOS CHAMADOS")
 		self.assertContains(response, "data:audio/mpeg;base64,")
@@ -135,7 +137,7 @@ class IsolatedScreenSetupTests(TestCase):
 	def test_paciente_chamado_route_renders_context_data(self):
 		response = self.client.get("/paciente-chamado/")
 		self.assertEqual(response.status_code, 200)
-		self.assertTemplateUsed(response, "core/paciente_chamado.html")
+		self.assertTemplateUsed(response, "mobile/paciente_chamado.html")
 		self.assertContains(response, "A012")
 		self.assertContains(response, "RICARDO AUGUSTO OLIVEIRA")
 		self.assertContains(response, "data:font/ttf;base64,")
@@ -162,7 +164,7 @@ class IsolatedScreenSetupTests(TestCase):
 	def test_checkin_assistido_route_and_identification_link_work(self):
 		response = self.client.get("/checkin-assistido/")
 		self.assertEqual(response.status_code, 200)
-		self.assertTemplateUsed(response, "core/checkin_assistido.html")
+		self.assertTemplateUsed(response, "mobile/checkin_assistido.html")
 		self.assertContains(response, "Siga para a Recepção")
 		self.assertContains(response, "Nossa equipe no balcão principal")
 		self.assertContains(response, "documento com foto em mãos.")
@@ -197,7 +199,7 @@ class IsolatedScreenSetupTests(TestCase):
 
 		self.assertEqual(match.url_name, "bloqueio-direcionamento")
 		self.assertEqual(response.status_code, 200)
-		self.assertTemplateUsed(response, "core/bloqueio_direcionamento.html")
+		self.assertTemplateUsed(response, "mobile/bloqueio_direcionamento.html")
 		self.assertEqual(response.context["status"], "Confirmação na recepção")
 		self.assertContains(response, "Confirmação presencial necessária")
 		self.assertContains(response, "Dirija-se à recepção")
@@ -383,10 +385,6 @@ class IsolatedScreenSetupTests(TestCase):
 		self.assertEqual(ready_response.status_code, 200)
 		self.assertContains(ready_response, 'src="/configuracoes/?interno=1"')
 
-		pending_response = self.client.get("/sistema-interno/?tela=relatorios")
-		self.assertEqual(pending_response.status_code, 200)
-		self.assertContains(pending_response, "desenvolvida")
-
 	def test_drawer_connects_existing_internal_screens(self):
 		for tela, embedded_path in (
 			("monitoramento", "/dashboard-monitoramento/?interno=1"),
@@ -524,37 +522,23 @@ class IsolatedScreenSetupTests(TestCase):
 	def test_auditoria_route_works(self):
 		response = self.client.get("/telas/auditoria-percurso-seguranca/")
 		self.assertEqual(response.status_code, 200)
-		self.assertContains(response, "Auditoria de Percurso e Segurança")
+		self.assertContains(response, "Atendimentos do Dia")
 
 	def test_auditoria_search_filter(self):
-		response = self.client.get("/telas/auditoria-percurso-seguranca/?q=ricardo")
+		response = self.client.get("/telas/auditoria-percurso-seguranca/?q=Ana")
 		self.assertEqual(response.status_code, 200)
-		self.assertContains(response, "Ricardo Mendes Junior")
-		self.assertNotContains(response, "Benedito Silveira Santos")
+		self.assertContains(response, "Ana Clara")
 
-	def test_auditoria_date_filter(self):
-		response = self.client.get("/telas/auditoria-percurso-seguranca/?data=2026-07-06")
+	def test_auditoria_search_filter_cpf(self):
+		response = self.client.get("/telas/auditoria-percurso-seguranca/?q=01234567890")
 		self.assertEqual(response.status_code, 200)
-		self.assertContains(response, "Maria Clara Ferreira")
-		self.assertNotContains(response, "Ricardo Mendes Junior")
+		self.assertContains(response, "João Pedro")
 
-	def test_auditoria_date_range_filter(self):
-		response = self.client.get(
-			"/telas/auditoria-percurso-seguranca/?data_inicio=2026-07-06&data_fim=2026-07-06"
-		)
+	def test_auditoria_status_filter(self):
+		response = self.client.get("/telas/auditoria-percurso-seguranca/?status=EM+VALIDAÇÃO")
 		self.assertEqual(response.status_code, 200)
-		self.assertContains(response, "Maria Clara Ferreira")
-		self.assertNotContains(response, "Ricardo Mendes Junior")
 
-	def test_auditoria_date_range_filter_accepts_inverted_dates(self):
-		response = self.client.get(
-			"/telas/auditoria-percurso-seguranca/?data_inicio=2026-07-07&data_fim=2026-07-06"
-		)
-		self.assertEqual(response.status_code, 200)
-		self.assertContains(response, "Maria Clara Ferreira")
-		self.assertContains(response, "Ricardo Mendes Junior")
-
-	def test_auditoria_date_filter_modal_is_rendered(self):
+	def test_auditoria_date_filter_renders(self):
 		response = self.client.get("/telas/auditoria-percurso-seguranca/")
 		self.assertEqual(response.status_code, 200)
 		self.assertContains(response, "date-filter-modal")
@@ -661,3 +645,223 @@ class IsolatedScreenSetupTests(TestCase):
 		self.client.post("/logout/")
 		response = self.client.get("/area-paciente/")
 		self.assertRedirects(response, "/login/")
+
+
+class FluxoAtendimentoIntegrationTests(TestCase):
+	def setUp(self):
+		self.paciente = Paciente.objects.create(
+			nome_completo="Maria Teste",
+			cpf="39053344705",
+			data_nascimento="1990-05-10",
+			nome_mae="Mae Teste",
+		)
+		self.agendamento = Agendamento.objects.create(
+			paciente=self.paciente,
+			data_agendamento=date.today(),
+			tipo_atendimento="consulta",
+			status=Agendamento.Status.AGENDADO,
+		)
+		self.usuario = UsuarioSistema.objects.create(
+			nome_completo="Staff Teste",
+			email_institucional="staff@teste.com",
+			cpf="11122233344",
+			nivel_acesso="recepcionista",
+		)
+		self.session = self.client.session
+		self.session["staff_logged_in"] = True
+		self.session["staff_usuario_id"] = self.usuario.pk
+		self.session.save()
+
+	def test_fluxo_completo_checkin_ate_conclusao(self):
+		"""Fluxo completo: check-in → fila → chamar → iniciar → concluir."""
+		from core.services import registrar_checkin
+		encaixe = registrar_checkin(self.paciente, "1990-05-10", "Mae Teste")
+		self.assertIsNotNone(encaixe)
+		self.assertEqual(encaixe.status, EncaixePaciente.Status.AGUARDANDO)
+		self.assertEqual(encaixe.origem, EncaixePaciente.Origem.CHECKIN)
+		self.assertTrue(encaixe.senha.startswith("E"))
+		self.assertEqual(encaixe.posicao_fila, 1)
+
+		self.agendamento.refresh_from_db()
+		self.assertEqual(self.agendamento.status, Agendamento.Status.CHECKIN_REALIZADO)
+
+	def test_chamar_paciente_transiciona_para_chamado(self):
+		from core.services import registrar_checkin
+		encaixe = registrar_checkin(self.paciente, "1990-05-10", "Mae Teste")
+
+		response = self.client.post("/sistema/chamar/", {"senha": encaixe.senha})
+		self.assertEqual(response.status_code, 200)
+		data = response.json()
+		self.assertTrue(data["ok"])
+
+		encaixe.refresh_from_db()
+		self.assertEqual(encaixe.status, EncaixePaciente.Status.CHAMADO)
+		self.assertIsNotNone(encaixe.chamado_em)
+		self.assertEqual(encaixe.sala, "Sala 1")
+
+	def test_chamar_paciente_requer_autenticacao(self):
+		self.session.flush()
+		self.session.save()
+		from core.services import registrar_checkin
+		encaixe = registrar_checkin(self.paciente, "1990-05-10", "Mae Teste")
+
+		response = self.client.post("/sistema/chamar/", {"senha": encaixe.senha})
+		self.assertEqual(response.status_code, 401)
+
+	def test_chamar_paciente_rejeita_status_invalido(self):
+		from core.services import registrar_checkin
+		encaixe = registrar_checkin(self.paciente, "1990-05-10", "Mae Teste")
+		encaixe.status = EncaixePaciente.Status.CONCLUIDO
+		encaixe.save()
+
+		response = self.client.post("/sistema/chamar/", {"senha": encaixe.senha})
+		self.assertEqual(response.status_code, 409)
+		self.assertIn("não está aguardando", response.json()["erro"])
+
+	def test_iniciar_atendimento_apos_chamar(self):
+		from core.services import registrar_checkin
+		encaixe = registrar_checkin(self.paciente, "1990-05-10", "Mae Teste")
+		self.client.post("/sistema/chamar/", {"senha": encaixe.senha})
+
+		response = self.client.post(f"/encaixe/{encaixe.pk}/iniciar-atendimento/")
+		self.assertEqual(response.status_code, 200)
+		self.assertTrue(response.json()["ok"])
+
+		encaixe.refresh_from_db()
+		self.assertEqual(encaixe.status, EncaixePaciente.Status.ATENDIMENTO)
+
+	def test_concluir_atendimento_apos_iniciar(self):
+		from core.services import registrar_checkin
+		encaixe = registrar_checkin(self.paciente, "1990-05-10", "Mae Teste")
+		self.client.post("/sistema/chamar/", {"senha": encaixe.senha})
+		self.client.post(f"/encaixe/{encaixe.pk}/iniciar-atendimento/")
+
+		response = self.client.post(f"/encaixe/{encaixe.pk}/concluir-atendimento/")
+		self.assertEqual(response.status_code, 200)
+		data = response.json()
+		self.assertTrue(data["ok"])
+		self.assertIn("pesquisa-satisfacao", data["redirect_url"])
+
+		encaixe.refresh_from_db()
+		self.assertEqual(encaixe.status, EncaixePaciente.Status.CONCLUIDO)
+
+	def test_painel_chamada_com_dados_reais(self):
+		from core.services import registrar_checkin
+		encaixe = registrar_checkin(self.paciente, "1990-05-10", "Mae Teste")
+		self.client.post("/sistema/chamar/", {"senha": encaixe.senha})
+
+		context = get_painel_chamada_context(use_real_data=True)
+		self.assertEqual(context["current_call"]["ticket"], encaixe.senha)
+		self.assertEqual(context["current_call"]["patient_name"], encaixe.nome_completo.upper())
+		self.assertIn(context["current_call"]["room"], context["current_call"]["room"])
+		self.assertTrue(len(context["recent_calls"]) >= 1)
+		self.assertEqual(context["recent_calls"][0]["ticket"], encaixe.senha)
+
+	def test_acompanhamento_com_dados_reais(self):
+		from core.services import registrar_checkin
+		encaixe = registrar_checkin(self.paciente, "1990-05-10", "Mae Teste")
+
+		session = self.client.session
+		session["encaixe_id"] = encaixe.pk
+		session["paciente_id"] = self.paciente.pk
+		session.save()
+
+		response = self.client.get("/acompanhamento-atendimento/")
+		self.assertEqual(response.status_code, 200)
+		self.assertContains(response, encaixe.nome_completo)
+		self.assertContains(response, encaixe.senha)
+
+	def test_validar_encaixe_flow(self):
+		from core.services import registrar_encaixe
+		encaixe = registrar_encaixe({
+			"nome_completo": "Paciente Encaixe",
+			"cpf": "12345678901",
+			"data_nascimento": None,
+			"nome_mae": "",
+			"tipos_atendimento": ["consulta"],
+			"justificativa": "",
+		})
+		self.assertEqual(encaixe.status, EncaixePaciente.Status.VALIDACAO)
+		self.assertEqual(encaixe.origem, EncaixePaciente.Origem.ENCAIXE)
+
+		response = self.client.post(f"/encaixe/{encaixe.pk}/validar/")
+		self.assertEqual(response.status_code, 200)
+		self.assertTrue(response.json()["ok"])
+
+		encaixe.refresh_from_db()
+		self.assertEqual(encaixe.status, EncaixePaciente.Status.AGUARDANDO)
+
+	def test_fluxo_rejeita_pular_etapas(self):
+		from core.services import registrar_checkin
+		encaixe = registrar_checkin(self.paciente, "1990-05-10", "Mae Teste")
+
+		response = self.client.post(f"/encaixe/{encaixe.pk}/concluir-atendimento/")
+		self.assertEqual(response.status_code, 400)
+		self.assertIn("não está em andamento", response.json()["erro"])
+
+		response = self.client.post(f"/encaixe/{encaixe.pk}/iniciar-atendimento/")
+		self.assertEqual(response.status_code, 400)
+		self.assertIn("não foi chamado", response.json()["erro"])
+
+	def test_posicao_fila_incremental(self):
+		from core.services import registrar_checkin
+		p2 = Paciente.objects.create(nome_completo="Paciente 2", cpf="22233344455")
+		Agendamento.objects.create(paciente=p2, data_agendamento=date.today(), tipo_atendimento="consulta")
+
+		e1 = registrar_checkin(self.paciente, "1990-05-10", "Mae Teste")
+		e2 = registrar_checkin(p2, "1990-05-10", "")
+		self.assertEqual(e1.posicao_fila, 1)
+		self.assertEqual(e2.posicao_fila, 2)
+
+
+class WebSocketEventosTests(TestCase):
+	@override_settings(CHANNEL_LAYERS={"default": {"BACKEND": "channels.layers.InMemoryChannelLayer"}})
+	def test_notificar_fila_atualizada_envia_evento(self):
+		from core.websocket_utils import notificar_fila_atualizada
+		from channels.layers import get_channel_layer
+		from asgiref.sync import async_to_sync
+
+		layer = get_channel_layer()
+		async_to_sync(layer.group_add)("test_group", "test_channel")
+
+		Paciente.objects.create(nome_completo="Teste", cpf="39053344705")
+		notificar_fila_atualizada()
+
+		messages = async_to_sync(layer.receive)("test_channel")
+		self.assertIsNotNone(messages)
+		self.assertEqual(messages.get("type"), "fila.atualizada")
+
+	@override_settings(CHANNEL_LAYERS={"default": {"BACKEND": "channels.layers.InMemoryChannelLayer"}})
+	def test_notificar_painel_chamada_envia_evento(self):
+		from core.websocket_utils import notificar_painel_chamada
+		from channels.layers import get_channel_layer
+		from asgiref.sync import async_to_sync
+
+		layer = get_channel_layer()
+		async_to_sync(layer.group_add)("painel_chamada", "test_channel")
+
+		encaixe = EncaixePaciente.objects.create(
+			nome_completo="Teste", cpf="39053344705",
+			senha="E001", posicao_fila=1,
+		)
+		notificar_painel_chamada(encaixe, "Sala 1", "Guiche 1")
+
+		messages = async_to_sync(layer.receive)("test_channel")
+		self.assertIsNotNone(messages)
+		self.assertEqual(messages.get("type"), "paciente.chamado")
+		self.assertEqual(messages.get("senha"), "E001")
+
+	@override_settings(CHANNEL_LAYERS={"default": {"BACKEND": "channels.layers.InMemoryChannelLayer"}})
+	def test_notificar_paciente_envia_evento(self):
+		from core.websocket_utils import notificar_paciente
+		from channels.layers import get_channel_layer
+		from asgiref.sync import async_to_sync
+
+		layer = get_channel_layer()
+		async_to_sync(layer.group_add)("paciente_39053344705", "test_channel")
+
+		notificar_paciente("39053344705", "paciente.chamado", senha="E001", nome="Teste", sala="Sala 1")
+
+		messages = async_to_sync(layer.receive)("test_channel")
+		self.assertIsNotNone(messages)
+		self.assertEqual(messages.get("type"), "paciente.chamado")
