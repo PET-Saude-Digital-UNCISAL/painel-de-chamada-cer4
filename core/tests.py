@@ -829,7 +829,7 @@ class WebSocketEventosTests(TestCase):
 
 		messages = async_to_sync(layer.receive)("test_channel")
 		self.assertIsNotNone(messages)
-		self.assertEqual(messages.get("type"), "fila.atualizada")
+		self.assertEqual(messages.get("type"), "fila_atualizada")
 
 	@override_settings(CHANNEL_LAYERS={"default": {"BACKEND": "channels.layers.InMemoryChannelLayer"}})
 	def test_notificar_painel_chamada_envia_evento(self):
@@ -848,7 +848,7 @@ class WebSocketEventosTests(TestCase):
 
 		messages = async_to_sync(layer.receive)("test_channel")
 		self.assertIsNotNone(messages)
-		self.assertEqual(messages.get("type"), "paciente.chamado")
+		self.assertEqual(messages.get("type"), "paciente_chamado")
 		self.assertEqual(messages.get("senha"), "E001")
 
 	@override_settings(CHANNEL_LAYERS={"default": {"BACKEND": "channels.layers.InMemoryChannelLayer"}})
@@ -860,8 +860,9 @@ class WebSocketEventosTests(TestCase):
 		layer = get_channel_layer()
 		async_to_sync(layer.group_add)("paciente_39053344705", "test_channel")
 
-		notificar_paciente("39053344705", "paciente.chamado", senha="E001", nome="Teste", sala="Sala 1")
+		notificar_paciente("39053344705", "paciente_chamado", senha="E001", nome="Teste", sala="Sala 1")
 
 		messages = async_to_sync(layer.receive)("test_channel")
 		self.assertIsNotNone(messages)
-		self.assertEqual(messages.get("type"), "paciente.chamado")
+		self.assertEqual(messages.get("type"), "paciente_chamado")
+

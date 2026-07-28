@@ -44,7 +44,7 @@ def chamar_paciente_view(request):
     notificar_fila_atualizada()
     notificar_paciente(
         encaixe.cpf,
-        "paciente.chamado",
+        "paciente_chamado",
         senha=encaixe.senha,
         nome=encaixe.nome_completo,
         sala=sala,
@@ -84,7 +84,7 @@ def marcar_ausente_view(request):
     notificar_fila_atualizada()
     notificar_paciente(
         encaixe.cpf,
-        "paciente.ausente",
+        "paciente_ausente",
         senha=encaixe.senha,
         nome=encaixe.nome_completo,
         timestamp=timezone.now().isoformat(),

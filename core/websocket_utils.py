@@ -20,7 +20,7 @@ def _group_send(group_name, event_type, **kwargs):
 def notificar_painel_chamada(encaixe, sala, guiche=""):
     _group_send(
         "painel_chamada",
-        "paciente.chamado",
+        "paciente_chamado",
         senha=encaixe.senha,
         nome=encaixe.nome_completo,
         sala=sala,
@@ -63,7 +63,7 @@ def notificar_fila_atualizada():
     ]
     _group_send(
         "painel_chamada",
-        "fila.atualizada",
+        "fila_atualizada",
         fila=fila,
         recent_calls=recent_calls,
         timestamp=datetime.now().isoformat(),

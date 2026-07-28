@@ -65,7 +65,7 @@ class FilaViewSet(mixins.ListModelMixin, viewsets.GenericViewSet):
         if meu_encaixe:
             pacientes_a_frente = EncaixePaciente.objects.filter(
                 data_atendimento=hoje,
-                status=EncaixePaciente.Status.AGUARDANDO,
+                status__in=[EncaixePaciente.Status.AGUARDANDO, EncaixePaciente.Status.VALIDACAO],
                 posicao_fila__lt=meu_encaixe.posicao_fila,
             ).count()
 
