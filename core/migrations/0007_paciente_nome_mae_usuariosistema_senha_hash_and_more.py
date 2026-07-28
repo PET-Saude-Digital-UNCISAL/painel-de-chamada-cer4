@@ -5,7 +5,7 @@ from django.db import migrations, models
 
 def normalizar_cpfs(apps, schema_editor):
     UsuarioSistema = apps.get_model("core", "UsuarioSistema")
-    for usuario in UsuarioSistema.objects.iterator():
+    for usuario in UsuarioSistema.objects.only("cpf").iterator():
         digits = "".join(ch for ch in (usuario.cpf or "") if ch.isdigit())
         if len(digits) == 11 and digits != usuario.cpf:
             usuario.cpf = digits
@@ -14,7 +14,7 @@ def normalizar_cpfs(apps, schema_editor):
 
 def reverter_cpfs(apps, schema_editor):
     UsuarioSistema = apps.get_model("core", "UsuarioSistema")
-    for usuario in UsuarioSistema.objects.iterator():
+    for usuario in UsuarioSistema.objects.only("cpf").iterator():
         d = usuario.cpf
         if d and len(d) == 11 and d.isdigit():
             usuario.cpf = f"{d[0:3]}.{d[3:6]}.{d[6:9]}-{d[9:11]}"
