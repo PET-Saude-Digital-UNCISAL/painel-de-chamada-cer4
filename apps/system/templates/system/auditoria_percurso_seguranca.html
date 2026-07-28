@@ -1549,6 +1549,8 @@
                                         <button class="icon-btn reorder-action" type="button" aria-label="Reorganizar fila de {{ paciente.nome }}">↕</button>
                                         {% if paciente.status == "AGUARDANDO" %}
                                         <button class="call-action" type="button" data-senha="{{ paciente.ficha }}" data-nome="{{ paciente.nome }}" aria-label="Chamar {{ paciente.nome }}">Chamar</button>
+                                        {% elif paciente.status == "AUSENTE" %}
+                                        <button class="call-action" type="button" data-senha="{{ paciente.ficha }}" data-nome="{{ paciente.nome }}" aria-label="Chamar novamente {{ paciente.nome }}">Chamar Novamente</button>
                                         {% endif %}
                                     </div>
                                 </td>
@@ -2150,7 +2152,7 @@
                 btnSubmit.disabled = true;
                 btnSubmit.textContent = "Salvando...";
 
-                fetch("/encaixe/", { method: "POST", body: fd })
+                fetch("/encaixe/", { method: "POST", body: fd, headers: { "X-Requested-With": "XMLHttpRequest" } })
                     .then(r => r.json())
                     .then(data => {
                         if (data.ok) {
@@ -2227,7 +2229,10 @@
                 fetch("/sistema/chamar/", {
                     method: "POST",
                     body: formData,
-                    headers: { "X-CSRFToken": getCSRFToken() },
+                    headers: {
+                        "X-CSRFToken": getCSRFToken(),
+                        "X-Requested-With": "XMLHttpRequest",
+                    },
                 })
                     .then(function (r) {
                         if (!r.ok) throw new Error("Erro " + r.status);
@@ -2273,7 +2278,10 @@
                 btn.textContent = "Sincronizando...";
                 fetch("{% url 'sincronizar-agendamentos' %}", {
                     method: "POST",
-                    headers: { "X-CSRFToken": (document.querySelector("[name=csrfmiddlewaretoken]") || {}).value || "" },
+                    headers: {
+                        "X-CSRFToken": (document.querySelector("[name=csrfmiddlewaretoken]") || {}).value || "",
+                        "X-Requested-With": "XMLHttpRequest",
+                    },
                 })
                     .then(function(r) { return r.json(); })
                     .then(function(data) {

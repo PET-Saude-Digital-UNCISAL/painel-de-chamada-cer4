@@ -1773,6 +1773,8 @@
 
         var aheadCount = document.querySelector(".queue-card .value.-small");
         var currentCallEl = document.querySelector(".queue-card.-attending .value");
+        var lastStatus = "";
+        var pacienteChamadoUrl = "{% url 'paciente-chamado' %}";
 
         function atualizarFila() {
           fetch("/api/v1/fila/atual/?cpf=" + encodeURIComponent(cpfPoll))
@@ -1786,6 +1788,18 @@
               if (aheadCount && data.meu_encaixe) {
                 var numAhead = Number(data.meu_encaixe.pacientes_a_frente);
                 aheadCount.textContent = numAhead === 1 ? "Voc\u00ea ser\u00e1 o pr\u00f3ximo." : String(numAhead);
+              }
+              if (data.meu_encaixe && data.meu_encaixe.status === "chamado" && lastStatus !== "chamado") {
+                lastStatus = "chamado";
+                window.location.assign(pacienteChamadoUrl);
+              } else if (data.meu_encaixe && data.meu_encaixe.status === "atendimento" && lastStatus !== "atendimento") {
+                lastStatus = "atendimento";
+                window.location.assign(pacienteChamadoUrl);
+              } else if (data.meu_encaixe && data.meu_encaixe.status === "concluido" && lastStatus !== "concluido") {
+                lastStatus = "concluido";
+                window.location.assign("/pesquisa-satisfacao/?cpf=" + encodeURIComponent(cpfPoll));
+              } else if (data.meu_encaixe) {
+                lastStatus = data.meu_encaixe.status;
               }
             })
             .catch(function() {});

@@ -570,14 +570,10 @@ def acompanhamento_atendimento_view(request):
 
     if encaixe:
 
-        pacientes_a_frente = EncaixePaciente.objects.filter(
-
-            data_atendimento=encaixe.data_atendimento,
-
-            status=EncaixePaciente.Status.AGUARDANDO,
-
-            posicao_fila__lt=encaixe.posicao_fila,
-
+        pacientes_a_frente = EncaixePaciente.objects.filter(
+            data_atendimento=encaixe.data_atendimento,
+            status__in=[EncaixePaciente.Status.AGUARDANDO, EncaixePaciente.Status.VALIDACAO],
+            posicao_fila__lt=encaixe.posicao_fila,
         ).count()
 
         chamando_agora = EncaixePaciente.objects.filter(
@@ -1204,14 +1200,10 @@ def fluxo_paciente_view(request):
 
     if step == "acompanhamento" and encaixe:
 
-        pacientes_a_frente = EncaixePaciente.objects.filter(
-
-            data_atendimento=encaixe.data_atendimento,
-
-            status=EncaixePaciente.Status.AGUARDANDO,
-
-            posicao_fila__lt=encaixe.posicao_fila,
-
+        pacientes_a_frente = EncaixePaciente.objects.filter(
+            data_atendimento=encaixe.data_atendimento,
+            status__in=[EncaixePaciente.Status.AGUARDANDO, EncaixePaciente.Status.VALIDACAO],
+            posicao_fila__lt=encaixe.posicao_fila,
         ).count()
 
         chamando_agora = EncaixePaciente.objects.filter(
@@ -2138,7 +2130,7 @@ def iniciar_atendimento_view(request, encaixe_id):
     notificar_fila_atualizada()
     notificar_paciente(
         encaixe.cpf,
-        "paciente.atendimento",
+        "paciente_atendimento",
         senha=encaixe.senha,
         nome=encaixe.nome_completo,
         sala=encaixe.sala,
@@ -2172,7 +2164,7 @@ def concluir_atendimento_view(request, encaixe_id):
     notificar_fila_atualizada()
     notificar_paciente(
         encaixe.cpf,
-        "paciente.concluido",
+        "paciente_concluido",
         senha=encaixe.senha,
         nome=encaixe.nome_completo,
         timestamp=timezone.now().isoformat(),
@@ -2370,3 +2362,5 @@ def sincronizar_agendamentos_view(request):
 
 
 
+
+
