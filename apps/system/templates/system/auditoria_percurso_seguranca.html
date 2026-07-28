@@ -2153,7 +2153,10 @@
                 btnSubmit.textContent = "Salvando...";
 
                 fetch("/encaixe/", { method: "POST", body: fd, headers: { "X-Requested-With": "XMLHttpRequest" } })
-                    .then(r => r.json())
+                    .then(r => {
+                        if (r.status === 401) { window.location.href = "/login/"; return; }
+                        return r.json();
+                    })
                     .then(data => {
                         if (data.ok) {
                             formBody.style.display = "none";
@@ -2235,6 +2238,7 @@
                     },
                 })
                     .then(function (r) {
+                        if (r.status === 401) { window.location.href = "/login/"; return; }
                         if (!r.ok) throw new Error("Erro " + r.status);
                         return r.json();
                     })
@@ -2283,7 +2287,10 @@
                         "X-Requested-With": "XMLHttpRequest",
                     },
                 })
-                    .then(function(r) { return r.json(); })
+                    .then(function(r) {
+                        if (r.status === 401) { window.location.href = "/login/"; return; }
+                        return r.json();
+                    })
                     .then(function(data) {
                         if (data.ok) {
                             alert("Sincronização concluída: " + data.criados + " criados, " + data.atualizados + " atualizados");
