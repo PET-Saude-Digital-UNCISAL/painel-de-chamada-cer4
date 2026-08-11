@@ -82,6 +82,8 @@ def _usuario_logado(request):
 
 @xframe_options_sameorigin
 
+@staff_required
+
 def dashboard_monitoramento_view(request):
 
     """Renderiza o dashboard de monitoramento com dados reais do banco."""
@@ -234,6 +236,7 @@ def dashboard_monitoramento_view(request):
 
     return render(request, "system/dashboard_monitoramento.html", context)
 
+@staff_required
 def dashboard_metrics_api(request):
     from datetime import date, timedelta
     from django.db.models import Count, Avg, Q, F, DurationField, ExpressionWrapper, Value
@@ -346,6 +349,7 @@ def dashboard_metrics_api(request):
     })
 
 
+@staff_required
 def qualidade_metrics_api(request):
     from datetime import date, timedelta
     from django.db.models import Count, Avg
@@ -811,6 +815,12 @@ def configuracoes_view(request):
     is_admin = usuario_logado and usuario_logado.nivel_acesso == UsuarioSistema.NivelAcesso.SUPER_ADMIN
 
     tabela_vazia = not UsuarioSistema.objects.exists()
+
+    # So deixa ver a tela se ja for staff autenticado, ou se ainda nao
+    # existir nenhum usuario (bootstrap do primeiro admin).
+    if not usuario_logado and not tabela_vazia:
+
+        return redirect("login")
 
 
 
@@ -1616,6 +1626,8 @@ def screen_view(request, screen_slug):
 
 @xframe_options_sameorigin
 
+@staff_required
+
 def auditoria_percurso_seguranca_view(request):
 
     """Thin view for the audit screen, keeping business data in services."""
@@ -1933,17 +1945,17 @@ def login_view(request):
 
 
 
-            request.session["staff_logged_in"] = True
-
             if usuario:
+
+                request.session["staff_logged_in"] = True
 
                 request.session["staff_usuario_id"] = usuario.pk
 
-            if paciente:
+                return redirect("sistema-interno")
 
-                request.session["paciente_id"] = paciente.pk
+            request.session["paciente_id"] = paciente.pk
 
-            return redirect("sistema-interno")
+            return redirect("area-paciente")
 
         context = {**get_login_context(), "form": form}
 
@@ -2024,6 +2036,8 @@ def area_paciente_view(request):
 
 
 @xframe_options_sameorigin
+
+@staff_required
 
 def gestao_qualidade_view(request):
 
@@ -2257,7 +2271,7 @@ def meu_perfil_view(request):
 
 
 
-    if not request.session.get("staff_logged_in"):
+    if not request.session.get("staff_logged_in") and not request.session.get("paciente_id"):
 
         return render(request, "core/meu_perfil.html", _ctx(
 
@@ -2318,6 +2332,7 @@ def meu_perfil_view(request):
     return render(request, "core/meu_perfil.html", _ctx(interno, usuario, paciente, form))
 
 
+@staff_required
 def dashboard_metrics_export(request):
     import csv
     from datetime import date, timedelta

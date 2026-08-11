@@ -18,6 +18,25 @@ from core.models import Paciente, UsuarioSistema, Agendamento, EncaixePaciente
 
 
 class IsolatedScreenSetupTests(TestCase):
+	def _login_staff(self, nivel_acesso=UsuarioSistema.NivelAcesso.SUPER_ADMIN):
+		"""Cria um UsuarioSistema e autentica a sessão de teste como staff.
+
+		Necessário para as telas do Sistema Interno que agora exigem
+		@staff_required (ou o gate manual de configuracoes_view fora do
+		bootstrap inicial).
+		"""
+		usuario = UsuarioSistema.objects.create(
+			nome_completo="Staff Teste",
+			email_institucional="staff.teste@uncisal.com.br",
+			cpf="99999999999",
+			nivel_acesso=nivel_acesso,
+		)
+		session = self.client.session
+		session["staff_logged_in"] = True
+		session["staff_usuario_id"] = usuario.pk
+		session.save()
+		return usuario
+
 	def test_direct_screen_route_works(self):
 		response = self.client.get("/telas/pacientes-listagem/")
 		self.assertEqual(response.status_code, 200)
@@ -97,6 +116,7 @@ class IsolatedScreenSetupTests(TestCase):
 		self.assertTrue(all(len(column["patients"]) == 3 for column in context["kanban_columns"]))
 
 	def test_dashboard_monitoramento_route_renders_context_data(self):
+		self._login_staff()
 		response = self.client.get("/dashboard-monitoramento/")
 		self.assertEqual(response.status_code, 200)
 		self.assertContains(response, "Monitoramento do Fluxo")
@@ -397,6 +417,7 @@ class IsolatedScreenSetupTests(TestCase):
 				self.assertContains(response, f'src="{embedded_path}"')
 
 	def test_embedded_internal_screens_allow_same_origin_frames(self):
+		self._login_staff()
 		for path in (
 			"/dashboard-monitoramento/",
 			"/telas/auditoria-percurso-seguranca/",
@@ -439,6 +460,7 @@ class IsolatedScreenSetupTests(TestCase):
 		)
 
 	def test_new_system_user_is_persisted(self):
+		self._login_staff()
 		response = self.client.post(
 			"/configuracoes/",
 			{
@@ -462,6 +484,7 @@ class IsolatedScreenSetupTests(TestCase):
 		self.assertContains(list_response, "123.456.789-01")
 
 	def test_system_user_update_toggle_and_delete(self):
+		self._login_staff()
 		usuario = UsuarioSistema.objects.create(
 			nome_completo="Nome Original",
 			email_institucional="original@uncisal.com.br",
@@ -500,6 +523,7 @@ class IsolatedScreenSetupTests(TestCase):
 		self.assertFalse(UsuarioSistema.objects.filter(pk=usuario.pk).exists())
 
 	def test_duplicate_system_user_is_not_persisted(self):
+		self._login_staff()
 		UsuarioSistema.objects.create(
 			nome_completo="Usuário Existente",
 			email_institucional="existente@uncisal.com.br",
@@ -516,35 +540,43 @@ class IsolatedScreenSetupTests(TestCase):
 			},
 		)
 		self.assertEqual(response.status_code, 200)
-		self.assertEqual(UsuarioSistema.objects.count(), 1)
+		# 2 = a conta de staff logada em _login_staff() + "Usuário Existente";
+		# a tentativa de duplicata não deve ser persistida.
+		self.assertEqual(UsuarioSistema.objects.count(), 2)
 		self.assertContains(response, "Revise os campos")
 
 	def test_auditoria_route_works(self):
+		self._login_staff()
 		response = self.client.get("/telas/auditoria-percurso-seguranca/")
 		self.assertEqual(response.status_code, 200)
 		self.assertContains(response, "Atendimentos do Dia")
 
 	def test_auditoria_search_filter(self):
+		self._login_staff()
 		response = self.client.get("/telas/auditoria-percurso-seguranca/?q=Ana")
 		self.assertEqual(response.status_code, 200)
 		self.assertContains(response, "Ana Clara")
 
 	def test_auditoria_search_filter_cpf(self):
+		self._login_staff()
 		response = self.client.get("/telas/auditoria-percurso-seguranca/?q=01234567890")
 		self.assertEqual(response.status_code, 200)
 		self.assertContains(response, "João Pedro")
 
 	def test_auditoria_status_filter(self):
+		self._login_staff()
 		response = self.client.get("/telas/auditoria-percurso-seguranca/?status=EM+VALIDAÇÃO")
 		self.assertEqual(response.status_code, 200)
 
 	def test_auditoria_date_filter_renders(self):
+		self._login_staff()
 		response = self.client.get("/telas/auditoria-percurso-seguranca/")
 		self.assertEqual(response.status_code, 200)
 		self.assertContains(response, "date-filter-modal")
 		self.assertContains(response, "Aplicar Filtro")
 
 	def test_auditoria_reorder_modal_is_rendered(self):
+		self._login_staff()
 		response = self.client.get("/telas/auditoria-percurso-seguranca/")
 		self.assertEqual(response.status_code, 200)
 		self.assertContains(response, "Confirmar Reordenação")
@@ -552,6 +584,7 @@ class IsolatedScreenSetupTests(TestCase):
 		self.assertContains(response, "reorder-position-select")
 
 	def test_auditoria_export_csv(self):
+		self._login_staff()
 		response = self.client.get("/telas/auditoria-percurso-seguranca/?export=csv")
 		self.assertEqual(response.status_code, 200)
 		self.assertEqual(response["Content-Type"], "text/csv")
