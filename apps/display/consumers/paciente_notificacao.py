@@ -1,7 +1,7 @@
-from channels.generic.websocket import AsyncWebsocketConsumer
+from channels.generic.websocket import AsyncJsonWebsocketConsumer
 
 
-class PacienteNotificacaoConsumer(AsyncWebsocketConsumer):
+class PacienteNotificacaoConsumer(AsyncJsonWebsocketConsumer):
     async def connect(self):
         self.cpf = self.scope["url_route"]["kwargs"]["cpf"]
         self.group_name = f"paciente_{self.cpf}"
@@ -43,5 +43,14 @@ class PacienteNotificacaoConsumer(AsyncWebsocketConsumer):
             "tipo": "paciente_ausente",
             "senha": event.get("senha", ""),
             "nome": event.get("nome", ""),
+            "timestamp": event.get("timestamp", ""),
+        })
+
+    async def fila_atualizada(self, event):
+        await self.send_json({
+            "tipo": "fila_atualizada",
+            "chamando_agora": event.get("chamando_agora"),
+            "senha": event.get("senha", ""),
+            "pacientes_a_frente": event.get("pacientes_a_frente", 0),
             "timestamp": event.get("timestamp", ""),
         })

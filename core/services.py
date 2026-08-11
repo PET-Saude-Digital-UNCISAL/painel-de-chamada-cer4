@@ -39,7 +39,7 @@ from django.utils import timezone
 from core.clock import SystemClock
 
 from core.models import EncaixePaciente, Paciente, TipoAtendimentoEncaixe
-from core.websocket_utils import notificar_fila_atualizada
+from core.websocket_utils import notificar_fila_atualizada, notificar_pacientes_em_espera
 
 
 
@@ -1731,6 +1731,8 @@ STATUS_DISPLAY = {
 
     EncaixePaciente.Status.CONCLUIDO: "FINALIZADO",
 
+    EncaixePaciente.Status.AUSENTE: "AUSENTE",
+
 }
 
 
@@ -1746,6 +1748,8 @@ STATUS_CLASS = {
     EncaixePaciente.Status.ATENDIMENTO: "ok",
 
     EncaixePaciente.Status.CONCLUIDO: "ok",
+
+    EncaixePaciente.Status.AUSENTE: "alert",
 
 }
 
@@ -2165,6 +2169,36 @@ def registrar_encaixe(cleaned_data: dict, arquivo=None) -> EncaixePaciente:
 
 
 
+def _normalizar_nome(nome: str) -> str:
+    return " ".join((nome or "").strip().split()).casefold()
+
+
+def identidade_confere(paciente, data_nasc, nome_mae) -> bool:
+    """Confere a Data de Nascimento e o Nome da Mãe informados no check-in
+    contra o cadastro do ``paciente``.
+
+    O CPF sozinho não é suficiente para autenticar o check-in: qualquer
+    pessoa que soubesse o CPF (documento não é secreto) conseguiria se
+    passar por outro paciente. Por isso, quando o cadastro do paciente já
+    possui a data de nascimento e/ou o nome da mãe preenchidos, esses
+    valores viram obrigatórios e precisam bater com o que foi digitado.
+
+    Quando o cadastro não tem essa informação preenchida (ex.: paciente que
+    se auto-cadastrou pelo app e não informou nome da mãe), não há o que
+    conferir para aquele campo e ele é ignorado — não é uma falha de
+    segurança nova, é uma limitação de dados pré-existente.
+    """
+    if paciente.data_nascimento:
+        if not data_nasc or data_nasc != paciente.data_nascimento:
+            return False
+
+    if paciente.nome_mae:
+        if not nome_mae or _normalizar_nome(nome_mae) != _normalizar_nome(paciente.nome_mae):
+            return False
+
+    return True
+
+
 def registrar_checkin(paciente, data_nasc, nome_mae) -> EncaixePaciente | None:
 
     """Realiza check-in de paciente com agendamento prévio para hoje."""
@@ -2261,7 +2295,10 @@ def registrar_checkin(paciente, data_nasc, nome_mae) -> EncaixePaciente | None:
 
 
 
-    notificar_fila_atualizada()
+    # Só avisa quem já está esperando sobre a posição na fila — o check-in é
+    # iniciado pelo próprio paciente no Mobile, não pelo módulo Atendimentos
+    # do Dia, então não deve acionar o Painel de Chamada.
+    notificar_pacientes_em_espera()
 
     return encaixe
 

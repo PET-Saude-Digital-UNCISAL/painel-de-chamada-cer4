@@ -1551,6 +1551,8 @@
                                         <button class="call-action" type="button" data-senha="{{ paciente.ficha }}" data-nome="{{ paciente.nome }}" aria-label="Chamar {{ paciente.nome }}">Chamar</button>
                                         {% elif paciente.status == "AUSENTE" %}
                                         <button class="call-action" type="button" data-senha="{{ paciente.ficha }}" data-nome="{{ paciente.nome }}" aria-label="Chamar novamente {{ paciente.nome }}">Chamar Novamente</button>
+                                        {% elif paciente.status == "CHAMADO" or paciente.status == "EM ATENDIMENTO" %}
+                                        <button class="ausente-action" type="button" data-senha="{{ paciente.ficha }}" data-nome="{{ paciente.nome }}" aria-label="Marcar {{ paciente.nome }} como ausente">Marcar Ausente</button>
                                         {% endif %}
                                     </div>
                                 </td>
@@ -2268,6 +2270,71 @@
                         alert("Erro ao chamar paciente: " + err.message);
                         btn.disabled = false;
                         btn.textContent = "Chamar";
+                    });
+            });
+        })();
+
+        // === Marcar Ausente ===
+        (function () {
+            function getCSRFToken() {
+                const match = document.cookie.match(/csrftoken=([^;]+)/);
+                return match ? decodeURIComponent(match[1]) : "";
+            }
+
+            document.addEventListener("click", function (e) {
+                const btn = e.target.closest(".ausente-action");
+                if (!btn) return;
+                if (btn.disabled) return;
+
+                const senha = btn.dataset.senha;
+                const nome = btn.dataset.nome;
+                if (!senha) return;
+
+                if (!confirm("Marcar " + nome + " como ausente? O paciente será avisado que perdeu a chamada.")) return;
+
+                btn.disabled = true;
+                btn.textContent = "Marcando...";
+
+                const formData = new FormData();
+                formData.append("senha", senha);
+
+                fetch("/sistema/marcar-ausente/", {
+                    method: "POST",
+                    body: formData,
+                    headers: {
+                        "X-CSRFToken": getCSRFToken(),
+                        "X-Requested-With": "XMLHttpRequest",
+                    },
+                })
+                    .then(function (r) {
+                        if (r.status === 401) { window.location.href = "/login/"; return; }
+                        if (!r.ok) throw new Error("Erro " + r.status);
+                        return r.json();
+                    })
+                    .then(function (data) {
+                        if (!data.ok) throw new Error(data.erro || "Erro ao marcar ausente");
+
+                        var row = btn.closest(".queue-row");
+                        if (row) {
+                            var cells = row.querySelectorAll("td");
+                            var statusSpan = cells[7] ? cells[7].querySelector(".status") : null;
+                            if (statusSpan) {
+                                statusSpan.textContent = "AUSENTE";
+                                statusSpan.className = "status alert";
+                            }
+                        }
+
+                        // Vira o mesmo botão de "Chamar Novamente" (reaproveita o
+                        // listener de === Chamar Paciente ===, que já escuta .call-action).
+                        btn.className = "call-action";
+                        btn.setAttribute("aria-label", "Chamar novamente " + nome);
+                        btn.textContent = "Chamar Novamente";
+                        btn.disabled = false;
+                    })
+                    .catch(function (err) {
+                        alert("Erro ao marcar paciente como ausente: " + err.message);
+                        btn.disabled = false;
+                        btn.textContent = "Marcar Ausente";
                     });
             });
         })();

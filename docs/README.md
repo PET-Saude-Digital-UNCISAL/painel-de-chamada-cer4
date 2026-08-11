@@ -1,5 +1,11 @@
 # Painel de Chamada CER4
 
+> **Guia de investigação dos fluxos (qual arquivo analisar):** veja [GUIA_INVESTIGACAO.md](./GUIA_INVESTIGACAO.md)
+>
+> **Plano de refatoração e correção por fases:** veja [PLANO_REFATORACAO.md](./PLANO_REFATORACAO.md)
+> para a auditoria, causas-raiz, arquivos afetados e testes de cada fase
+> (Lógica/Estados, Real-Time, Encerramento/Pesquisa e Validação E2E).
+
 ## Estrutura do projeto
 
 - `manage.py` — ponto de entrada do Django

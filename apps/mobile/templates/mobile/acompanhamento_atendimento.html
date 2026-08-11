@@ -1088,11 +1088,22 @@
             if (msg.tipo === "paciente_chamado") {
               myLastStatus = "chamado";
               window.location.assign("{% url 'paciente-chamado' %}");
+            } else if (msg.tipo === "paciente_atendimento") {
+              myLastStatus = "atendimento";
+              window.location.assign("{% url 'paciente-chamado' %}");
             } else if (msg.tipo === "paciente_concluido") {
               myLastStatus = "concluido";
               window.location.assign("/pesquisa-satisfacao/?cpf=" + encodeURIComponent(wsCpf));
             } else if (msg.tipo === "paciente_ausente") {
               window.location.assign("{% url 'perdeu_chamada' %}");
+            } else if (msg.tipo === "fila_atualizada") {
+              if (window.acompanhamentoAtendimento && window.acompanhamentoAtendimento.updateQueue) {
+                window.acompanhamentoAtendimento.updateQueue({
+                  currentCall: msg.chamando_agora || "———",
+                  aheadCount: String(msg.pacientes_a_frente != null ? msg.pacientes_a_frente : "0"),
+                  animateAhead: true,
+                });
+              }
             }
           };
           ws.onclose = function () { setTimeout(connectPacienteWs, 5000); };

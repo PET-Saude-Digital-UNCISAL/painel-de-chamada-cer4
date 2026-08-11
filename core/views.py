@@ -56,6 +56,8 @@ from core.services import (
 
     get_screen_context,
 
+    identidade_confere,
+
     list_patient_screens,
 
     registrar_checkin,
@@ -490,7 +492,9 @@ def paciente_chamado_view(request):
 
             if paciente:
 
-                encaixe = EncaixePaciente.objects.filter(cpf=paciente.cpf).order_by("-criado_em").first()
+                encaixe = EncaixePaciente.objects.filter(
+                    cpf=paciente.cpf, data_atendimento=timezone.localdate(),
+                ).order_by("-criado_em").first()
 
     if encaixe:
 
@@ -566,7 +570,9 @@ def acompanhamento_atendimento_view(request):
 
             if paciente:
 
-                encaixe = EncaixePaciente.objects.filter(cpf=paciente.cpf).order_by("-criado_em").first()
+                encaixe = EncaixePaciente.objects.filter(
+                    cpf=paciente.cpf, data_atendimento=timezone.localdate(),
+                ).order_by("-criado_em").first()
 
     if encaixe:
 
@@ -654,7 +660,9 @@ def checkin_concluido_view(request):
 
             if paciente:
 
-                encaixe = EncaixePaciente.objects.filter(cpf=paciente.cpf).order_by("-criado_em").first()
+                encaixe = EncaixePaciente.objects.filter(
+                    cpf=paciente.cpf, data_atendimento=timezone.localdate(),
+                ).order_by("-criado_em").first()
 
     if encaixe:
 
@@ -751,6 +759,12 @@ def identificacao_paciente_view(request):
             paciente = Paciente.objects.filter(cpf=cpf, paciente_ativo=True).first()
 
             if not paciente:
+
+                return redirect("agendamento_nao_encontrado")
+
+
+
+            if not identidade_confere(paciente, data_nasc, nome_mae):
 
                 return redirect("agendamento_nao_encontrado")
 
@@ -1022,7 +1036,7 @@ def fluxo_paciente_view(request):
 
 
 
-                if data_nasc and paciente.data_nascimento and data_nasc != paciente.data_nascimento:
+                if not identidade_confere(paciente, data_nasc, nome_mae):
 
                     return redirect(f"{reverse('fluxo-paciente')}?step=agendamento-nao-encontrado")
 
@@ -1162,7 +1176,9 @@ def fluxo_paciente_view(request):
 
             if paciente:
 
-                encaixe = EncaixePaciente.objects.filter(cpf=paciente.cpf).order_by("-criado_em").first()
+                encaixe = EncaixePaciente.objects.filter(
+                    cpf=paciente.cpf, data_atendimento=timezone.localdate(),
+                ).order_by("-criado_em").first()
 
 
 
@@ -1352,7 +1368,9 @@ def perdeu_chamada_view(request, **kwargs):
 
             if paciente:
 
-                encaixe = EncaixePaciente.objects.filter(cpf=paciente.cpf).order_by("-criado_em").first()
+                encaixe = EncaixePaciente.objects.filter(
+                    cpf=paciente.cpf, data_atendimento=timezone.localdate(),
+                ).order_by("-criado_em").first()
 
     if encaixe:
 

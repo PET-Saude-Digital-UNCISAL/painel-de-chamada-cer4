@@ -1,9 +1,7 @@
-import json
-
-from channels.generic.websocket import AsyncWebsocketConsumer
+from channels.generic.websocket import AsyncJsonWebsocketConsumer
 
 
-class PainelChamadaConsumer(AsyncWebsocketConsumer):
+class PainelChamadaConsumer(AsyncJsonWebsocketConsumer):
     GROUP_NAME = "painel_chamada"
 
     async def connect(self):

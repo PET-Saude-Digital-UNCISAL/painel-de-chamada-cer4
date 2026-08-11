@@ -114,19 +114,37 @@ class PesquisaSatisfacaoSerializer(serializers.Serializer):
             raise serializers.ValidationError("CPF inválido.")
         return value
 
-    def create(self, validated_data):
+    def validate(self, attrs):
         from datetime import date
-        cpf = validated_data["cpf"]
+        from apps.core_domain.models import PesquisaSatisfacao
+
+        cpf = attrs["cpf"]
         encaixe = EncaixePaciente.objects.filter(
             cpf=cpf,
             data_atendimento=date.today(),
             status=EncaixePaciente.Status.CONCLUIDO,
         ).order_by("-criado_em").first()
+
+        if not encaixe:
+            raise serializers.ValidationError(
+                {"erro": "Nenhum atendimento concluído hoje foi encontrado para este CPF."}
+            )
+
+        if PesquisaSatisfacao.objects.filter(encaixe=encaixe).exists():
+            raise serializers.ValidationError(
+                {"erro": "Este atendimento já recebeu uma avaliação."}
+            )
+
+        attrs["encaixe"] = encaixe
+        return attrs
+
+    def create(self, validated_data):
         from apps.core_domain.models import PesquisaSatisfacao
+        encaixe = validated_data["encaixe"]
         return PesquisaSatisfacao.objects.create(
             encaixe=encaixe,
-            paciente_nome=encaixe.nome_completo if encaixe else "",
-            paciente_cpf=cpf,
+            paciente_nome=encaixe.nome_completo,
+            paciente_cpf=validated_data["cpf"],
             nota=validated_data["nota"],
             comentario=validated_data.get("comentario", ""),
         )
