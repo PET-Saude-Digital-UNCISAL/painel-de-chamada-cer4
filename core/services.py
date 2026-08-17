@@ -125,9 +125,9 @@ class _PainelChamadaDados:
 
 
 def _carregar_dados_painel() -> _PainelChamadaDados:
-    from datetime import date, datetime
-    hoje = date.today()
-    agora = datetime.now()
+    from django.utils import timezone
+    hoje = timezone.localdate()
+    agora = timezone.localtime()
     dias_pt = ["SEGUNDA-FEIRA", "TERÇA-FEIRA", "QUARTA-FEIRA", "QUINTA-FEIRA", "SEXTA-FEIRA", "SÁBADO", "DOMINGO"]
     meses_pt = ["", "JANEIRO", "FEVEREIRO", "MARÇO", "ABRIL", "MAIO", "JUNHO", "JULHO", "AGOSTO", "SETEMBRO", "OUTUBRO", "NOVEMBRO", "DEZEMBRO"]
     ultimo = (
@@ -1841,11 +1841,13 @@ def filtrar_auditoria(filtros_dict: dict) -> list[dict]:
 
         if e.status == EncaixePaciente.Status.CONCLUIDO:
 
-            encerramento = tz.localtime(e.chamado_em or e.criado_em).strftime("%H:%M:%S")
+            encerramento = tz.localtime(e.concluido_em or e.chamado_em or e.criado_em).strftime("%H:%M:%S")
 
 
 
         pacientes.append({
+
+            "id": e.pk,
 
             "ordem": idx,
 
@@ -2217,6 +2219,23 @@ def registrar_checkin(paciente, data_nasc, nome_mae) -> EncaixePaciente | None:
 
 
 
+    # Paciente que já fez check-in hoje (e saiu do app/fechou o navegador, por
+    # exemplo) não deve gerar um novo encaixe/senha ao reenviar os dados — só
+    # retorna o encaixe já existente. Isso também cobre o caso em que o
+    # Agendamento de hoje já foi marcado como CHECKIN_REALIZADO pelo primeiro
+    # check-in, então essa checagem precisa vir antes do filtro por AGENDADO.
+    encaixe_existente = (
+        EncaixePaciente.objects.filter(cpf=paciente.cpf, data_atendimento=hoje)
+        .order_by("-criado_em")
+        .first()
+    )
+
+    if encaixe_existente:
+
+        return encaixe_existente
+
+
+
     agendamento = Agendamento.objects.filter(
 
         paciente=paciente,
@@ -2232,7 +2251,6 @@ def registrar_checkin(paciente, data_nasc, nome_mae) -> EncaixePaciente | None:
     if not agendamento:
 
         return None
-
 
 
     with transaction.atomic():

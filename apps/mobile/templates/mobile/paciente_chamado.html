@@ -318,44 +318,6 @@
       border-radius: 9999px;
     }
 
-    .call-actions {
-      display: grid;
-      gap: 10px;
-      margin: 14px 24px 0;
-    }
-
-    .call-action {
-      min-height: 48px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 9px;
-      padding: 12px 18px;
-      color: #001a4d;
-      background: rgba(255, 255, 255, 0.88);
-      border: 1px solid #cbd7e6;
-      border-radius: 14px;
-      box-shadow: 0 6px 18px rgba(0, 26, 77, 0.08);
-      font: inherit;
-      font-size: 14px;
-      font-weight: 700;
-      cursor: pointer;
-      transition: background-color 180ms ease, border-color 180ms ease, color 180ms ease, transform 180ms ease;
-    }
-
-    .call-action:active {
-      transform: translateY(1px);
-    }
-
-    .call-action:focus-visible {
-      outline: 3px solid rgba(37, 99, 235, 0.28);
-      outline-offset: 2px;
-    }
-
-    .call-action[hidden] {
-      display: none;
-    }
-
     .card-blue.is-announcing {
       animation: call-attention 642.857ms ease-in-out 14;
       will-change: box-shadow, filter;
@@ -389,10 +351,6 @@
     }
 
     @media (prefers-reduced-motion: reduce) {
-      .call-action {
-        transition: none;
-      }
-
       .card-blue.is-announcing {
         animation: none;
         box-shadow: 0 0 0 6px rgba(72, 125, 255, 0.22), 0 14px 38px rgba(0, 26, 77, 0.3);
@@ -537,14 +495,6 @@
         <p class="alert-text">{{ mensagem }}</p>
       </section>
 
-      <div class="call-actions">
-        <button class="call-action" type="button" data-simulate-call>
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-            <path d="M14.5 5.5 9 10H5v4h4l5.5 4.5v-13Zm2.7 3.1a5 5 0 0 1 0 6.8M19.8 6a8.5 8.5 0 0 1 0 12" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
-          </svg>
-          <span data-simulate-label>Simular chamada</span>
-        </button>
-      </div>
     </main>
 
     <footer class="footer">
@@ -584,7 +534,6 @@
     (() => {
       const card = document.querySelector(".card-blue");
       const badge = document.querySelector(".badge-text");
-      const simulateButton = document.querySelector("[data-simulate-call]");
       const announcement = document.querySelector("[data-call-announcement]");
       const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
       const callMessage = "Paciente chamado. Senha {{ senha|escapejs }}. Dirija-se à sala {{ sala|escapejs }}.";
@@ -618,18 +567,6 @@
           card.classList.remove("is-announcing");
         }, 9000);
       };
-
-      const simulateCall = async () => {
-        badge.textContent = "EM ATENDIMENTO";
-        highlightCall();
-        announceCall();
-        if (!reduceMotion.matches && "vibrate" in navigator) {
-          navigator.vibrate([220, 120, 220, 120, 120]);
-        }
-        await playCallSound();
-      };
-
-      simulateButton.addEventListener("click", simulateCall);
 
       // === WebSocket de notificação do paciente ===
       (function () {

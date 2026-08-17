@@ -6,11 +6,11 @@ from django.views.decorators.http import require_POST
 
 from core.models import EncaixePaciente
 from core.websocket_utils import notificar_painel_chamada, notificar_fila_atualizada, notificar_paciente
-from core.auth_decorators import staff_required
+from core.auth_decorators import permissao_requerida
 
 
 @require_POST
-@staff_required
+@permissao_requerida("checkin")
 def chamar_paciente_view(request):
     senha = request.POST.get("senha", "")
     sala = request.POST.get("sala", "Sala 1")
@@ -56,7 +56,7 @@ def chamar_paciente_view(request):
 
 
 @require_POST
-@staff_required
+@permissao_requerida("checkin")
 def marcar_ausente_view(request):
     senha = request.POST.get("senha", "")
 

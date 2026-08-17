@@ -39,8 +39,8 @@ def notificar_fila_atualizada():
     paciente no Mobile (ex.: check-in) devem chamar
     `notificar_pacientes_em_espera()` diretamente, sem tocar no Painel.
     """
-    from datetime import date
-    hoje = date.today()
+    from django.utils import timezone
+    hoje = timezone.localdate()
     _notificar_painel(hoje)
     notificar_pacientes_em_espera(hoje)
 
@@ -97,9 +97,9 @@ def notificar_pacientes_em_espera(hoje=None):
     Sem isso o app mobile só descobre mudanças de posição no próximo ciclo
     do polling de 5s, em vez de em tempo real.
     """
-    from datetime import date
+    from django.utils import timezone
     if hoje is None:
-        hoje = date.today()
+        hoje = timezone.localdate()
     chamando = (
         EncaixePaciente.objects.filter(
             data_atendimento=hoje,

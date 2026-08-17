@@ -57,3 +57,10 @@ Watching for file changes with StatReloader
 C:\Users\DanielyVasconcelos\painel-de-chamada-cer4\core\views.py changed, reloading.
 Watching for file changes with StatReloader
 HTTP GET / 200 [0.30, 127.0.0.1:51116]
+HTTP GET /login/ 200 [0.22, 127.0.0.1:56651]
+HTTP GET /static/core/css/login.css 304 [0.40, 127.0.0.1:56651]
+HTTP GET /static/core/img/uncisal-logo.png 304 [0.03, 127.0.0.1:57438]
+HTTP GET /static/core/img/cer-logo.png 304 [0.08, 127.0.0.1:61007]
+HTTP GET /static/core/img/Logo_SUS.svg.webp 304 [0.02, 127.0.0.1:63549]
+HTTP POST /login/ 200 [0.40, 127.0.0.1:63549]
+HTTP POST /login/ 200 [0.24, 127.0.0.1:63549]

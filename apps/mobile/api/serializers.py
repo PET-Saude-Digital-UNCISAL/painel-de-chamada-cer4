@@ -105,7 +105,11 @@ class PacienteCadastroSerializer(serializers.ModelSerializer):
 
 class PesquisaSatisfacaoSerializer(serializers.Serializer):
     cpf = serializers.CharField(max_length=14)
-    nota = serializers.IntegerField(min_value=1, max_value=5)
+    nota_atendimento = serializers.IntegerField(min_value=1, max_value=5)
+    nota_espera = serializers.IntegerField(min_value=1, max_value=5)
+    nota_instalacao = serializers.IntegerField(min_value=1, max_value=5)
+    nota_profissional = serializers.IntegerField(min_value=1, max_value=5)
+    nota_clareza = serializers.IntegerField(min_value=1, max_value=5)
     comentario = serializers.CharField(required=False, allow_blank=True, default="")
 
     def validate_cpf(self, value):
@@ -141,11 +145,24 @@ class PesquisaSatisfacaoSerializer(serializers.Serializer):
     def create(self, validated_data):
         from apps.core_domain.models import PesquisaSatisfacao
         encaixe = validated_data["encaixe"]
+        categorias = (
+            validated_data["nota_atendimento"],
+            validated_data["nota_espera"],
+            validated_data["nota_instalacao"],
+            validated_data["nota_profissional"],
+            validated_data["nota_clareza"],
+        )
+        nota_geral = round(sum(categorias) / len(categorias))
         return PesquisaSatisfacao.objects.create(
             encaixe=encaixe,
             paciente_nome=encaixe.nome_completo,
             paciente_cpf=validated_data["cpf"],
-            nota=validated_data["nota"],
+            nota=nota_geral,
+            nota_atendimento=validated_data["nota_atendimento"],
+            nota_espera=validated_data["nota_espera"],
+            nota_instalacao=validated_data["nota_instalacao"],
+            nota_profissional=validated_data["nota_profissional"],
+            nota_clareza=validated_data["nota_clareza"],
             comentario=validated_data.get("comentario", ""),
         )
 

@@ -1146,6 +1146,36 @@
         .call-action:hover { background: #008f63; border-color: #008f63; }
         .call-action:disabled { opacity: 0.5; cursor: not-allowed; }
 
+        .ausente-action {
+            height: 22px; width: auto; padding: 0 8px;
+            border: 1px solid #d33834; border-radius: 6px;
+            background: #ffd6d1; color: #a91515;
+            font-size: 10px; font-weight: 800; cursor: pointer;
+            display: inline-flex; align-items: center; gap: 3px;
+        }
+        .ausente-action:hover { background: #ffc4bd; border-color: #c62828; }
+        .ausente-action:disabled { opacity: 0.5; cursor: not-allowed; }
+
+        .iniciar-action {
+            height: 22px; width: auto; padding: 0 8px;
+            border: 1px solid #00519c; border-radius: 6px;
+            background: #dbeafe; color: #00519c;
+            font-size: 10px; font-weight: 800; cursor: pointer;
+            display: inline-flex; align-items: center; gap: 3px;
+        }
+        .iniciar-action:hover { background: #bfd8ff; }
+        .iniciar-action:disabled { opacity: 0.5; cursor: not-allowed; }
+
+        .concluir-action {
+            height: 22px; width: auto; padding: 0 8px;
+            border: 1px solid #00a878; border-radius: 6px;
+            background: #00a878; color: #fff;
+            font-size: 10px; font-weight: 800; cursor: pointer;
+            display: inline-flex; align-items: center; gap: 3px;
+        }
+        .concluir-action:hover { background: #008f63; border-color: #008f63; }
+        .concluir-action:disabled { opacity: 0.5; cursor: not-allowed; }
+
         .view-toggle {
             display: flex; gap: 4px; margin-bottom: 16px;
             background: var(--soft-gray); padding: 3px;
@@ -1522,7 +1552,7 @@
                         </thead>
                         <tbody>
                             {% for paciente in pacientes %}
-                            <tr class="queue-row" data-ficha="{{ paciente.ficha }}" data-nome="{{ paciente.nome }}" data-ordem="{{ paciente.ordem }}">
+                            <tr class="queue-row" data-id="{{ paciente.id }}" data-ficha="{{ paciente.ficha }}" data-nome="{{ paciente.nome }}" data-ordem="{{ paciente.ordem }}" data-status="{{ paciente.status }}">
                                 <td>{{ paciente.ordem }}</td>
                                 <td class="ficha">{{ paciente.ficha }}</td>
                                 <td>
@@ -1551,7 +1581,11 @@
                                         <button class="call-action" type="button" data-senha="{{ paciente.ficha }}" data-nome="{{ paciente.nome }}" aria-label="Chamar {{ paciente.nome }}">Chamar</button>
                                         {% elif paciente.status == "AUSENTE" %}
                                         <button class="call-action" type="button" data-senha="{{ paciente.ficha }}" data-nome="{{ paciente.nome }}" aria-label="Chamar novamente {{ paciente.nome }}">Chamar Novamente</button>
-                                        {% elif paciente.status == "CHAMADO" or paciente.status == "EM ATENDIMENTO" %}
+                                        {% elif paciente.status == "CHAMADO" %}
+                                        <button class="iniciar-action" type="button" data-id="{{ paciente.id }}" data-nome="{{ paciente.nome }}" aria-label="Iniciar atendimento de {{ paciente.nome }}">Iniciar Atendimento</button>
+                                        <button class="ausente-action" type="button" data-senha="{{ paciente.ficha }}" data-nome="{{ paciente.nome }}" aria-label="Marcar {{ paciente.nome }} como ausente">Marcar Ausente</button>
+                                        {% elif paciente.status == "EM ATENDIMENTO" %}
+                                        <button class="concluir-action" type="button" data-id="{{ paciente.id }}" data-nome="{{ paciente.nome }}" aria-label="Concluir atendimento de {{ paciente.nome }}">Concluir Atendimento</button>
                                         <button class="ausente-action" type="button" data-senha="{{ paciente.ficha }}" data-nome="{{ paciente.nome }}" aria-label="Marcar {{ paciente.nome }} como ausente">Marcar Ausente</button>
                                         {% endif %}
                                     </div>
@@ -2204,13 +2238,66 @@
             });
         })();
 
+        // === Helpers de status / ações da fila ===
+        function getCSRFToken() {
+            const match = document.cookie.match(/csrftoken=([^;]+)/);
+            return match ? decodeURIComponent(match[1]) : "";
+        }
+
+        function statusClassFor(status) {
+            return {
+                "AGUARDANDO": "wait",
+                "CHAMADO": "ok",
+                "EM ATENDIMENTO": "ok",
+                "FINALIZADO": "ok",
+                "AUSENTE": "alert",
+                "EM VALIDAÇÃO": "wait",
+            }[status] || "wait";
+        }
+
+        function actionsHTMLFor(status, ctx) {
+            const esc = (s) => String(s == null ? "" : s).replace(/"/g, "&quot;");
+            const reorder = '<button class="icon-btn reorder-action" type="button" aria-label="Reorganizar fila de ' + esc(ctx.nome) + '">↕</button>';
+
+            if (status === "AGUARDANDO") {
+                return reorder + '<button class="call-action" type="button" data-senha="' + esc(ctx.ficha) + '" data-nome="' + esc(ctx.nome) + '" aria-label="Chamar ' + esc(ctx.nome) + '">Chamar</button>';
+            }
+            if (status === "AUSENTE") {
+                return reorder + '<button class="call-action" type="button" data-senha="' + esc(ctx.ficha) + '" data-nome="' + esc(ctx.nome) + '" aria-label="Chamar novamente ' + esc(ctx.nome) + '">Chamar Novamente</button>';
+            }
+            if (status === "CHAMADO") {
+                return reorder
+                    + '<button class="iniciar-action" type="button" data-id="' + esc(ctx.id) + '" data-nome="' + esc(ctx.nome) + '" aria-label="Iniciar atendimento de ' + esc(ctx.nome) + '">Iniciar Atendimento</button>'
+                    + '<button class="ausente-action" type="button" data-senha="' + esc(ctx.ficha) + '" data-nome="' + esc(ctx.nome) + '" aria-label="Marcar ' + esc(ctx.nome) + ' como ausente">Marcar Ausente</button>';
+            }
+            if (status === "EM ATENDIMENTO") {
+                return reorder
+                    + '<button class="concluir-action" type="button" data-id="' + esc(ctx.id) + '" data-nome="' + esc(ctx.nome) + '" aria-label="Concluir atendimento de ' + esc(ctx.nome) + '">Concluir Atendimento</button>'
+                    + '<button class="ausente-action" type="button" data-senha="' + esc(ctx.ficha) + '" data-nome="' + esc(ctx.nome) + '" aria-label="Marcar ' + esc(ctx.nome) + ' como ausente">Marcar Ausente</button>';
+            }
+            return reorder;
+        }
+
+        function applyRowStatus(row, status) {
+            row.dataset.status = status;
+            const cells = row.querySelectorAll("td");
+            const statusSpan = cells[7] ? cells[7].querySelector(".status") : null;
+            if (statusSpan) {
+                statusSpan.textContent = status;
+                statusSpan.className = "status " + statusClassFor(status);
+            }
+            const actionsCell = cells[9] ? cells[9].querySelector(".actions-cell") : null;
+            if (actionsCell) {
+                actionsCell.innerHTML = actionsHTMLFor(status, {
+                    id: row.dataset.id,
+                    ficha: row.dataset.ficha,
+                    nome: row.dataset.nome,
+                });
+            }
+        }
+
         // === Chamar Paciente ===
         (function () {
-            function getCSRFToken() {
-                const match = document.cookie.match(/csrftoken=([^;]+)/);
-                return match ? decodeURIComponent(match[1]) : "";
-            }
-
             document.addEventListener("click", function (e) {
                 const btn = e.target.closest(".call-action");
                 if (!btn) return;
@@ -2245,16 +2332,12 @@
                         return r.json();
                     })
                     .then(function (data) {
+                        if (!data) return;
                         if (!data.ok) throw new Error(data.erro || "Erro ao chamar");
 
                         var row = btn.closest(".queue-row");
                         if (row) {
                             var cells = row.querySelectorAll("td");
-                            var statusSpan = cells[7] ? cells[7].querySelector(".status") : null;
-                            if (statusSpan) {
-                                statusSpan.textContent = "EM ATENDIMENTO";
-                                statusSpan.className = "status ok";
-                            }
                             var chamadaCell = cells[5];
                             if (chamadaCell) {
                                 var agora = new Date();
@@ -2263,8 +2346,8 @@
                                     String(agora.getMinutes()).padStart(2, "0") + ":" +
                                     String(agora.getSeconds()).padStart(2, "0");
                             }
+                            applyRowStatus(row, "CHAMADO");
                         }
-                        btn.textContent = "Chamado";
                     })
                     .catch(function (err) {
                         alert("Erro ao chamar paciente: " + err.message);
@@ -2274,13 +2357,88 @@
             });
         })();
 
+        // === Iniciar Atendimento ===
+        (function () {
+            document.addEventListener("click", function (e) {
+                const btn = e.target.closest(".iniciar-action");
+                if (!btn) return;
+                if (btn.disabled) return;
+
+                const id = btn.dataset.id;
+                if (!id) return;
+
+                btn.disabled = true;
+                btn.textContent = "Iniciando...";
+
+                fetch("/encaixe/" + encodeURIComponent(id) + "/iniciar-atendimento/", {
+                    method: "POST",
+                    headers: {
+                        "X-CSRFToken": getCSRFToken(),
+                        "X-Requested-With": "XMLHttpRequest",
+                    },
+                })
+                    .then(function (r) {
+                        if (r.status === 401) { window.location.href = "/login/"; return; }
+                        if (!r.ok) throw new Error("Erro " + r.status);
+                        return r.json();
+                    })
+                    .then(function (data) {
+                        if (!data) return;
+                        if (!data.ok) throw new Error(data.erro || "Erro ao iniciar atendimento");
+
+                        var row = btn.closest(".queue-row");
+                        if (row) applyRowStatus(row, "EM ATENDIMENTO");
+                    })
+                    .catch(function (err) {
+                        alert("Erro ao iniciar atendimento: " + err.message);
+                        btn.disabled = false;
+                        btn.textContent = "Iniciar Atendimento";
+                    });
+            });
+        })();
+
+        // === Concluir Atendimento ===
+        (function () {
+            document.addEventListener("click", function (e) {
+                const btn = e.target.closest(".concluir-action");
+                if (!btn) return;
+                if (btn.disabled) return;
+
+                const id = btn.dataset.id;
+                if (!id) return;
+
+                btn.disabled = true;
+                btn.textContent = "Concluindo...";
+
+                fetch("/encaixe/" + encodeURIComponent(id) + "/concluir-atendimento/", {
+                    method: "POST",
+                    headers: {
+                        "X-CSRFToken": getCSRFToken(),
+                        "X-Requested-With": "XMLHttpRequest",
+                    },
+                })
+                    .then(function (r) {
+                        if (r.status === 401) { window.location.href = "/login/"; return; }
+                        if (!r.ok) throw new Error("Erro " + r.status);
+                        return r.json();
+                    })
+                    .then(function (data) {
+                        if (!data) return;
+                        if (!data.ok) throw new Error(data.erro || "Erro ao concluir atendimento");
+
+                        var row = btn.closest(".queue-row");
+                        if (row) applyRowStatus(row, "FINALIZADO");
+                    })
+                    .catch(function (err) {
+                        alert("Erro ao concluir atendimento: " + err.message);
+                        btn.disabled = false;
+                        btn.textContent = "Concluir Atendimento";
+                    });
+            });
+        })();
+
         // === Marcar Ausente ===
         (function () {
-            function getCSRFToken() {
-                const match = document.cookie.match(/csrftoken=([^;]+)/);
-                return match ? decodeURIComponent(match[1]) : "";
-            }
-
             document.addEventListener("click", function (e) {
                 const btn = e.target.closest(".ausente-action");
                 if (!btn) return;
@@ -2312,24 +2470,11 @@
                         return r.json();
                     })
                     .then(function (data) {
+                        if (!data) return;
                         if (!data.ok) throw new Error(data.erro || "Erro ao marcar ausente");
 
                         var row = btn.closest(".queue-row");
-                        if (row) {
-                            var cells = row.querySelectorAll("td");
-                            var statusSpan = cells[7] ? cells[7].querySelector(".status") : null;
-                            if (statusSpan) {
-                                statusSpan.textContent = "AUSENTE";
-                                statusSpan.className = "status alert";
-                            }
-                        }
-
-                        // Vira o mesmo botão de "Chamar Novamente" (reaproveita o
-                        // listener de === Chamar Paciente ===, que já escuta .call-action).
-                        btn.className = "call-action";
-                        btn.setAttribute("aria-label", "Chamar novamente " + nome);
-                        btn.textContent = "Chamar Novamente";
-                        btn.disabled = false;
+                        if (row) applyRowStatus(row, "AUSENTE");
                     })
                     .catch(function (err) {
                         alert("Erro ao marcar paciente como ausente: " + err.message);
@@ -2391,6 +2536,72 @@
                     if (panels.kanban) panels.kanban.hidden = view !== "kanban";
                 });
             });
+        })();
+
+        // === Sincronização automática (WebSocket) ===
+        // Mantém a fila atualizada sem precisar de F5: qualquer chamada,
+        // ausência, conclusão de atendimento ou novo check-in dispara um
+        // evento no grupo "painel_chamada", e aqui recarregamos silenciosamente
+        // a tabela/kanban/estatísticas em vez de esperar o usuário atualizar a página.
+        (function () {
+            if (!("WebSocket" in window)) return;
+
+            var refreshTimer = null;
+
+            function anyModalOpen() {
+                return document.querySelector(
+                    ".encaixe-backdrop.is-open, .import-backdrop.is-open, .date-modal-backdrop.is-open, .reorder-modal-backdrop.is-open"
+                ) !== null;
+            }
+
+            function silentRefresh() {
+                if (anyModalOpen()) return;
+                fetch(window.location.href, { headers: { "X-Requested-With": "XMLHttpRequest" } })
+                    .then(function (r) { return r.ok ? r.text() : null; })
+                    .then(function (html) {
+                        if (!html) return;
+                        var doc = new DOMParser().parseFromString(html, "text/html");
+
+                        var freshStats = doc.querySelector(".agenda-stats");
+                        var currentStats = document.querySelector(".agenda-stats");
+                        if (freshStats && currentStats) currentStats.innerHTML = freshStats.innerHTML;
+
+                        var freshTable = doc.querySelector(".table-wrap.view-panel-lista");
+                        var currentTable = document.querySelector(".table-wrap.view-panel-lista");
+                        if (freshTable && currentTable) currentTable.innerHTML = freshTable.innerHTML;
+
+                        var freshKanban = doc.querySelector(".view-panel-kanban .kanban-grid");
+                        var currentKanban = document.querySelector(".view-panel-kanban .kanban-grid");
+                        if (freshKanban && currentKanban) currentKanban.innerHTML = freshKanban.innerHTML;
+
+                        var freshSummary = doc.querySelector(".panel-footer .summary");
+                        var currentSummary = document.querySelector(".panel-footer .summary");
+                        if (freshSummary && currentSummary) currentSummary.innerHTML = freshSummary.innerHTML;
+                    })
+                    .catch(function (err) { console.error("Falha ao sincronizar Atendimentos do Dia:", err); });
+            }
+
+            function scheduleRefresh() {
+                if (anyModalOpen()) return;
+                if (refreshTimer) clearTimeout(refreshTimer);
+                refreshTimer = setTimeout(silentRefresh, 700);
+            }
+
+            function connect() {
+                var protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
+                var socket;
+                try {
+                    socket = new WebSocket(protocol + "//" + window.location.host + "/ws/painel-chamada/");
+                } catch (e) {
+                    setTimeout(connect, 5000);
+                    return;
+                }
+                socket.onmessage = function () { scheduleRefresh(); };
+                socket.onclose = function () { setTimeout(connect, 5000); };
+                socket.onerror = function () { socket.close(); };
+            }
+
+            connect();
         })();
     </script>
 </body>

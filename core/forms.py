@@ -140,6 +140,48 @@ class MeuPerfilForm(forms.ModelForm):
         return email
 
 
+class AlterarSenhaForm(forms.Form):
+    """Formulário de troca de senha na tela Meu Perfil (staff ou paciente)."""
+
+    senha_atual = forms.CharField(
+        label="Senha atual",
+        widget=forms.PasswordInput(attrs={"autocomplete": "current-password"}),
+    )
+    nova_senha = forms.CharField(
+        label="Nova senha",
+        min_length=8,
+        widget=forms.PasswordInput(attrs={"autocomplete": "new-password"}),
+    )
+    confirmar_nova_senha = forms.CharField(
+        label="Confirmar nova senha",
+        widget=forms.PasswordInput(attrs={"autocomplete": "new-password"}),
+    )
+
+    def __init__(self, *args, instancia=None, **kwargs):
+        self.instancia = instancia
+        super().__init__(*args, **kwargs)
+
+    def clean_senha_atual(self):
+        senha_atual = self.cleaned_data["senha_atual"]
+        if not self.instancia or not self.instancia.checar_senha(senha_atual):
+            raise forms.ValidationError("A senha atual informada está incorreta.")
+        return senha_atual
+
+    def clean(self):
+        cleaned = super().clean()
+        nova_senha = cleaned.get("nova_senha")
+        confirmar_nova_senha = cleaned.get("confirmar_nova_senha")
+        senha_atual = cleaned.get("senha_atual")
+
+        if nova_senha and confirmar_nova_senha and nova_senha != confirmar_nova_senha:
+            raise forms.ValidationError("A confirmação não coincide com a nova senha.")
+
+        if nova_senha and senha_atual and nova_senha == senha_atual:
+            raise forms.ValidationError("A nova senha deve ser diferente da senha atual.")
+
+        return cleaned
+
+
 class LoginPacienteForm(forms.Form):
     """Formulário da tela de Login (Acesso ao Portal)."""
 

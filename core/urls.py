@@ -10,6 +10,11 @@ urlpatterns = [
     path("sistema-interno/", views.sistema_interno_figma_view, name="sistema-interno"),
     path("configuracoes/", views.configuracoes_view, name="configuracoes"),
     path(
+        "configuracoes/permissoes/salvar/",
+        views.salvar_permissoes_nivel_view,
+        name="salvar-permissoes-nivel",
+    ),
+    path(
         "dashboard-monitoramento/",
         views.dashboard_monitoramento_view,
         name="dashboard-monitoramento",

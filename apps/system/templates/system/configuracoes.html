@@ -46,7 +46,7 @@
             <nav class="settings-nav" aria-label="Seções de configurações">
                 <button class="settings-tab active" type="button" data-module="access"><i data-lucide="circle-user-round"></i>Controle de Níveis de Acesso</button>
                 <button class="settings-tab" type="button" data-module="users"><i data-lucide="chart-no-axes-column"></i>Gestão de Usuários</button>
-                <button class="settings-tab" type="button" data-module="audit"><i data-lucide="shield-half"></i>Auditoria e Segurança</button>
+                <button class="settings-tab" type="button" data-module="audit"><i data-lucide="shield-half"></i>Auditoria e Segurança<span class="tab-soon-tag">Em breve</span></button>
             </nav>
 
             <main class="content module-view active" id="module-access">
@@ -63,6 +63,7 @@
                             <button class="profile" type="button" role="tab" aria-selected="false" data-profile="super-admin"><span class="profile-icon"><i data-lucide="shield-check"></i></span><span><strong>Super Admin</strong><small>Acesso Total ao Sistema</small></span></button>
                         </div>
                         <div class="notice"><i data-lucide="info"></i><span>Alterações nestes níveis de acesso afetam imediatamente todos os usuários vinculados ao perfil selecionado.</span></div>
+                        {% if not pode_editar_permissoes %}<div class="notice" style="margin-top:8px"><i data-lucide="shield-alert"></i><span>Você tem acesso somente leitura. Apenas Super Admins podem alterar permissões de níveis de acesso.</span></div>{% endif %}
                     </section>
 
                     <section class="permissions" aria-labelledby="permissions-title">
@@ -102,6 +103,8 @@
                     <div><h1>Auditoria de Acesso</h1><p>Rastreabilidade completa de todas as ações executadas no sistema clínico.<br>Monitore permissões, logins e alterações críticas.</p></div>
                     <button class="audit-export" type="button"><i data-lucide="download"></i>Exportar CSV</button>
                 </div>
+
+                <div class="notice warning"><i data-lucide="flask-conical"></i><span>Este módulo ainda está em desenvolvimento. Os dados exibidos abaixo são fictícios, apenas para demonstração do layout.</span></div>
 
                 <section class="audit-filters" aria-label="Filtros da auditoria">
                     <button class="audit-filter white" type="button"><span class="audit-filter-icon"><i data-lucide="calendar-days"></i></span><span><small>PERÍODO</small><strong>01 Out 2023 - 31 Out 2023</strong></span></button>
@@ -219,7 +222,6 @@
                 {% if usuario_form.errors %}<div class="form-errors">Revise os campos. CPF e e-mail não podem estar duplicados.</div>{% endif %}
                 <label class="form-field"><span>Nome Completo</span><input id="new-user-name" name="nome_completo" type="text" value="{{ usuario_form.nome_completo.value|default:'' }}" placeholder="Ex: Ana Maria Silva" autocomplete="name" required></label>
                 <label class="form-field"><span>E-mail Institucional</span><input name="email_institucional" type="email" value="{{ usuario_form.email_institucional.value|default:'' }}" placeholder="ana.silva@clinicalcentral.com.br" autocomplete="email" required></label>
-                <div class="invite-note"><i data-lucide="info"></i><span>Um link de convite para ativação da conta será enviado para o e-mail institucional informado.</span></div>
                 <div class="form-columns">
                     <label class="form-field"><span>CPF</span><input id="new-user-cpf" name="cpf" type="text" value="{{ usuario_form.cpf.value|default:'' }}" inputmode="numeric" placeholder="000.000.000-00" maxlength="14" required></label>
                     <label class="form-field"><span>Cargo/Nível de Acesso</span><select name="nivel_acesso" required><option value="recepcionista" {% if usuario_form.nivel_acesso.value == 'recepcionista' %}selected{% endif %}>Recepcionista</option><option value="coordenacao" {% if usuario_form.nivel_acesso.value == 'coordenacao' %}selected{% endif %}>Coordenação</option><option value="super_admin" {% if usuario_form.nivel_acesso.value == 'super_admin' %}selected{% endif %}>Super Admin</option></select></label>
@@ -230,6 +232,8 @@
         </div>
     </div>
     <div class="toast" id="toast" role="status">Alterações salvas no protótipo.</div>
+    {{ permissoes_por_nivel|json_script:"permissoes-data" }}
+    {{ pode_editar_permissoes|json_script:"pode-editar-permissoes-data" }}
 
     <script>
         document.addEventListener("DOMContentLoaded", () => {
@@ -248,26 +252,96 @@
             renderClock();
             window.setInterval(renderClock, 15000);
 
-            const profiles = {
-                recepcionista: { title: "Recepcionista", active: ["checkin"] },
-                coordenacao: { title: "Coordenação", active: ["checkin", "prontuario", "usuarios", "auditoria"] },
-                "super-admin": { title: "Super Admin", active: ["checkin", "prontuario", "usuarios", "auditoria", "deletar"] }
-            };
+            // Permissões reais, vindas do banco (NivelAcessoPermissao) — substitui a
+            // antiga simulação client-side que nunca persistia nada.
+            const NIVEL_POR_PERFIL = { recepcionista: "recepcionista", coordenacao: "coordenacao", "super-admin": "super_admin" };
+            const TITULO_PERFIL = { recepcionista: "Recepcionista", coordenacao: "Coordenação", "super-admin": "Super Admin" };
+            const permissoesIniciais = JSON.parse(document.getElementById("permissoes-data").textContent);
+            const podeEditarPermissoes = JSON.parse(document.getElementById("pode-editar-permissoes-data").textContent);
+            const estadoPermissoes = {};
+            Object.keys(NIVEL_POR_PERFIL).forEach((perfilKey) => {
+                const nivel = NIVEL_POR_PERFIL[perfilKey];
+                estadoPermissoes[perfilKey] = Object.assign({}, permissoesIniciais[nivel] || {});
+            });
+
             const profileButtons = document.querySelectorAll("[data-profile]");
             const permissionInputs = document.querySelectorAll("[data-permission]");
             const title = document.getElementById("permissions-title");
+            const saveButton = document.getElementById("save-button");
+            let perfilAtual = "recepcionista";
+
+            function getCSRFToken() {
+                const match = document.cookie.match(/csrftoken=([^;]+)/);
+                return match ? decodeURIComponent(match[1]) : "";
+            }
+
             function selectProfile(key) {
-                const profile = profiles[key];
-                title.textContent = `Permissões: ${profile.title}`;
+                perfilAtual = key;
+                title.textContent = `Permissões: ${TITULO_PERFIL[key]}`;
                 profileButtons.forEach((button) => {
                     const selected = button.dataset.profile === key;
                     button.classList.toggle("active", selected);
                     button.setAttribute("aria-selected", String(selected));
                 });
-                permissionInputs.forEach((input) => { input.checked = profile.active.includes(input.dataset.permission); });
+                permissionInputs.forEach((input) => {
+                    input.checked = !!estadoPermissoes[key][input.dataset.permission];
+                    input.disabled = !podeEditarPermissoes;
+                });
             }
             profileButtons.forEach((button) => button.addEventListener("click", () => selectProfile(button.dataset.profile)));
+            permissionInputs.forEach((input) => {
+                input.addEventListener("change", () => {
+                    estadoPermissoes[perfilAtual][input.dataset.permission] = input.checked;
+                });
+            });
             selectProfile("recepcionista");
+
+            if (!podeEditarPermissoes) {
+                saveButton.disabled = true;
+                saveButton.title = "Apenas Super Admin pode alterar permissões de níveis de acesso.";
+            }
+
+            saveButton.addEventListener("click", () => {
+                if (!podeEditarPermissoes) return;
+                saveButton.disabled = true;
+                const textoOriginal = saveButton.textContent;
+                saveButton.textContent = "Salvando...";
+                fetch("{{ salvar_permissoes_url }}", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        "X-CSRFToken": getCSRFToken(),
+                        "X-Requested-With": "XMLHttpRequest",
+                    },
+                    body: JSON.stringify({
+                        nivel_acesso: NIVEL_POR_PERFIL[perfilAtual],
+                        permissoes: estadoPermissoes[perfilAtual],
+                    }),
+                })
+                    .then((r) => r.json().then((data) => ({ status: r.status, data })))
+                    .then(({ status, data }) => {
+                        const toast = document.getElementById("toast");
+                        if (status === 200 && data.ok) {
+                            toast.textContent = `Permissões de ${TITULO_PERFIL[perfilAtual]} salvas com sucesso.`;
+                            toast.classList.remove("erro");
+                        } else {
+                            toast.textContent = data.erro || "Não foi possível salvar as permissões.";
+                            toast.classList.add("erro");
+                        }
+                        toast.classList.add("visible");
+                        window.setTimeout(() => toast.classList.remove("visible"), 2600);
+                    })
+                    .catch(() => {
+                        const toast = document.getElementById("toast");
+                        toast.textContent = "Falha de conexão ao salvar permissões.";
+                        toast.classList.add("erro", "visible");
+                        window.setTimeout(() => toast.classList.remove("visible"), 2600);
+                    })
+                    .finally(() => {
+                        saveButton.disabled = !podeEditarPermissoes;
+                        saveButton.textContent = textoOriginal;
+                    });
+            });
 
             const moduleButtons = document.querySelectorAll("[data-module]");
             const moduleViews = document.querySelectorAll(".module-view");
@@ -395,13 +469,6 @@
                 else if (!editModal.hidden) setEditModal(false);
                 else if (!userModal.hidden) setUserModal(false);
                 else setDrawer(false);
-            });
-
-            document.getElementById("save-button").addEventListener("click", () => {
-                // Future integration point: persist the selected profile permissions.
-                const toast = document.getElementById("toast");
-                toast.classList.add("visible");
-                window.setTimeout(() => toast.classList.remove("visible"), 2200);
             });
         });
     </script>

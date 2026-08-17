@@ -115,12 +115,22 @@ Registro de novo paciente.
 ---
 
 #### `POST /api/v1/pesquisa-satisfacao/`
-Submete pesquisa de satisfação.
+Submete pesquisa de satisfação, com nota (1 a 5) por categoria.
 
 **Body:**
 ```json
-{ "cpf": "390.533.447-05", "nota": 5, "comentario": "Ótimo atendimento" }
+{
+  "cpf": "390.533.447-05",
+  "nota_atendimento": 5,
+  "nota_espera": 4,
+  "nota_instalacao": 5,
+  "nota_profissional": 5,
+  "nota_clareza": 4,
+  "comentario": "Ótimo atendimento"
+}
 ```
+
+A nota geral (`nota`) é calculada automaticamente como a média arredondada das 5 categorias.
 
 **Response `201`:**
 ```json

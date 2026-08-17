@@ -92,8 +92,8 @@
                             </button>
                         </div>
                         {% if form.senha.errors %}<p class="campo-erro">{{ form.senha.errors.0 }}</p>{% endif %}
-                        <div class="medidor-senha" id="medidor-senha" data-nivel="0"><span></span><span></span><span></span></div>
-                        <p class="medidor-senha-legenda" id="medidor-senha-legenda">Senha fraca</p>
+                        <div class="medidor-senha" id="medidor-senha" data-nivel="0" hidden><span></span><span></span><span></span></div>
+                        <p class="medidor-senha-legenda" id="medidor-senha-legenda" hidden></p>
                     </div>
 
                     <div class="campo-grupo">
@@ -189,7 +189,14 @@
         if (campoSenha && medidor && legenda) {
             const legendas = {0: "Senha fraca", 1: "Senha fraca", 2: "Senha média", 3: "Senha forte"};
             campoSenha.addEventListener("input", () => {
+                if (!campoSenha.value) {
+                    medidor.hidden = true;
+                    legenda.hidden = true;
+                    return;
+                }
                 const nivel = calcularNivel(campoSenha.value);
+                medidor.hidden = false;
+                legenda.hidden = false;
                 medidor.setAttribute("data-nivel", String(nivel));
                 legenda.setAttribute("data-nivel", String(nivel));
                 legenda.textContent = legendas[nivel];

@@ -366,37 +366,6 @@
       .service-icon { width: 3.25cqw; height: 3.25cqw; margin-right: .65cqw; object-fit: contain; }
       .service-type { color: var(--green); }
 
-      .demo-call-button {
-        position: absolute;
-        right: 2.4cqw;
-        bottom: 1.15cqw;
-        display: inline-flex;
-        align-items: center;
-        gap: .5cqw;
-        min-height: 2.45cqw;
-        padding: .45cqw .9cqw;
-        border: .06cqw solid rgba(24, 59, 140, .2);
-        border-radius: 999px;
-        color: #183b8c;
-        background: rgba(255, 255, 255, .78);
-        box-shadow: 0 .28cqw 1.15cqw rgba(9, 46, 133, .12);
-        backdrop-filter: blur(10px);
-        -webkit-backdrop-filter: blur(10px);
-        font: 700 .82cqw/1 "Inter", sans-serif;
-        opacity: 1;
-        cursor: pointer;
-      }
-
-      .demo-call-button svg {
-        width: 1.05cqw;
-        height: 1.05cqw;
-        fill: none;
-        stroke: currentColor;
-        stroke-linecap: round;
-        stroke-linejoin: round;
-        stroke-width: 2;
-      }
-
       .recent-calls {
         width: 100%;
         min-width: 0;
@@ -523,10 +492,6 @@
             <strong class="service-type">{{ current_call.service_type }}</strong>
           </div>
 
-          <button class="demo-call-button" type="button" data-announcement="Senha {{ current_call.ticket }}, {{ current_call.patient_name }}, dirija-se à {{ current_call.room }}">
-            <svg aria-hidden="true" viewBox="0 0 24 24"><path d="M11 5 6.5 9H3v6h3.5L11 19z"></path><path d="M15 9.5a4 4 0 0 1 0 5"></path><path d="M18 7a7 7 0 0 1 0 10"></path></svg>
-            Simular chamada
-          </button>
           <audio data-chamada-audio preload="auto" src="{{ chamada_audio_url }}"></audio>
         </section>
 
@@ -567,7 +532,6 @@
         const dateElement = document.querySelector("[data-current-date]");
         const noticeDateElements = document.querySelectorAll("[data-notice-date]");
         const ticketElement = document.querySelector("[data-current-ticket]");
-        const demoButton = document.querySelector(".demo-call-button");
         const chamadaAudio = document.querySelector("[data-chamada-audio]");
         const timeFormatter = new Intl.DateTimeFormat("pt-BR", {
           timeZone,
@@ -609,23 +573,6 @@
         });
         chamadaAudio.addEventListener("error", () => {
           console.error("Não foi possível carregar o áudio simulado de chamada.");
-        });
-        demoButton.addEventListener("click", () => {
-          ticketElement.classList.remove("ticket-number--announcing");
-          void ticketElement.offsetWidth;
-          ticketElement.classList.add("ticket-number--announcing");
-
-          try {
-            chamadaAudio.currentTime = 0;
-            const playback = chamadaAudio.play();
-            if (playback) {
-              playback.catch((error) => {
-                console.error("Não foi possível reproduzir o áudio simulado de chamada.", error);
-              });
-            }
-          } catch (error) {
-            console.error("Não foi possível reproduzir o áudio simulado de chamada.", error);
-          }
         });
       })();
 

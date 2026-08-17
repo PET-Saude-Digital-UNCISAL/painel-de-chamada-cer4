@@ -26,25 +26,61 @@
 
         <div class="bg-white border border-slate-100 rounded-2xl p-5 shadow-sm my-6 flex flex-col items-center text-center" id="survey-card">
             <p class="text-blue-950 font-bold text-base px-2 leading-snug" id="survey-question">
-                Em uma escala de 1 a 5 estrelas, como você avaliaria sua experiência?
+                Avalie sua experiência
             </p>
+            <p class="text-slate-400 text-xs mt-1">Toque nas estrelas de cada item</p>
 
-            <div class="w-full border-2 border-dashed border-slate-200 bg-slate-50/50 rounded-xl py-6 px-2 mt-4 flex justify-center gap-1" id="stars-container">
-                <button class="star-btn text-slate-300 hover:scale-110 transition text-3xl" data-value="1">
-                    <i class="fa-solid fa-star"></i>
-                </button>
-                <button class="star-btn text-slate-300 hover:scale-110 transition text-3xl" data-value="2">
-                    <i class="fa-solid fa-star"></i>
-                </button>
-                <button class="star-btn text-slate-300 hover:scale-110 transition text-3xl" data-value="3">
-                    <i class="fa-solid fa-star"></i>
-                </button>
-                <button class="star-btn text-slate-300 hover:scale-110 transition text-3xl" data-value="4">
-                    <i class="fa-solid fa-star"></i>
-                </button>
-                <button class="star-btn text-slate-300 hover:scale-110 transition text-3xl" data-value="5">
-                    <i class="fa-solid fa-star"></i>
-                </button>
+            <div class="w-full border-2 border-dashed border-slate-200 bg-slate-50/50 rounded-xl py-1 px-3 mt-4 divide-y divide-slate-200" id="categories-container">
+                <div class="flex items-center justify-between gap-2 py-2.5">
+                    <span class="text-xs font-bold text-blue-950">Atendimento</span>
+                    <div class="flex gap-0.5">
+                        <button class="star-btn text-slate-300 hover:scale-110 transition text-lg" data-category="atendimento" data-value="1"><i class="fa-solid fa-star"></i></button>
+                        <button class="star-btn text-slate-300 hover:scale-110 transition text-lg" data-category="atendimento" data-value="2"><i class="fa-solid fa-star"></i></button>
+                        <button class="star-btn text-slate-300 hover:scale-110 transition text-lg" data-category="atendimento" data-value="3"><i class="fa-solid fa-star"></i></button>
+                        <button class="star-btn text-slate-300 hover:scale-110 transition text-lg" data-category="atendimento" data-value="4"><i class="fa-solid fa-star"></i></button>
+                        <button class="star-btn text-slate-300 hover:scale-110 transition text-lg" data-category="atendimento" data-value="5"><i class="fa-solid fa-star"></i></button>
+                    </div>
+                </div>
+                <div class="flex items-center justify-between gap-2 py-2.5">
+                    <span class="text-xs font-bold text-blue-950">Espera</span>
+                    <div class="flex gap-0.5">
+                        <button class="star-btn text-slate-300 hover:scale-110 transition text-lg" data-category="espera" data-value="1"><i class="fa-solid fa-star"></i></button>
+                        <button class="star-btn text-slate-300 hover:scale-110 transition text-lg" data-category="espera" data-value="2"><i class="fa-solid fa-star"></i></button>
+                        <button class="star-btn text-slate-300 hover:scale-110 transition text-lg" data-category="espera" data-value="3"><i class="fa-solid fa-star"></i></button>
+                        <button class="star-btn text-slate-300 hover:scale-110 transition text-lg" data-category="espera" data-value="4"><i class="fa-solid fa-star"></i></button>
+                        <button class="star-btn text-slate-300 hover:scale-110 transition text-lg" data-category="espera" data-value="5"><i class="fa-solid fa-star"></i></button>
+                    </div>
+                </div>
+                <div class="flex items-center justify-between gap-2 py-2.5">
+                    <span class="text-xs font-bold text-blue-950">Instalação</span>
+                    <div class="flex gap-0.5">
+                        <button class="star-btn text-slate-300 hover:scale-110 transition text-lg" data-category="instalacao" data-value="1"><i class="fa-solid fa-star"></i></button>
+                        <button class="star-btn text-slate-300 hover:scale-110 transition text-lg" data-category="instalacao" data-value="2"><i class="fa-solid fa-star"></i></button>
+                        <button class="star-btn text-slate-300 hover:scale-110 transition text-lg" data-category="instalacao" data-value="3"><i class="fa-solid fa-star"></i></button>
+                        <button class="star-btn text-slate-300 hover:scale-110 transition text-lg" data-category="instalacao" data-value="4"><i class="fa-solid fa-star"></i></button>
+                        <button class="star-btn text-slate-300 hover:scale-110 transition text-lg" data-category="instalacao" data-value="5"><i class="fa-solid fa-star"></i></button>
+                    </div>
+                </div>
+                <div class="flex items-center justify-between gap-2 py-2.5">
+                    <span class="text-xs font-bold text-blue-950">Profissional</span>
+                    <div class="flex gap-0.5">
+                        <button class="star-btn text-slate-300 hover:scale-110 transition text-lg" data-category="profissional" data-value="1"><i class="fa-solid fa-star"></i></button>
+                        <button class="star-btn text-slate-300 hover:scale-110 transition text-lg" data-category="profissional" data-value="2"><i class="fa-solid fa-star"></i></button>
+                        <button class="star-btn text-slate-300 hover:scale-110 transition text-lg" data-category="profissional" data-value="3"><i class="fa-solid fa-star"></i></button>
+                        <button class="star-btn text-slate-300 hover:scale-110 transition text-lg" data-category="profissional" data-value="4"><i class="fa-solid fa-star"></i></button>
+                        <button class="star-btn text-slate-300 hover:scale-110 transition text-lg" data-category="profissional" data-value="5"><i class="fa-solid fa-star"></i></button>
+                    </div>
+                </div>
+                <div class="flex items-center justify-between gap-2 py-2.5">
+                    <span class="text-xs font-bold text-blue-950">Clareza</span>
+                    <div class="flex gap-0.5">
+                        <button class="star-btn text-slate-300 hover:scale-110 transition text-lg" data-category="clareza" data-value="1"><i class="fa-solid fa-star"></i></button>
+                        <button class="star-btn text-slate-300 hover:scale-110 transition text-lg" data-category="clareza" data-value="2"><i class="fa-solid fa-star"></i></button>
+                        <button class="star-btn text-slate-300 hover:scale-110 transition text-lg" data-category="clareza" data-value="3"><i class="fa-solid fa-star"></i></button>
+                        <button class="star-btn text-slate-300 hover:scale-110 transition text-lg" data-category="clareza" data-value="4"><i class="fa-solid fa-star"></i></button>
+                        <button class="star-btn text-slate-300 hover:scale-110 transition text-lg" data-category="clareza" data-value="5"><i class="fa-solid fa-star"></i></button>
+                    </div>
+                </div>
             </div>
 
             <textarea id="comentario" class="w-full mt-4 p-3 border border-slate-200 rounded-xl text-sm resize-none focus:outline-none focus:ring-2 focus:ring-blue-950/20" rows="2" placeholder="Quer deixar um comentário? (opcional)"></textarea>
@@ -83,8 +119,8 @@
         cpf = params.get("cpf") || "";
     }
 
-    var notaSelecionada = 0;
-    var stars = document.querySelectorAll(".star-btn");
+    var CATEGORIAS = ["atendimento", "espera", "instalacao", "profissional", "clareza"];
+    var notas = { atendimento: 0, espera: 0, instalacao: 0, profissional: 0, clareza: 0 };
     var btnEnviar = document.getElementById("btn-enviar");
     var feedbackMsg = document.getElementById("feedback-msg");
     var comentario = document.getElementById("comentario");
@@ -101,34 +137,34 @@
         return "text-slate-300";
     }
 
-    function updateStars(val) {
-        stars.forEach(function(btn) {
+    function updateStars(categoria, val) {
+        document.querySelectorAll('.star-btn[data-category="' + categoria + '"]').forEach(function(btn) {
             var v = parseInt(btn.getAttribute("data-value"));
-            if (v <= val) {
-                btn.className = "star-btn hover:scale-110 transition text-3xl " + getStarColor(v);
-            } else {
-                btn.className = "star-btn hover:scale-110 transition text-3xl text-slate-300";
-            }
+            btn.className = "star-btn hover:scale-110 transition text-lg " + (v <= val ? getStarColor(v) : "text-slate-300");
         });
     }
 
-    stars.forEach(function(btn) {
+    function todasCategoriasPreenchidas() {
+        return CATEGORIAS.every(function(c) { return notas[c] > 0; });
+    }
+
+    document.querySelectorAll(".star-btn").forEach(function(btn) {
+        var categoria = btn.getAttribute("data-category");
         btn.addEventListener("click", function() {
-            notaSelecionada = parseInt(btn.getAttribute("data-value"));
-            updateStars(notaSelecionada);
-            btnEnviar.disabled = false;
+            notas[categoria] = parseInt(btn.getAttribute("data-value"));
+            updateStars(categoria, notas[categoria]);
+            btnEnviar.disabled = !todasCategoriasPreenchidas();
         });
         btn.addEventListener("mouseenter", function() {
-            var v = parseInt(btn.getAttribute("data-value"));
-            updateStars(v);
+            updateStars(categoria, parseInt(btn.getAttribute("data-value")));
         });
         btn.addEventListener("mouseleave", function() {
-            updateStars(notaSelecionada);
+            updateStars(categoria, notas[categoria]);
         });
     });
 
     btnEnviar.addEventListener("click", function() {
-        if (!notaSelecionada) return;
+        if (!todasCategoriasPreenchidas()) return;
         btnEnviar.disabled = true;
         btnEnviar.innerHTML = '<svg class="animate-spin h-5 w-5" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" fill="none"/><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/></svg> Enviando...';
 
@@ -137,7 +173,11 @@
             headers: {"Content-Type": "application/json"},
             body: JSON.stringify({
                 cpf: cpf,
-                nota: notaSelecionada,
+                nota_atendimento: notas.atendimento,
+                nota_espera: notas.espera,
+                nota_instalacao: notas.instalacao,
+                nota_profissional: notas.profissional,
+                nota_clareza: notas.clareza,
                 comentario: comentario.value,
             }),
         })
