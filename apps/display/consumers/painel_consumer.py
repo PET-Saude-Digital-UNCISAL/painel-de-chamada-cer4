@@ -25,6 +25,7 @@ class PainelChamadaConsumer(AsyncJsonWebsocketConsumer):
         await self.send_json({
             "tipo": "fila_atualizada",
             "fila": event.get("fila", []),
+            "recent_calls": event.get("recent_calls", []),
             "timestamp": event.get("timestamp", ""),
         })
 

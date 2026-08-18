@@ -27,6 +27,11 @@ urlpatterns = [
         name="acompanhamento-atendimento",
     ),
     path(
+        "checar-documentos/",
+        views.checagem_documentos_paciente_view,
+        name="mobile-checagem-documentos",
+    ),
+    path(
         "checkin-concluido/",
         views.checkin_concluido_view,
         name="checkin-concluido",

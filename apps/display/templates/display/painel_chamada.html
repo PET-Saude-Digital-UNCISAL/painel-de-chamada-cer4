@@ -184,13 +184,21 @@
         display: grid;
         grid-template-columns: 19.35cqw 49.5cqw minmax(0, 1fr);
         min-height: 0;
+        /* Trava de segurança: os cartões desta linha (posição/QR e últimos
+           chamados) têm alturas calculadas a partir da LARGURA da tela
+           (cqw). Em proporções de tela mais baixas que o previsto, isso os
+           fazia crescer além da altura reservada para esta linha e vazar
+           por cima da barra de avisos (que é desenhada depois, por isso
+           ficava "por cima"). Com overflow: hidden aqui, nada desta linha
+           consegue mais invadir visualmente a linha de baixo. */
+        overflow: hidden;
       }
 
       .position-card {
         position: relative;
         align-self: start;
         width: 17.1cqw;
-        height: 37.7cqw;
+        height: min(37.7cqw, 100%);
         margin-top: 1cqw;
         margin-left: 3.6cqw;
         overflow: hidden;
@@ -413,11 +421,11 @@
       .recent-call-card--highlighted time { color: #fff; }
       .recent-call-card--highlighted .recent-call-main span { border-color: rgba(255,255,255,.65); }
 
-      .notice-bar { display: grid; grid-template-columns: 7.35% 1fr; color: #fff; background: var(--blue-950); }
-      .notice-bar > strong { display: grid; place-items: center; background: #0a1525; font-size: 1.22cqw; letter-spacing: .1cqw; }
+      .notice-bar { display: grid; grid-template-columns: 7.35% 1fr; color: #fff; background: var(--blue-950); overflow: hidden; }
+      .notice-bar > strong { display: grid; place-items: center; background: #0a1525; font-size: min(1.22cqw, 2.3vh); letter-spacing: .1cqw; line-height: 1.1; }
       .notice-ticker { min-width: 0; overflow: hidden; }
       .notice-track { display: flex; width: max-content; height: 100%; animation: notice-scroll 70s linear infinite; will-change: transform; }
-      .notice-message { align-self: center; flex: 0 0 auto; margin: 0; padding: 0 9cqw 0 1.1cqw; white-space: nowrap; font-size: clamp(.72rem, 1.12cqw, 1.375rem); font-weight: 700; }
+      .notice-message { align-self: center; flex: 0 0 auto; margin: 0; padding: 0 9cqw 0 1.1cqw; white-space: nowrap; font-size: clamp(.72rem, min(1.12cqw, 2vh), 1.375rem); line-height: 1.1; font-weight: 700; }
       .notice-message span { padding: 0 3.5cqw; }
       .notice-message .notice-date { padding: 0; }
 

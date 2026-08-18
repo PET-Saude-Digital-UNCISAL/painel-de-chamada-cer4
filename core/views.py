@@ -517,6 +517,24 @@ def paciente_chamado_view(request):
                     cpf=paciente.cpf, data_atendimento=timezone.localdate(),
                 ).order_by("-criado_em").first()
 
+    if not encaixe:
+
+        # A notificação em tempo real (WebSocket) redireciona o navegador do
+        # paciente para esta tela assim que ele é chamado. Se a sessão dele
+        # tiver sido perdida nesse meio-tempo (ex.: cookie expirado, ou —
+        # num mesmo navegador — outro login sobrescrevendo a sessão), cair
+        # direto no mock faria a tela mostrar um paciente/sala inventados
+        # como se fossem reais. Por isso aceitamos a senha como parâmetro
+        # de URL (enviada pelo próprio redirecionamento) como identificação
+        # de reserva, sem depender só do cookie de sessão.
+        senha_param = request.GET.get("senha", "").strip().upper()
+
+        if senha_param:
+
+            encaixe = EncaixePaciente.objects.filter(
+                senha=senha_param, data_atendimento=timezone.localdate(),
+            ).order_by("-criado_em").first()
+
     if encaixe:
 
         if encaixe.status not in (
@@ -539,7 +557,7 @@ def paciente_chamado_view(request):
 
             "paciente": encaixe.nome_completo,
 
-            "sala": encaixe.sala or "10",
+            "sala": encaixe.sala or "Sala 10",
 
             "cpf": encaixe.cpf,
 
@@ -656,6 +674,99 @@ def acompanhamento_atendimento_view(request):
     return render(request, "mobile/acompanhamento_atendimento.html", get_acompanhamento_atendimento_context())
 
 
+@xframe_options_sameorigin
+def checagem_documentos_paciente_view(request):
+    """Tela mobile do paciente para checar se está com os documentos
+    necessários antes do exame auditivo (acessada pelo botão "Checar
+    Documentos" da tela de Acompanhamento de Atendimento).
+
+    Assim como em paciente_chamado_view, aceita CPF/encaixe_id via query
+    string como identificação de reserva, para o caso de a sessão do
+    paciente ter sido perdida nesse meio-tempo.
+    """
+    # Um cpf/encaixe_id explícito na querystring (como o enviado pelo botão
+    # "Checar Documentos" da tela de Acompanhamento) identifica o paciente
+    # que efetivamente abriu este link, então tem prioridade sobre a sessão
+    # — que pode ter sido sobrescrita por outro login no mesmo navegador
+    # entre a renderização daquela tela e o clique neste botão.
+    encaixe_id = request.GET.get("encaixe_id", "").strip()
+    cpf = request.GET.get("cpf", "").strip()
+
+    encaixe = None
+    if encaixe_id:
+        encaixe = EncaixePaciente.objects.filter(pk=encaixe_id).first()
+    elif cpf:
+        encaixe = EncaixePaciente.objects.filter(
+            cpf=cpf, data_atendimento=timezone.localdate(),
+        ).order_by("-criado_em").first()
+
+    if not encaixe:
+        encaixe_id = request.session.get("encaixe_id")
+        if encaixe_id:
+            encaixe = EncaixePaciente.objects.filter(pk=encaixe_id).first()
+
+    if not encaixe:
+        paciente_id = request.session.get("paciente_id")
+        if paciente_id:
+            paciente = Paciente.objects.filter(pk=paciente_id).first()
+            if paciente:
+                encaixe = EncaixePaciente.objects.filter(
+                    cpf=paciente.cpf, data_atendimento=timezone.localdate(),
+                ).order_by("-criado_em").first()
+
+    voltar_url = reverse("acompanhamento-atendimento")
+
+    if encaixe:
+        tipos = list(encaixe.tipos_atendimento.all())
+        exame_nome = tipos[0].get_tipo_display() if tipos else "Exame Auditivo"
+    else:
+        exame_nome = "Exame Auditivo"
+
+    context = {
+        "page_title": "Checar Documentos",
+        "footer_indicators": [
+            {"label": "LGPD", "detail": "Conforme", "icon": "lock"},
+            {"label": "Conexão", "detail": "Segura", "icon": "shield"},
+        ],
+        "inter_font_url": _get_painel_chamada_asset_data_url("fonts/Inter-Variable.ttf"),
+        "voltar_url": voltar_url,
+        "checklist_itens": [
+            {
+                "titulo": "Pedido Médico",
+                "descricao": f"Pedido médico original com a solicitação do {exame_nome.lower()}.",
+            },
+            {
+                "titulo": "Documento com Foto",
+                "descricao": "RG, CNH ou outro documento oficial com foto.",
+            },
+            {
+                "titulo": "Comprovante de Agendamento",
+                "descricao": "Senha ou comprovante do seu check-in de hoje.",
+            },
+        ],
+    }
+
+    if encaixe:
+        primeiro_nome = (encaixe.nome_completo or "").strip().split(" ")[0] or encaixe.nome_completo
+        context.update({
+            "paciente_nome": encaixe.nome_completo,
+            "primeiro_nome": primeiro_nome,
+            "exame_nome": exame_nome,
+            "sala_prevista": encaixe.sala or "Sala 1",
+            "senha": encaixe.senha,
+            "cpf": encaixe.cpf,
+        })
+    else:
+        context.update({
+            "paciente_nome": "",
+            "primeiro_nome": "Paciente",
+            "exame_nome": exame_nome,
+            "sala_prevista": "",
+            "senha": "",
+            "cpf": "",
+        })
+
+    return render(request, "mobile/checagem_documentos.html", context)
 
 
 
@@ -1368,7 +1479,7 @@ def fluxo_paciente_view(request):
 
             "paciente": encaixe.nome_completo,
 
-            "sala": encaixe.sala or "10",
+            "sala": encaixe.sala or "Sala 10",
 
             "cpf": encaixe.cpf,
 

@@ -1176,6 +1176,10 @@
         .concluir-action:hover { background: #008f63; border-color: #008f63; }
         .concluir-action:disabled { opacity: 0.5; cursor: not-allowed; }
 
+        .validar-action { height: 22px; width: auto; padding: 0 8px; border: 1px solid #7c4fd6; border-radius: 6px; background: #ede4fb; color: #5a30ad; font-size: 10px; font-weight: 800; cursor: pointer; display: inline-flex; align-items: center; gap: 3px; }
+        .validar-action:hover { background: #ddccf7; }
+        .validar-action:disabled { opacity: 0.5; cursor: not-allowed; }
+
         .view-toggle {
             display: flex; gap: 4px; margin-bottom: 16px;
             background: var(--soft-gray); padding: 3px;
@@ -1587,6 +1591,8 @@
                                         {% elif paciente.status == "EM ATENDIMENTO" %}
                                         <button class="concluir-action" type="button" data-id="{{ paciente.id }}" data-nome="{{ paciente.nome }}" aria-label="Concluir atendimento de {{ paciente.nome }}">Concluir Atendimento</button>
                                         <button class="ausente-action" type="button" data-senha="{{ paciente.ficha }}" data-nome="{{ paciente.nome }}" aria-label="Marcar {{ paciente.nome }} como ausente">Marcar Ausente</button>
+                                        {% elif paciente.status == "EM VALIDAÇÃO" %}
+                                        <button class="validar-action" type="button" data-id="{{ paciente.id }}" data-nome="{{ paciente.nome }}" aria-label="Validar encaixe de {{ paciente.nome }}">Validar</button>
                                         {% endif %}
                                     </div>
                                 </td>
@@ -2275,6 +2281,10 @@
                     + '<button class="concluir-action" type="button" data-id="' + esc(ctx.id) + '" data-nome="' + esc(ctx.nome) + '" aria-label="Concluir atendimento de ' + esc(ctx.nome) + '">Concluir Atendimento</button>'
                     + '<button class="ausente-action" type="button" data-senha="' + esc(ctx.ficha) + '" data-nome="' + esc(ctx.nome) + '" aria-label="Marcar ' + esc(ctx.nome) + ' como ausente">Marcar Ausente</button>';
             }
+            if (status === "EM VALIDAÇÃO") {
+                return reorder
+                    + '<button class="validar-action" type="button" data-id="' + esc(ctx.id) + '" data-nome="' + esc(ctx.nome) + '" aria-label="Validar encaixe de ' + esc(ctx.nome) + '">Validar</button>';
+            }
             return reorder;
         }
 
@@ -2393,6 +2403,46 @@
                         alert("Erro ao iniciar atendimento: " + err.message);
                         btn.disabled = false;
                         btn.textContent = "Iniciar Atendimento";
+                    });
+            });
+        })();
+
+        // === Validar Encaixe ===
+        (function () {
+            document.addEventListener("click", function (e) {
+                const btn = e.target.closest(".validar-action");
+                if (!btn) return;
+                if (btn.disabled) return;
+
+                const id = btn.dataset.id;
+                if (!id) return;
+
+                btn.disabled = true;
+                btn.textContent = "Validando...";
+
+                fetch("/encaixe/" + encodeURIComponent(id) + "/validar/", {
+                    method: "POST",
+                    headers: {
+                        "X-CSRFToken": getCSRFToken(),
+                        "X-Requested-With": "XMLHttpRequest",
+                    },
+                })
+                    .then(function (r) {
+                        if (r.status === 401) { window.location.href = "/login/"; return; }
+                        if (!r.ok) throw new Error("Erro " + r.status);
+                        return r.json();
+                    })
+                    .then(function (data) {
+                        if (!data) return;
+                        if (!data.ok) throw new Error(data.erro || "Erro ao validar encaixe");
+
+                        var row = btn.closest(".queue-row");
+                        if (row) applyRowStatus(row, "AGUARDANDO");
+                    })
+                    .catch(function (err) {
+                        alert("Erro ao validar encaixe: " + err.message);
+                        btn.disabled = false;
+                        btn.textContent = "Validar";
                     });
             });
         })();
@@ -2547,6 +2597,7 @@
             if (!("WebSocket" in window)) return;
 
             var refreshTimer = null;
+            var pendingRefresh = false;
 
             function anyModalOpen() {
                 return document.querySelector(
@@ -2555,7 +2606,8 @@
             }
 
             function silentRefresh() {
-                if (anyModalOpen()) return;
+                if (anyModalOpen()) { pendingRefresh = true; return; }
+                pendingRefresh = false;
                 fetch(window.location.href, { headers: { "X-Requested-With": "XMLHttpRequest" } })
                     .then(function (r) { return r.ok ? r.text() : null; })
                     .then(function (html) {
@@ -2582,9 +2634,29 @@
             }
 
             function scheduleRefresh() {
-                if (anyModalOpen()) return;
+                if (anyModalOpen()) { pendingRefresh = true; return; }
                 if (refreshTimer) clearTimeout(refreshTimer);
                 refreshTimer = setTimeout(silentRefresh, 700);
+            }
+
+            // Se uma atualização chegou enquanto um modal (ex.: Encaixe,
+            // Importar Agendamentos) estava aberto, ela fica pendente e é
+            // aplicada assim que o modal fechar — sem isso, ações feitas
+            // dentro do próprio modal (como registrar um encaixe) nunca
+            // apareciam na tabela até um F5 manual.
+            var modalBackdrops = document.querySelectorAll(
+                ".encaixe-backdrop, .import-backdrop, .date-modal-backdrop, .reorder-modal-backdrop"
+            );
+            if (modalBackdrops.length && "MutationObserver" in window) {
+                var modalObserver = new MutationObserver(function () {
+                    if (pendingRefresh && !anyModalOpen()) {
+                        pendingRefresh = false;
+                        silentRefresh();
+                    }
+                });
+                modalBackdrops.forEach(function (el) {
+                    modalObserver.observe(el, { attributes: true, attributeFilter: ["class"] });
+                });
             }
 
             function connect() {

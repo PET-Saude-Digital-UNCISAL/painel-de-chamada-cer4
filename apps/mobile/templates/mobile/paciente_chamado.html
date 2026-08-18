@@ -466,7 +466,7 @@
           <svg width="28" height="28" viewBox="0 0 24 24" fill="none" aria-hidden="true">
             <path fill-rule="evenodd" clip-rule="evenodd" d="M3 3.5A1.5 1.5 0 0 1 4.5 2h15A1.5 1.5 0 0 1 21 3.5v17a1.5 1.5 0 0 1-1.5 1.5h-15A1.5 1.5 0 0 1 3 20.5v-17ZM6 4v16h12V4H6Zm5 9a1 1 0 1 0 2 0 1 1 0 0 0-2 0Z" fill="white"/>
           </svg>
-          <p class="sala-text">DIRIJA-SE À<br>SALA {{ sala }}</p>
+          <p class="sala-text">DIRIJA-SE À<br>{{ sala }}</p>
         </div>
 
         <div class="patient-box">
@@ -586,7 +586,7 @@
               var salaEl = document.querySelector(".sala-text");
               if (ticketEl) ticketEl.textContent = msg.senha;
               if (patientEl) patientEl.textContent = (msg.nome || "").toUpperCase();
-              if (salaEl) salaEl.innerHTML = "DIRIJA-SE À<br>SALA " + (msg.sala || "{{ sala|escapejs }}");
+              if (salaEl) salaEl.innerHTML = "DIRIJA-SE À<br>" + (msg.sala || "{{ sala|escapejs }}");
             } else if (msg.tipo === "paciente_atendimento") {
               badge.textContent = "EM ATENDIMENTO";
               highlightCall();

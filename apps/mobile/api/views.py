@@ -1,4 +1,4 @@
-from datetime import date
+from django.utils import timezone
 
 from rest_framework import mixins, status, viewsets
 from rest_framework.decorators import action
@@ -34,7 +34,7 @@ class FilaViewSet(mixins.ListModelMixin, viewsets.GenericViewSet):
 
     @action(detail=False, methods=["get"], url_path="atual")
     def fila_atual(self, request):
-        hoje = date.today()
+        hoje = timezone.localdate()
 
         cpf = request.query_params.get("cpf", "").strip()
         meu_encaixe = None

@@ -1360,8 +1360,8 @@
 
           <p class="queue-message">{{ mensagem }}</p>
 
-          {% if tipo_atendimento == "Exame" %}
-          <a class="doc-check-link" href="{% url 'screen-checagem-documentos' %}" style="display:flex;align-items:center;justify-content:center;gap:8px;margin:16px 0 0;padding:12px 18px;background:white;border:1px solid #cbd7e6;border-radius:14px;color:#001a4d;font-size:14px;font-weight:700;text-decoration:none;box-shadow:0 6px 18px rgba(0,26,77,0.08);">
+          {% if tipo_atendimento == "Exame Auditivo" %}
+          <a class="doc-check-link" href="{% url 'mobile-checagem-documentos' %}?cpf={{ cpf }}" style="display:flex;align-items:center;justify-content:center;gap:8px;margin:16px 0 0;padding:12px 18px;background:white;border:1px solid #cbd7e6;border-radius:14px;color:#001a4d;font-size:14px;font-weight:700;text-decoration:none;box-shadow:0 6px 18px rgba(0,26,77,0.08);">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
               <path d="M9 12L11 14L15 10M21 12C21 16.97 17.97 20 13 20C8.03 20 5 16.97 5 12C5 7.03 8.03 4 13 4C17.97 4 21 7.03 21 12Z" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
             </svg>
