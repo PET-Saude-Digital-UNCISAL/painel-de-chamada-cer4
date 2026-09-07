@@ -11,8 +11,9 @@
 - `manage.py` — ponto de entrada do Django
 - `config/` — configuração principal do projeto
 - `core/` — app principal da aplicação
-- `db.sqlite3` — banco de dados local de desenvolvimento
 - `requirements.txt` — dependências do projeto
+
+> **Banco de dados:** o projeto usa **PostgreSQL** em todos os ambientes, inclusive em desenvolvimento local (veja `.env.example`). Não há suporte a SQLite — o arquivo `db.sqlite3` que pode aparecer na raiz é apenas um artefato vazio e não é utilizado pela aplicação.
 
 ## Requisitos
 

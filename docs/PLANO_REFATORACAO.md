@@ -56,20 +56,20 @@ Estimativa de esforço é aproximada, pensando em quem já conhece o projeto.
 
 **Objetivo:** arrumar a casa sem mexer em nenhuma linha de lógica de negócio.
 
-- [ ] Remover `db.sqlite3` da raiz (ou adicionar ao `.gitignore` se alguém
+- [x] Remover `db.sqlite3` da raiz (ou adicionar ao `.gitignore` se alguém
       ainda usa localmente por algum motivo) e atualizar o `docs/README.md`
       pra não falar mais em "banco local sqlite" — deixar claro que é sempre
       Postgres, inclusive em dev.
-- [ ] Adicionar `server.log` e `server_err.log` ao `.gitignore` e removê-los
+- [x] Adicionar `server.log` e `server_err.log` ao `.gitignore` e removê-los
       do controle de versão (`git rm --cached`).
-- [ ] Mover os `test_*_tmp.py` da raiz para uma pasta `scripts/qa_manual/`
+- [x] Mover os `test_*_tmp.py` da raiz para uma pasta `scripts/qa_manual/`
       (ou apagar os que já não servem mais) — separar claramente "suíte de
       teste automatizada" (`core/tests.py`) de "scripts de investigação
       pontual".
-- [ ] Escolher uma estratégia única de versionamento em `requirements.txt`
+- [x] Escolher uma estratégia única de versionamento em `requirements.txt`
       (todas as libs fixadas com `==`, geradas por `pip freeze` ou
       `pip-compile`) em vez de misturar `==` e `>=`.
-- [ ] Adicionar um `pyproject.toml`/`ruff.toml` versionado com a configuração
+- [x] Adicionar um `pyproject.toml`/`ruff.toml` versionado com a configuração
       real do `ruff` usada no CI, em vez de rodar só com os padrões
       implícitos da ferramenta.
 
@@ -78,6 +78,8 @@ Nenhum teste deveria mudar de resultado nessa fase — se mudar, algo saiu do
 escopo.
 
 **Risco:** muito baixo. Não mexe em nenhuma view, model ou service.
+
+**Status:** concluída na branch `refactor/fase-1-faxina-baixo-risco` (commit `f6e6bcf`), a partir de `develop`. Nenhuma view, model ou service foi tocado. Validação de lint feita comparando a saída do `ruff check .` antes e depois da config nova — idêntica, byte a byte (258 erros pré-existentes, não relacionados a esta fase, ficam para uma fase futura). Falta rodar `python manage.py check` e `python manage.py test` localmente para confirmar que nenhum teste mudou de resultado antes de fazer merge para `develop`.
 
 ---
 
