@@ -87,7 +87,7 @@ escopo.
 gerou o bug corrigido em `paciente_chamado_view` — hoje ele está copiado (com
 pequenas variações) em pelo menos mais 5 views.
 
-- [ ] Criar uma função única em `core/services.py` (ou um novo módulo
+- [x] Criar uma função única em `core/services.py` (ou um novo módulo
       `core/patient_session.py`, se preferir manter `services.py` mais magro
       desde já), por exemplo:
 
@@ -102,18 +102,18 @@ pequenas variações) em pelo menos mais 5 views.
           ...  # mesma lógica já corrigida em paciente_chamado_view
       ```
 
-- [ ] Trocar, **uma view por vez, em commits separados**, cada um dos 6
+- [x] Trocar, **uma view por vez, em commits separados**, cada um dos 6
       lugares que hoje reimplementam essa lógica
       (`acompanhamento_atendimento_view`, `checkin_concluido_view`,
       `checagem_documentos_paciente_view`, `perdeu_chamada_view`,
       `fluxo_paciente_view`, e conferir se `paciente_chamado_view` já está
       usando a versão centralizada) para chamar a função única.
-- [ ] Prestar atenção especial em `checagem_documentos_paciente_view`: ela
+- [x] Prestar atenção especial em `checagem_documentos_paciente_view`: ela
       hoje aceita `?cpf=` da URL com prioridade **maior** que a sessão — ao
       migrar para a função centralizada, esse comportamento também fica
       corrigido (a sessão passa a mandar), então essa view merece um teste
       manual extra depois da troca.
-- [ ] Rodar teste manual do fluxo completo do paciente depois de cada view
+- [ ] Rodar teste manual do fluxo completo do paciente depois de cada view  <!-- pendente: fazer manualmente antes do merge -->
       trocada, não só no final.
 
 **Como validar:** os testes existentes que tocam nessas views continuam
@@ -123,6 +123,8 @@ um encaixe no mesmo dia).
 
 **Risco:** baixo-médio. É a fase mais parecida com a correção que já foi
 feita e validada — mesma técnica, aplicada mais 5 vezes.
+
+**Status:** implementação pronta na branch `refactor/centraliza-sessao-do-paciente` (a partir de `develop`), ainda sem commit — aguardando revisão e commit manual. `resolver_encaixe_da_sessao` foi criada em `core/services.py` e as 6 views (`paciente_chamado_view`, `acompanhamento_atendimento_view`, `checkin_concluido_view`, `checagem_documentos_paciente_view`, `perdeu_chamada_view` e o passo compartilhado de `fluxo_paciente_view`) foram migradas para chamá-la. Nenhum teste automatizado cobre hoje o comportamento antigo de `checagem_documentos_paciente_view` (prioridade da URL sobre a sessão), então a mudança ali é só protegida pelo teste manual descrito acima — importante rodar antes do merge.
 
 ---
 

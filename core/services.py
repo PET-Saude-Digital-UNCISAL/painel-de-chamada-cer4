@@ -276,6 +276,82 @@ def _get_paciente_chamado_asset_data_url(relative_path: str) -> str:
 
 
 
+def resolver_encaixe_da_sessao(request, *, permitir_fallback_por_senha=False):
+    """Resolve o EncaixePaciente do paciente identificado pela sessao atual.
+
+    Centraliza uma logica que estava duplicada (com pequenas variacoes, e em
+    um dos casos com um bug real de vazamento de dados) em varias views do
+    fluxo mobile do paciente. A regra de ouro aqui e: se a sessao sabe quem
+    e o paciente, o retorno tem que ser um encaixe DESSE paciente -- nunca
+    de outro, mesmo que a busca "nao ache nada bonito" e a gente tenha que
+    devolver None.
+
+    Ordem de resolucao:
+    1. `encaixe_id` da sessao, mas so e aceito se pertencer ao paciente da
+       sessao (quando ele existir). Isso evita usar um `encaixe_id` "velho",
+       de uma sessao anterior, num dispositivo compartilhado por varios
+       pacientes ao longo do dia.
+    2. Se nao achou por `encaixe_id`, busca pelo CPF do paciente da sessao,
+       filtrando por hoje. Quando o paciente tem mais de um encaixe no
+       mesmo dia (ex.: dois tipos de atendimento), prioriza o que esta
+       CHAMADO ou em ATENDIMENTO agora -- nao simplesmente "o mais recente
+       criado", que pode nao ser o que acabou de ser chamado.
+    3. So quando NENHUMA identidade de sessao existir (nem `paciente_id`
+       nem `encaixe_id`) e que aceitamos `?senha=` da querystring como
+       identificacao de reserva -- e mesmo assim, so se quem chamou passou
+       `permitir_fallback_por_senha=True`. Esse fallback existe para o caso
+       de a sessao ter se perdido entre o redirect disparado por
+       WebSocket/polling e a pagina realmente carregar; ele nunca pode
+       substituir uma sessao de paciente que ja existe.
+
+    Retorna `None` quando nada e encontrado -- cabe a view decidir o que
+    fazer nesse caso (normalmente renderizar um contexto mockado/generico).
+    """
+    encaixe_id = request.session.get("encaixe_id")
+    paciente_id = request.session.get("paciente_id")
+
+    paciente_sessao = Paciente.objects.filter(pk=paciente_id).first() if paciente_id else None
+
+    encaixe = None
+    if encaixe_id:
+        candidato = EncaixePaciente.objects.filter(pk=encaixe_id).first()
+        # Um `encaixe_id` na sessao so vale se for do mesmo paciente que a
+        # sessao diz ser dona dela. Sem essa checagem, um `encaixe_id`
+        # desatualizado (sessao reaproveitada em outro atendimento) faria a
+        # view mostrar o encaixe de outra pessoa.
+        if candidato and (not paciente_sessao or candidato.cpf == paciente_sessao.cpf):
+            encaixe = candidato
+
+    if not encaixe and paciente_sessao:
+        candidatos_hoje = EncaixePaciente.objects.filter(
+            cpf=paciente_sessao.cpf, data_atendimento=timezone.localdate(),
+        )
+        # Entre os encaixes de hoje do paciente, o que esta chamado ou em
+        # atendimento tem prioridade sobre "o mais recente criado" -- que
+        # nao e necessariamente o encaixe ativo no momento.
+        encaixe = (
+            candidatos_hoje.filter(
+                status__in=[EncaixePaciente.Status.CHAMADO, EncaixePaciente.Status.ATENDIMENTO],
+            ).order_by("-chamado_em").first()
+            or candidatos_hoje.order_by("-criado_em").first()
+        )
+
+    if permitir_fallback_por_senha and not encaixe and not paciente_sessao and not encaixe_id:
+        # Ultima reserva, e so quando nao ha NENHUMA identidade de sessao:
+        # trata a senha da querystring como identificacao de quem abriu o
+        # link. Isso nunca compete com uma sessao de paciente ja existente
+        # -- se ela existir e simplesmente nao tiver achado um encaixe
+        # ativo, caimos em None (a view mostra um contexto generico) em vez
+        # de arriscar exibir dados de outra pessoa.
+        senha_param = request.GET.get("senha", "").strip().upper()
+        if senha_param:
+            encaixe = EncaixePaciente.objects.filter(
+                senha=senha_param, data_atendimento=timezone.localdate(),
+            ).order_by("-criado_em").first()
+
+    return encaixe
+
+
 def get_paciente_chamado_context() -> dict:
 
     return {
