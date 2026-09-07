@@ -64,6 +64,8 @@ from core.services import (
 
     registrar_encaixe,
 
+    resolver_encaixe_da_sessao,
+
 )
 
 
@@ -495,59 +497,15 @@ def painel_chamada_view(request):
 def paciente_chamado_view(request):
     """Renderiza a tela de "paciente chamado".
 
-    Importante: os dados mostrados aqui precisam ser sempre os do paciente
-    da sessão logada. O parâmetro `?senha=` na URL (usado pelo redirect
-    disparado via WebSocket/polling) é só um reforço para o caso raro de a
-    sessão ter se perdido entre a notificação e o redirecionamento — ele
-    nunca pode substituir a identidade da sessão quando ela existe, senão a
-    tela pode acabar mostrando o encaixe de outro paciente (bug corrigido
-    aqui: antes o `senha` era usado como fallback mesmo com uma sessão de
-    paciente válida presente, então uma sessão que não achasse o encaixe
-    certo por qualquer motivo podia exibir dados de outra pessoa).
+    A resolução do encaixe é centralizada em `resolver_encaixe_da_sessao`
+    (core/services.py) — mesma função usada pelas demais telas do fluxo do
+    paciente. Aqui ela é chamada com `permitir_fallback_por_senha=True`
+    porque é para esta tela que o WebSocket/polling redireciona o paciente
+    quando ele é chamado, e a sessão pode eventualmente ter se perdido
+    nesse meio-tempo (ver a docstring da função para os detalhes de quando
+    esse fallback entra em ação — ele nunca compete com uma sessão válida).
     """
-    encaixe_id = request.session.get("encaixe_id")
-    paciente_id = request.session.get("paciente_id")
-
-    paciente_sessao = Paciente.objects.filter(pk=paciente_id).first() if paciente_id else None
-
-    encaixe = None
-    if encaixe_id:
-        candidato = EncaixePaciente.objects.filter(pk=encaixe_id).first()
-        # Se já sabemos de quem é a sessão, o encaixe achado por id só é
-        # aceito se for desse mesmo paciente. Isso evita mostrar o encaixe
-        # de outra pessoa quando a sessão carrega um `encaixe_id` antigo
-        # que não corresponde mais ao `paciente_id` atual (ex.: dispositivo
-        # compartilhado entre pacientes ao longo do dia).
-        if candidato and (not paciente_sessao or candidato.cpf == paciente_sessao.cpf):
-            encaixe = candidato
-
-    if not encaixe and paciente_sessao:
-        candidatos_hoje = EncaixePaciente.objects.filter(
-            cpf=paciente_sessao.cpf, data_atendimento=timezone.localdate(),
-        )
-        # Se o paciente tiver mais de um encaixe hoje (ex.: dois tipos de
-        # atendimento no mesmo dia), prioriza o que está de fato chamado ou
-        # em atendimento agora, em vez de simplesmente "o mais recente
-        # criado" — que pode não ser o que acabou de ser chamado.
-        encaixe = (
-            candidatos_hoje.filter(
-                status__in=[EncaixePaciente.Status.CHAMADO, EncaixePaciente.Status.ATENDIMENTO],
-            ).order_by("-chamado_em").first()
-            or candidatos_hoje.order_by("-criado_em").first()
-        )
-
-    if not encaixe and not paciente_sessao and not encaixe_id:
-        # Só aceitamos a senha da URL como identificação de reserva quando
-        # não existe NENHUMA identidade de sessão (nem paciente_id, nem
-        # encaixe_id) — exatamente o caso de "sessão perdida" documentado
-        # acima. Se existe sessão de paciente mas ela não achou um encaixe
-        # ativo, não usamos a senha: cai no mock/tela genérica abaixo, em
-        # vez de arriscar mostrar o encaixe de outro paciente.
-        senha_param = request.GET.get("senha", "").strip().upper()
-        if senha_param:
-            encaixe = EncaixePaciente.objects.filter(
-                senha=senha_param, data_atendimento=timezone.localdate(),
-            ).order_by("-criado_em").first()
+    encaixe = resolver_encaixe_da_sessao(request, permitir_fallback_por_senha=True)
 
     if encaixe:
         if encaixe.status not in (
@@ -586,28 +544,11 @@ def paciente_chamado_view(request):
 @xframe_options_sameorigin
 
 def acompanhamento_atendimento_view(request):
-
-    encaixe_id = request.session.get("encaixe_id")
-
-    encaixe = None
-
-    if encaixe_id:
-
-        encaixe = EncaixePaciente.objects.filter(pk=encaixe_id).first()
-
-    if not encaixe:
-
-        paciente_id = request.session.get("paciente_id")
-
-        if paciente_id:
-
-            paciente = Paciente.objects.filter(pk=paciente_id).first()
-
-            if paciente:
-
-                encaixe = EncaixePaciente.objects.filter(
-                    cpf=paciente.cpf, data_atendimento=timezone.localdate(),
-                ).order_by("-criado_em").first()
+    # Mesma resolução de sessão usada em todo o fluxo do paciente (ver
+    # resolver_encaixe_da_sessao em core/services.py). Não há motivo para
+    # aceitar `?senha=` como identificação de reserva aqui — quem chega
+    # nesta tela normalmente já veio de um check-in com sessão válida.
+    encaixe = resolver_encaixe_da_sessao(request)
 
     if encaixe:
 
@@ -676,39 +617,29 @@ def checagem_documentos_paciente_view(request):
     necessários antes do exame auditivo (acessada pelo botão "Checar
     Documentos" da tela de Acompanhamento de Atendimento).
 
-    Assim como em paciente_chamado_view, aceita CPF/encaixe_id via query
-    string como identificação de reserva, para o caso de a sessão do
-    paciente ter sido perdida nesse meio-tempo.
+    A sessão do paciente manda: usamos resolver_encaixe_da_sessao (mesma
+    função das demais telas do fluxo) e só recorremos ao `cpf`/`encaixe_id`
+    da querystring como identificação de reserva quando não há nenhuma
+    sessão de paciente válida. Antes, esses parâmetros da URL tinham
+    prioridade sobre a sessão, o que permitia — em tese — que um paciente
+    logado visse os documentos referentes a outro paciente, caso um link
+    com o `cpf`/`encaixe_id` de outra pessoa fosse aberto no mesmo
+    navegador.
     """
-    # Um cpf/encaixe_id explícito na querystring (como o enviado pelo botão
-    # "Checar Documentos" da tela de Acompanhamento) identifica o paciente
-    # que efetivamente abriu este link, então tem prioridade sobre a sessão
-    # — que pode ter sido sobrescrita por outro login no mesmo navegador
-    # entre a renderização daquela tela e o clique neste botão.
-    encaixe_id = request.GET.get("encaixe_id", "").strip()
-    cpf = request.GET.get("cpf", "").strip()
-
-    encaixe = None
-    if encaixe_id:
-        encaixe = EncaixePaciente.objects.filter(pk=encaixe_id).first()
-    elif cpf:
-        encaixe = EncaixePaciente.objects.filter(
-            cpf=cpf, data_atendimento=timezone.localdate(),
-        ).order_by("-criado_em").first()
+    encaixe = resolver_encaixe_da_sessao(request)
 
     if not encaixe:
-        encaixe_id = request.session.get("encaixe_id")
-        if encaixe_id:
-            encaixe = EncaixePaciente.objects.filter(pk=encaixe_id).first()
-
-    if not encaixe:
-        paciente_id = request.session.get("paciente_id")
-        if paciente_id:
-            paciente = Paciente.objects.filter(pk=paciente_id).first()
-            if paciente:
-                encaixe = EncaixePaciente.objects.filter(
-                    cpf=paciente.cpf, data_atendimento=timezone.localdate(),
-                ).order_by("-criado_em").first()
+        # Identificação de reserva: cobre o caso de o link ter sido aberto
+        # sem nenhuma sessão de paciente ativa (ex.: sessão expirou entre a
+        # tela de Acompanhamento e o clique em "Checar Documentos").
+        encaixe_id_reserva = request.GET.get("encaixe_id", "").strip()
+        cpf_reserva = request.GET.get("cpf", "").strip()
+        if encaixe_id_reserva:
+            encaixe = EncaixePaciente.objects.filter(pk=encaixe_id_reserva).first()
+        elif cpf_reserva:
+            encaixe = EncaixePaciente.objects.filter(
+                cpf=cpf_reserva, data_atendimento=timezone.localdate(),
+            ).order_by("-criado_em").first()
 
     voltar_url = reverse("acompanhamento-atendimento")
 
@@ -769,28 +700,9 @@ def checagem_documentos_paciente_view(request):
 @xframe_options_sameorigin
 
 def checkin_concluido_view(request):
-
-    encaixe_id = request.session.get("encaixe_id")
-
-    encaixe = None
-
-    if encaixe_id:
-
-        encaixe = EncaixePaciente.objects.filter(pk=encaixe_id).first()
-
-    if not encaixe:
-
-        paciente_id = request.session.get("paciente_id")
-
-        if paciente_id:
-
-            paciente = Paciente.objects.filter(pk=paciente_id).first()
-
-            if paciente:
-
-                encaixe = EncaixePaciente.objects.filter(
-                    cpf=paciente.cpf, data_atendimento=timezone.localdate(),
-                ).order_by("-criado_em").first()
+    # Mesma resolução de sessão usada em todo o fluxo do paciente (ver
+    # resolver_encaixe_da_sessao em core/services.py).
+    encaixe = resolver_encaixe_da_sessao(request)
 
     if encaixe:
 
@@ -1345,29 +1257,11 @@ def fluxo_paciente_view(request):
 
 
 
-    encaixe_id = request.session.get("encaixe_id")
-
-    encaixe = None
-
-    if encaixe_id:
-
-        encaixe = EncaixePaciente.objects.filter(pk=encaixe_id).first()
-
-    if not encaixe:
-
-        paciente_id = request.session.get("paciente_id")
-
-        if paciente_id:
-
-            paciente = Paciente.objects.filter(pk=paciente_id).first()
-
-            if paciente:
-
-                encaixe = EncaixePaciente.objects.filter(
-                    cpf=paciente.cpf, data_atendimento=timezone.localdate(),
-                ).order_by("-criado_em").first()
-
-
+    # Mesma resolução de sessão usada em todo o fluxo do paciente (ver
+    # resolver_encaixe_da_sessao em core/services.py). Esse "encaixe" é
+    # reaproveitado pelos passos finais deste wizard (checkin-concluido,
+    # acompanhamento, paciente-chamado, perdeu-chamada).
+    encaixe = resolver_encaixe_da_sessao(request)
 
     if step == "checkin-concluido" and encaixe:
 
@@ -1534,30 +1428,10 @@ def fluxo_paciente_view(request):
 
 
 def perdeu_chamada_view(request, **kwargs):
-
     """Renderiza a tela de aviso de senha perdida para o paciente."""
-
-    encaixe_id = request.session.get("encaixe_id")
-
-    encaixe = None
-
-    if encaixe_id:
-
-        encaixe = EncaixePaciente.objects.filter(pk=encaixe_id).first()
-
-    if not encaixe:
-
-        paciente_id = request.session.get("paciente_id")
-
-        if paciente_id:
-
-            paciente = Paciente.objects.filter(pk=paciente_id).first()
-
-            if paciente:
-
-                encaixe = EncaixePaciente.objects.filter(
-                    cpf=paciente.cpf, data_atendimento=timezone.localdate(),
-                ).order_by("-criado_em").first()
+    # Mesma resolução de sessão usada em todo o fluxo do paciente (ver
+    # resolver_encaixe_da_sessao em core/services.py).
+    encaixe = resolver_encaixe_da_sessao(request)
 
     if encaixe:
 
