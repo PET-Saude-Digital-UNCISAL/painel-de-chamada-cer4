@@ -855,7 +855,7 @@ class WebSocketEventosTests(TestCase):
 		from asgiref.sync import async_to_sync
 
 		layer = get_channel_layer()
-		async_to_sync(layer.group_add)("test_group", "test_channel")
+		async_to_sync(layer.group_add)("painel_chamada", "test_channel")
 
 		Paciente.objects.create(nome_completo="Teste", cpf="39053344705")
 		notificar_fila_atualizada()
