@@ -1,58 +1,31 @@
+"""Views da area interna ("sistema"): dashboard de monitoramento e metricas,
+configuracoes, gestao de qualidade, pesquisa de satisfacao, auditoria de
+percurso, meu perfil, sincronizacao de agendamentos, e as ferramentas de
+desenvolvimento (paineis de mock, tela generica por slug). Quarta e ultima
+fatia da divisao por dominio da Fase 3 -- com ela, _legacy.py fica vazio.
+"""
+
 import csv
 
 from django.conf import settings
-
 from django.db import IntegrityError
-
 from django.http import Http404, HttpResponse, JsonResponse
-
 from django.shortcuts import get_object_or_404, redirect, render
-
 from django.urls import reverse
-
 from django.views.decorators.clickjacking import xframe_options_sameorigin
-
 from django.views.decorators.http import require_POST
 
-
-
 from core.dev_builders import build_fake_screen_list, build_mocked_screen_payload
-
 from core.forms import AlterarSenhaForm, MeuPerfilForm, PacientePerfilForm, UsuarioSistemaForm
-
 from core.importer import process_appointment_file
-
 from core.models import Agendamento, EncaixePaciente, NivelAcessoPermissao, Paciente, UsuarioSistema
-
-
 from core.auth_decorators import permissao_requerida, staff_required
-
 from core.services import (
-
-
-
     get_auditoria_percurso_context,
-
-
-
-
     get_dashboard_monitoramento_context,
-
-
-
-
     get_screen_context,
-
-
     list_patient_screens,
-
-
-
-
 )
-
-
-
 
 
 def _usuario_logado(request):
@@ -60,9 +33,6 @@ def _usuario_logado(request):
     uid = request.session.get("staff_usuario_id")
 
     return UsuarioSistema.objects.filter(pk=uid).first() if uid else None
-
-
-
 
 
 @xframe_options_sameorigin
@@ -220,6 +190,7 @@ def dashboard_monitoramento_view(request):
     }
 
     return render(request, "system/dashboard_monitoramento.html", context)
+
 
 @staff_required
 def dashboard_metrics_api(request):
@@ -460,9 +431,6 @@ def qualidade_metrics_api(request):
     })
 
 
-
-
-
 @xframe_options_sameorigin
 
 def configuracoes_view(request):
@@ -614,9 +582,6 @@ def configuracoes_view(request):
     return render(request, "system/configuracoes.html", context)
 
 
-
-
-
 def _configuracoes_redirect(request, resultado):
 
     """Mantém formulários de configurações dentro do painel quando abertos nele."""
@@ -673,12 +638,10 @@ def salvar_permissoes_nivel_view(request):
     return JsonResponse({"ok": True})
 
 
-
-
-
 def health_check_view(request):
 
     return JsonResponse({"status": "healthy"})
+
 
 @xframe_options_sameorigin
 
@@ -689,10 +652,6 @@ def home_view(request):
     request.session.pop("staff_logged_in", None)
 
     return render(request, "display/home.html", {"title": "Painel de desenvolvimento"})
-
-
-
-
 
 
 def sistema_interno_figma_view(request):
@@ -748,9 +707,6 @@ def sistema_interno_figma_view(request):
     })
 
 
-
-
-
 def screen_view(request, screen_slug):
 
     """Thin view: only render context produced by the application service."""
@@ -762,9 +718,6 @@ def screen_view(request, screen_slug):
         raise Http404("Tela não encontrada")
 
     return render(request, "core/screen.html", context)
-
-
-
 
 
 @xframe_options_sameorigin
@@ -973,9 +926,6 @@ def auditoria_percurso_seguranca_view(request):
     return render(request, "system/auditoria_percurso_seguranca.html", context)
 
 
-
-
-
 def dev_mock_list_view(request):
 
     """Hidden route for isolated front-end work with generated fake cards."""
@@ -1031,9 +981,6 @@ def dev_mock_list_view(request):
     return render(request, "core/dev_preview.html", context)
 
 
-
-
-
 def dev_mock_screen_view(request, screen_slug):
 
     """Hidden route to render one mocked screen without full DB setup."""
@@ -1051,9 +998,6 @@ def dev_mock_screen_view(request, screen_slug):
     return render(request, "core/screen.html", context)
 
 
-
-
-
 @xframe_options_sameorigin
 
 @staff_required
@@ -1067,9 +1011,6 @@ def gestao_qualidade_view(request):
         "usuario_logado": _usuario_logado(request),
 
     })
-
-
-
 
 
 @xframe_options_sameorigin
@@ -1101,9 +1042,6 @@ def pesquisa_satisfacao_view(request):
         "paciente_nome": paciente_nome,
 
     })
-
-
-
 
 
 @xframe_options_sameorigin
@@ -1317,8 +1255,3 @@ def sincronizar_agendamentos_view(request):
     data_alvo = date.fromisoformat(data_str) if data_str else None
     resultado = sincronizar_agendamentos(data_alvo=data_alvo)
     return JsonResponse(resultado)
-
-
-
-
-

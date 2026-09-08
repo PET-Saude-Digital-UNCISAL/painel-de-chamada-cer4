@@ -1,9 +1,9 @@
 """Ponto de entrada do pacote core.services.
 
-Mesma ideia do core/views/__init__.py: pacote sendo dividido por dominio
-(Fase 3 do plano de refatoracao em docs/PLANO_REFATORACAO.md), um dominio
-por vez. Por enquanto so autenticacao foi extraida; o resto ainda mora em
-_legacy.py.
+Fase 3 do plano de refatoracao completa: core/services.py (arquivo unico)
+virou este pacote, dividido por dominio -- autenticacao, encaixe,
+paciente e sistema, nessa ordem de extracao. Nao existe mais _legacy.py;
+cada funcao/constante mora no modulo do seu dominio.
 
 Reexporta tudo com o mesmo nome que existia em core/services.py antes da
 divisao, entao qualquer `from core.services import nome_da_funcao` (usado
@@ -14,14 +14,14 @@ reexportacao e intencional.
 """
 
 # SystemClock nao e definido aqui -- e so um import de core.clock que tanto
-# _legacy.py quanto autenticacao.py usam internamente (SystemClock.now()).
+# sistema.py quanto autenticacao.py usam internamente (SystemClock.now()).
 # No core/services.py antigo (arquivo unico) esse import de nivel de modulo
 # ja deixava SystemClock acessivel como core.services.SystemClock; precisamos
 # reexportar explicitamente aqui para manter esse mesmo comportamento, pois
 # core/test_clock_wrapper.py faz mock.patch("core.services.SystemClock").
 from core.clock import SystemClock as SystemClock
 
-from core.services._legacy import (
+from core.services.sistema import (
     SCREEN_DEFINITIONS as SCREEN_DEFINITIONS,
     STATUS_CLASS as STATUS_CLASS,
     STATUS_DISPLAY as STATUS_DISPLAY,

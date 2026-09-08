@@ -1,39 +1,20 @@
-"""Application services for isolated screen rendering.
-
- 
-
-Humble Object approach:
-
-- Views call these functions and only render context.
-
-- Business/data assembly lives here.
-
+"""Servicos da area interna ("sistema"): listagem/definicao de telas
+(ScreenDefinition, SCREEN_DEFINITIONS, list_patient_screens,
+list_team_screens, get_screen_context), o contexto do dashboard de
+monitoramento, e a auditoria de percurso (filtros, contexto, helpers de
+data). Quarta e ultima fatia da divisao por dominio da Fase 3.
 """
 
-
-
 from calendar import monthrange
-
 from dataclasses import dataclass
-
 from datetime import date, timedelta
-
 from typing import Optional
 
-
-
 from django.urls import reverse
-
 from django.utils import timezone
 
-
-
 from core.clock import SystemClock
-
 from core.models import EncaixePaciente
-
-
-
 
 
 @dataclass(frozen=True)
@@ -48,9 +29,6 @@ class ScreenDefinition:
 
     status: str
 
- 
-
- 
 
 SCREEN_DEFINITIONS = [
 
@@ -78,8 +56,6 @@ SCREEN_DEFINITIONS = [
     ),
 
 ]
-
-
 
 
 def get_dashboard_monitoramento_context() -> dict:
@@ -596,9 +572,6 @@ def get_dashboard_monitoramento_context() -> dict:
 
     }
 
- 
-
- 
 
 def list_patient_screens() -> list[dict]:
 
@@ -739,9 +712,6 @@ def list_patient_screens() -> list[dict]:
         },
 
     ]
-
-
-
 
 
 def list_team_screens() -> list[dict]:
@@ -986,9 +956,6 @@ def list_team_screens() -> list[dict]:
 
     return [pacientes_group] + other_screens
 
- 
-
- 
 
 def get_screen_context(screen_slug: str) -> Optional[dict]:
 
@@ -1033,15 +1000,9 @@ def get_screen_context(screen_slug: str) -> Optional[dict]:
     }
 
 
-
-
-
 def _only_digits(value: str) -> str:
 
     return "".join(ch for ch in value if ch.isdigit())
-
-
-
 
 
 def _parse_iso_date(value: str) -> Optional[date]:
@@ -1053,9 +1014,6 @@ def _parse_iso_date(value: str) -> Optional[date]:
     except ValueError:
 
         return None
-
-
-
 
 
 def _resolve_auditoria_date_range(filtros_dict: dict) -> tuple[Optional[date], Optional[date]]:
@@ -1093,9 +1051,6 @@ def _resolve_auditoria_date_range(filtros_dict: dict) -> tuple[Optional[date], O
     hoje = timezone.localdate()
 
     return hoje, hoje
-
-
-
 
 
 def _build_date_filter_modal_context(filtros_dict: dict, today: date) -> dict:
@@ -1201,9 +1156,6 @@ def _build_date_filter_modal_context(filtros_dict: dict, today: date) -> dict:
     }
 
 
-
-
-
 STATUS_DISPLAY = {
 
     EncaixePaciente.Status.VALIDACAO: "EM VALIDAÇÃO",
@@ -1221,7 +1173,6 @@ STATUS_DISPLAY = {
 }
 
 
-
 STATUS_CLASS = {
 
     EncaixePaciente.Status.VALIDACAO: "wait",
@@ -1237,9 +1188,6 @@ STATUS_CLASS = {
     EncaixePaciente.Status.AUSENTE: "alert",
 
 }
-
-
-
 
 
 def filtrar_auditoria(filtros_dict: dict) -> list[dict]:
@@ -1373,9 +1321,6 @@ def filtrar_auditoria(filtros_dict: dict) -> list[dict]:
     return pacientes
 
 
-
-
-
 def get_auditoria_percurso_context(filtros_dict: Optional[dict] = None) -> dict:
 
     """Context used by the dedicated audit screen template."""
@@ -1483,10 +1428,3 @@ def get_auditoria_percurso_context(filtros_dict: Optional[dict] = None) -> dict:
         "total_paginas": 1,
 
     }
-
-
-
-
-
-
-

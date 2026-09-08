@@ -1,9 +1,9 @@
 """Ponto de entrada do pacote core.views.
 
-Este pacote esta sendo dividido por dominio de tela (Fase 3 do plano de
-refatoracao em docs/PLANO_REFATORACAO.md). Por enquanto so o dominio de
-autenticacao foi extraido para o proprio modulo; o resto ainda mora em
-_legacy.py e vai sendo migrado aos poucos, um dominio por vez.
+Fase 3 do plano de refatoracao completa: core/views.py (arquivo unico)
+virou este pacote, dividido por dominio de tela -- autenticacao, encaixe,
+paciente e sistema, nessa ordem de extracao. Nao existe mais _legacy.py;
+cada view mora no modulo do seu dominio.
 
 Este __init__.py reexporta tudo com o MESMO nome que existia em
 core/views.py antes da divisao, entao `core/urls.py` (que faz
@@ -13,7 +13,7 @@ para deixar explicito pro ruff/pyflakes que a reexportacao e intencional
 (sem isso ele acusa falso positivo de "import nao usado").
 """
 
-from core.views._legacy import (
+from core.views.sistema import (
     _configuracoes_redirect as _configuracoes_redirect,
     _usuario_logado as _usuario_logado,
     auditoria_percurso_seguranca_view as auditoria_percurso_seguranca_view,
