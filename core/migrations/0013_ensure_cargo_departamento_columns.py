@@ -1,5 +1,19 @@
 from django.db import migrations
 
+# Migration de reparo (commit cce188a, 28/07/2026), nao de feature nova.
+#
+# A migration 0006 originalmente so atualizava o "state" do Django (via
+# SeparateDatabaseAndState) sem criar as colunas cargo/departamento de
+# verdade no banco. Ela foi corrigida no dia seguinte, mas essa correcao
+# nao alcanca bancos que ja tinham rodado a versao quebrada -- pra eles, o
+# django_migrations diz que a 0006 foi aplicada, mas as colunas nao
+# existem.
+#
+# Por isso essa migration nao usa AddField normal: ela roda um
+# "ADD COLUMN IF NOT EXISTS" via SQL direto, que funciona tanto em quem
+# ja tinha as colunas (idempotente, nao faz nada) quanto em quem ficou
+# com o banco desincronizado por causa do bug da 0006.
+
 
 def _add_column_if_not_exists(table, column, col_def, schema_editor):
     with schema_editor.connection.cursor() as cursor:

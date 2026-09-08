@@ -5,6 +5,12 @@ from django.db import migrations, models
 
 def normalizar_cpfs(apps, schema_editor):
     UsuarioSistema = apps.get_model("core", "UsuarioSistema")
+    # .only("cpf") e proposital (commit cce188a, 28/07/2026): sem isso o
+    # iterator() busca a linha inteira, incluindo cargo/departamento -- que
+    # em bancos afetados pelo problema da migration 0006 (ver comentario
+    # la) ainda nao existiam de verdade, mesmo com a 0006 marcada como
+    # aplicada. Buscar so a coluna cpf evita que essa migration quebre
+    # nesses bancos.
     for usuario in UsuarioSistema.objects.only("cpf").iterator():
         digits = "".join(ch for ch in (usuario.cpf or "") if ch.isdigit())
         if len(digits) == 11 and digits != usuario.cpf:
@@ -14,6 +20,7 @@ def normalizar_cpfs(apps, schema_editor):
 
 def reverter_cpfs(apps, schema_editor):
     UsuarioSistema = apps.get_model("core", "UsuarioSistema")
+    # Mesmo motivo do .only("cpf") em normalizar_cpfs, acima.
     for usuario in UsuarioSistema.objects.only("cpf").iterator():
         d = usuario.cpf
         if d and len(d) == 11 and d.isdigit():
