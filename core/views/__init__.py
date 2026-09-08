@@ -25,20 +25,17 @@ from core.views._legacy import (
     checagem_documentos_view as checagem_documentos_view,
     checkin_assistido_view as checkin_assistido_view,
     checkin_concluido_view as checkin_concluido_view,
-    concluir_atendimento_view as concluir_atendimento_view,
     configuracoes_view as configuracoes_view,
     dashboard_metrics_api as dashboard_metrics_api,
     dashboard_metrics_export as dashboard_metrics_export,
     dashboard_monitoramento_view as dashboard_monitoramento_view,
     dev_mock_list_view as dev_mock_list_view,
     dev_mock_screen_view as dev_mock_screen_view,
-    encaixe_view as encaixe_view,
     fluxo_paciente_view as fluxo_paciente_view,
     gestao_qualidade_view as gestao_qualidade_view,
     health_check_view as health_check_view,
     home_view as home_view,
     identificacao_paciente_view as identificacao_paciente_view,
-    iniciar_atendimento_view as iniciar_atendimento_view,
     meu_perfil_view as meu_perfil_view,
     paciente_chamado_view as paciente_chamado_view,
     paciente_status_api_view as paciente_status_api_view,
@@ -51,8 +48,14 @@ from core.views._legacy import (
     screen_view as screen_view,
     sincronizar_agendamentos_view as sincronizar_agendamentos_view,
     sistema_interno_figma_view as sistema_interno_figma_view,
-    validar_encaixe_view as validar_encaixe_view,
     visualizar_agendamento_view as visualizar_agendamento_view,
+)
+
+from core.views.encaixe import (
+    concluir_atendimento_view as concluir_atendimento_view,
+    encaixe_view as encaixe_view,
+    iniciar_atendimento_view as iniciar_atendimento_view,
+    validar_encaixe_view as validar_encaixe_view,
 )
 
 from core.views.autenticacao import (
