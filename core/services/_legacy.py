@@ -92,7 +92,12 @@ SCREEN_DEFINITIONS = [
 
 
 
-PAINEL_CHAMADA_ASSETS_DIR = Path(__file__).resolve().parent / "static" / "core" / "painel_chamada" / "assets"
+# NOTA: este arquivo (core/services/_legacy.py) mora um nivel mais fundo
+# do que o antigo core/services.py -- por isso .parent.parent (nao so
+# .parent) pra chegar em core/, onde fica static/. Se essas constantes
+# forem movidas pra outro modulo do pacote no futuro, reconferir quantos
+# ".parent" sao necessarios a partir do novo caminho.
+PAINEL_CHAMADA_ASSETS_DIR = Path(__file__).resolve().parent.parent / "static" / "core" / "painel_chamada" / "assets"
 
 
 
@@ -254,7 +259,8 @@ def get_painel_chamada_context(use_real_data: bool = False) -> dict:
 
 
 
-PACIENTE_CHAMADO_ASSETS_DIR = Path(__file__).resolve().parent / "static" / "core" / "paciente_chamado" / "assets"
+# Mesma observacao de PAINEL_CHAMADA_ASSETS_DIR acima sobre o .parent.parent.
+PACIENTE_CHAMADO_ASSETS_DIR = Path(__file__).resolve().parent.parent / "static" / "core" / "paciente_chamado" / "assets"
 
 
 
@@ -2074,103 +2080,6 @@ def get_auditoria_percurso_context(filtros_dict: Optional[dict] = None) -> dict:
         "total_paginas": 1,
 
     }
-
-
-
-
-
-def _cabecalho_recepcao_context(guiche: str = "RECEPÇÃO 3") -> dict:
-
-    """Contexto compartilhado pelo cabeçalho das telas de Login e Cadastro."""
-
-    now = SystemClock.now()
-
-    return {
-
-        "guiche": guiche,
-
-        "data_atual_pt": formatar_data_pt(now.date()),
-
-        "hora_atual": now.strftime("%H:%M"),
-
-    }
-
-
-
-
-
-def get_login_context() -> dict:
-
-    """Contexto da tela de Login (Acesso ao Portal)."""
-
-    return {
-
-        "page_title": "Acesso ao Portal",
-
-        **_cabecalho_recepcao_context(),
-
-    }
-
-
-
-
-
-def get_cadastro_context() -> dict:
-
-    """Contexto da tela de Cadastro (Criar Conta do paciente)."""
-
-    return {
-
-        "page_title": "Criar Conta",
-
-        **_cabecalho_recepcao_context(),
-
-    }
-
-
-
-
-
-_DIAS_PT = ["Segunda-feira", "Terça-feira", "Quarta-feira", "Quinta-feira", "Sexta-feira", "Sábado", "Domingo"]
-
-_MESES_PT = ["", "janeiro", "fevereiro", "março", "abril", "maio", "junho", "julho", "agosto", "setembro", "outubro", "novembro", "dezembro"]
-
-
-
-
-
-def formatar_data_pt(d: date) -> str:
-
-    return f"{_DIAS_PT[d.weekday()]}, {d.day:02d} de {_MESES_PT[d.month]} de {d.year}"
-
-
-
-
-
-def autenticar_paciente(cpf: str, senha: str) -> Optional[Paciente]:
-
-    """Retorna o Paciente se CPF e senha conferem e a conta está ativa."""
-
-    try:
-
-        paciente = Paciente.objects.get(cpf=cpf, paciente_ativo=True)
-
-    except Paciente.DoesNotExist:
-
-        return None
-
-
-
-    if not paciente.checar_senha(senha):
-
-        return None
-
-
-
-    return paciente
-
-
-
 
 
 def registrar_encaixe(cleaned_data: dict, arquivo=None) -> EncaixePaciente:
