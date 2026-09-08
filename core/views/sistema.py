@@ -30,6 +30,10 @@ from core.services import (
 
 def _usuario_logado(request):
 
+    """Busca o UsuarioSistema da sessao atual (ou None se nao ha ninguem
+    logado) -- usado pelas telas do sistema interno pra exibir nome/cargo
+    no cabecalho sem precisar repetir essa consulta em cada view."""
+
     uid = request.session.get("staff_usuario_id")
 
     return UsuarioSistema.objects.filter(pk=uid).first() if uid else None
@@ -194,6 +198,9 @@ def dashboard_monitoramento_view(request):
 
 @staff_required
 def dashboard_metrics_api(request):
+    """Endpoint JSON usado pelos graficos do dashboard de monitoramento:
+    aplica os mesmos filtros da tela (periodo, turno, tipo de atendimento)
+    e devolve totais, percentuais e a serie historica dos ultimos dias."""
     from datetime import date, timedelta
     from django.db.models import Count, Avg, Q, F, DurationField, ExpressionWrapper, Value
     from django.db.models.functions import ExtractEpoch
@@ -307,6 +314,9 @@ def dashboard_metrics_api(request):
 
 @staff_required
 def qualidade_metrics_api(request):
+    """Endpoint JSON com as metricas de qualidade (notas medias por
+    categoria da pesquisa de satisfacao) usado pela tela de Gestao de
+    Qualidade."""
     from datetime import date, timedelta
     from django.db.models import Count, Avg
     from apps.core_domain.models import PesquisaSatisfacao
@@ -639,6 +649,9 @@ def salvar_permissoes_nivel_view(request):
 
 
 def health_check_view(request):
+
+    """Endpoint simples pro serviço de deploy (Render) confirmar que a
+    aplicacao esta no ar."""
 
     return JsonResponse({"status": "healthy"})
 
@@ -1004,6 +1017,9 @@ def dev_mock_screen_view(request, screen_slug):
 
 def gestao_qualidade_view(request):
 
+    """Tela de Gestao de Qualidade -- so renderiza o shell; os numeros em
+    si vem via qualidade_metrics_api, consumido pelo JS da pagina."""
+
     return render(request, 'system/gestao_qualidade.html', {
 
         "interno": request.GET.get("interno") == "1",
@@ -1016,6 +1032,12 @@ def gestao_qualidade_view(request):
 @xframe_options_sameorigin
 
 def pesquisa_satisfacao_view(request):
+
+    """Tela de pesquisa de satisfacao mostrada ao paciente logo apos a
+    conclusao do atendimento (ver concluir_atendimento_view, que monta o
+    redirect_url pra cá com o CPF). Se o CPF vier na URL, busca o nome do
+    paciente so pra personalizar a saudacao -- a resposta em si e
+    anonima/por CPF, nao exige login."""
 
     cpf = request.GET.get("cpf", "")
 
@@ -1047,6 +1069,11 @@ def pesquisa_satisfacao_view(request):
 @xframe_options_sameorigin
 
 def meu_perfil_view(request):
+
+    """Tela "Meu Perfil", compartilhada entre paciente e staff logados --
+    edita dados basicos e troca de senha. As funcoes internas abaixo
+    resolvem qual das duas sessoes (paciente ou staff) esta ativa e
+    montam um contexto no mesmo formato pra ambos os casos."""
 
     def _iniciais(nome):
 
@@ -1197,6 +1224,9 @@ def meu_perfil_view(request):
 
 @staff_required
 def dashboard_metrics_export(request):
+    """Gera um CSV pra download com os mesmos filtros e dados do dashboard
+    de monitoramento -- pensado pra alguem levar os numeros pra fora do
+    sistema (planilha, relatorio)."""
     import csv
     from datetime import date, timedelta
 
@@ -1247,6 +1277,11 @@ def dashboard_metrics_export(request):
 @require_POST
 
 def sincronizar_agendamentos_view(request):
+
+    """Aciona manualmente a sincronizacao de agendamentos do dia
+    (core.integrador.sincronizar_agendamentos) a partir da tela -- mesma
+    logica usada pelo comando de management, so que disparada por um
+    clique em vez de agendada."""
 
     from datetime import date
     from core.integrador import sincronizar_agendamentos

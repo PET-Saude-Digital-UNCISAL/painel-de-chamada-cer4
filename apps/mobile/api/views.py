@@ -1,3 +1,12 @@
+"""API REST (Django REST Framework) do app mobile -- uma camada paralela
+as views tradicionais em core/views/paciente.py e core/views/encaixe.py,
+pensada pra consumo por um cliente que fale JSON (app nativo, SPA) em vez
+de receber HTML renderizado no servidor.
+
+Sem autenticacao de sessao/token por enquanto (AllowAny em tudo) -- cada
+endpoint identifica o paciente pelo CPF recebido no proprio payload.
+"""
+
 from django.utils import timezone
 
 from rest_framework import mixins, status, viewsets
@@ -16,12 +25,21 @@ from apps.mobile.api.serializers import (
 
 
 class EncaixeViewSet(mixins.CreateModelMixin, viewsets.GenericViewSet):
+    """Only exposes create (POST) -- criar um encaixe via API. Sem list
+    proposital: expor a fila inteira por aqui e responsabilidade do
+    FilaViewSet, com seus proprios filtros."""
+
     queryset = EncaixePaciente.objects.none()
     serializer_class = EncaixeSerializer
     permission_classes = (AllowAny,)
 
 
 class FilaViewSet(mixins.ListModelMixin, viewsets.GenericViewSet):
+    """Consulta da fila do dia. A acao extra `fila_atual` e o que a tela
+    de acompanhamento do app consome de fato -- devolve num unico payload
+    quem esta sendo chamado agora, os proximos da fila de espera e,
+    quando um CPF e informado, a posicao daquele paciente especifico."""
+
     serializer_class = FilaSerializer
     permission_classes = (AllowAny,)
 
@@ -80,6 +98,10 @@ class FilaViewSet(mixins.ListModelMixin, viewsets.GenericViewSet):
 
 
 class PacienteAuthViewSet(viewsets.GenericViewSet):
+    """Login e cadastro de paciente via API -- equivalente ao LoginPacienteForm
+    e CadastroPacienteForm usados pelas telas tradicionais, mas devolvendo
+    JSON em vez de renderizar/redirecionar."""
+
     permission_classes = (AllowAny,)
 
     @action(detail=False, methods=["post"], url_path="login")
@@ -112,6 +134,9 @@ class PacienteAuthViewSet(viewsets.GenericViewSet):
 
 
 class PesquisaSatisfacaoViewSet(mixins.CreateModelMixin, viewsets.GenericViewSet):
+    """Only exposes create (POST) -- envio da pesquisa de satisfacao pelo
+    app, equivalente a tela mobile/pesquisa_satisfacao.html."""
+
     queryset = EncaixePaciente.objects.none()
     serializer_class = PesquisaSatisfacaoSerializer
     permission_classes = (AllowAny,)

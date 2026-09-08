@@ -1,3 +1,9 @@
+"""Comando de desenvolvimento: cria (ou atualiza a senha de) tres
+usuarios de teste, um pra cada nivel de acesso -- util pra testar
+permissoes sem precisar cadastrar manualmente pela tela. Idempotente:
+rodar de novo so reseta as senhas, nao duplica os usuarios (CPF e
+unico)."""
+
 from django.core.management.base import BaseCommand
 
 from core.models import UsuarioSistema

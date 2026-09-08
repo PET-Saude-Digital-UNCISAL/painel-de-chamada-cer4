@@ -1,3 +1,9 @@
+"""Comando de linha de comando pra rodar a sincronizacao de
+agendamentos manualmente (uso tipico: agendado via cron/tarefa
+programada no servidor). Equivalente ao clique em
+sincronizar_agendamentos_view, mas sem depender de alguem estar logado
+na tela."""
+
 from datetime import date
 
 from django.core.management.base import BaseCommand

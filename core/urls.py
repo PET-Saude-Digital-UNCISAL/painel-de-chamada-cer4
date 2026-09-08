@@ -1,3 +1,6 @@
+# Rotas do app core, montadas na raiz em config/urls.py -- o grosso do
+# produto: fluxo mobile do paciente, painel de chamada, telas do
+# sistema interno e as rotas isoladas de tela por slug.
 from django.urls import path
 
 from core import views

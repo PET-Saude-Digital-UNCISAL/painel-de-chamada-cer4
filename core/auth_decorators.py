@@ -1,3 +1,9 @@
+"""Decorators de autenticacao/autorizacao para as views da area interna
+(sistema institucional). Nao usa o sistema de auth padrao do Django --
+o login de UsuarioSistema e proprio, guardado na sessao como
+`staff_usuario_id`.
+"""
+
 from functools import wraps
 
 from django.http import JsonResponse
@@ -7,10 +13,16 @@ from core.models import UsuarioSistema
 
 
 def _requisicao_ajax(request):
+    """Distingue uma chamada AJAX/fetch de uma navegacao normal de pagina,
+    pra decidir se a resposta de erro deve ser JSON (pro JS tratar) ou um
+    redirect/render de pagina inteira."""
     return request.headers.get("x-requested-with") == "XMLHttpRequest" or request.content_type == "application/json"
 
 
 def staff_required(view_func):
+    """Exige apenas que exista um UsuarioSistema ativo logado na sessao,
+    sem checar permissao especifica nenhuma. Views que precisam de uma
+    permissao pontual devem usar `permissao_requerida` em vez deste."""
     @wraps(view_func)
     def _wrapped(request, *args, **kwargs):
         uid = request.session.get("staff_usuario_id")

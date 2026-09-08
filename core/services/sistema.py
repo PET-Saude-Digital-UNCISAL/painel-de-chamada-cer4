@@ -21,6 +21,10 @@ from core.models import EncaixePaciente
 
 class ScreenDefinition:
 
+    """Um item da lista de telas isoladas de desenvolvimento (ver
+    SCREEN_DEFINITIONS abaixo) -- usado pra montar os cards do painel de
+    telas e resolver a rota generica /telas/<slug>/ em screen_view."""
+
     slug: str
 
     title: str
@@ -30,6 +34,9 @@ class ScreenDefinition:
     status: str
 
 
+# Catalogo das telas isoladas visitaveis pela rota generica
+# /telas/<slug>/ (screen_view) e listadas no painel de desenvolvimento --
+# cada entrada vira um card com titulo, responsavel e status.
 SCREEN_DEFINITIONS = [
 
     # Telas individuais que aparecerão em seus próprios cards
@@ -1002,10 +1009,17 @@ def get_screen_context(screen_slug: str) -> Optional[dict]:
 
 def _only_digits(value: str) -> str:
 
+    """Remove tudo que nao for digito -- usado pra normalizar CPF nos
+    filtros de busca da auditoria de percurso."""
+
     return "".join(ch for ch in value if ch.isdigit())
 
 
 def _parse_iso_date(value: str) -> Optional[date]:
+
+    """Converte uma data ISO (AAAA-MM-DD) vinda de querystring/filtro em
+    date; devolve None se o valor estiver vazio ou for invalido, em vez
+    de propagar excecao pro chamador tratar."""
 
     try:
 
@@ -1054,6 +1068,13 @@ def _resolve_auditoria_date_range(filtros_dict: dict) -> tuple[Optional[date], O
 
 
 def _build_date_filter_modal_context(filtros_dict: dict, today: date) -> dict:
+
+    """Monta a grade de dias do mini-calendario do filtro de data da
+    auditoria de percurso: um dict por dia do mes de referencia (o mes do
+    inicio do intervalo filtrado, ou o mes atual se nao ha filtro), com
+    espacos vazios preenchidos no inicio/fim pra fechar a grade em
+    semanas completas, e marcando quais dias caem dentro do intervalo
+    selecionado."""
 
     start_date, end_date = _resolve_auditoria_date_range(filtros_dict)
 

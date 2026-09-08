@@ -3,8 +3,24 @@ from django.utils import timezone
 
 
 class EncaixePaciente(models.Model):
+    """Uma senha na fila de atendimento de um dia especifico.
+
+    E o registro central de todo o fluxo de chamada: cada vez que um
+    paciente faz check-in (a partir de um agendamento) ou e encaixado pela
+    recepcao (sem agendamento previo), nasce um EncaixePaciente novo para
+    aquele dia. O painel de chamada, o acompanhamento do paciente e a
+    auditoria de percurso trabalham todos em cima desse modelo.
+
+    Um mesmo paciente (mesmo CPF) pode ter mais de um EncaixePaciente no
+    mesmo dia -- por exemplo, dois tipos de atendimento diferentes -- e por
+    isso a senha so precisa ser unica dentro do dia (unique_together com
+    data_atendimento), nao globalmente.
+    """
 
     class Status(models.TextChoices):
+        # Ordem esperada de transicao: VALIDACAO -> AGUARDANDO -> CHAMADO ->
+        # ATENDIMENTO -> CONCLUIDO. AUSENTE acontece quando o paciente e
+        # chamado e nao comparece.
         VALIDACAO = "validacao", "Validação"
         AGUARDANDO = "aguardando", "Aguardando"
         CHAMADO = "chamado", "Chamado"
@@ -13,6 +29,9 @@ class EncaixePaciente(models.Model):
         CONCLUIDO = "concluido", "Concluído"
 
     class Origem(models.TextChoices):
+        # De onde veio esta senha: CHECKIN quando o paciente ja tinha
+        # agendamento e so confirmou presenca; ENCAIXE quando a recepcao
+        # adicionou o paciente na fila sem agendamento previo.
         CHECKIN = "checkin", "Check-in"
         ENCAIXE = "encaixe", "Encaixe"
 
@@ -30,6 +49,8 @@ class EncaixePaciente(models.Model):
     chamado_em = models.DateTimeField(null=True, blank=True)
     concluido_em = models.DateTimeField(null=True, blank=True)
     ausente_em = models.DateTimeField(null=True, blank=True)
+    # Quantas vezes essa senha foi chamada no painel -- usado pra decidir
+    # quando desistir de chamar e marcar como ausente.
     vezes_chamado = models.PositiveSmallIntegerField(default=0)
     criado_em = models.DateTimeField(auto_now_add=True)
     origem = models.CharField(max_length=10, choices=Origem.choices, default=Origem.ENCAIXE)
@@ -39,6 +60,8 @@ class EncaixePaciente(models.Model):
         ordering = ("posicao_fila",)
         verbose_name = "encaixe"
         verbose_name_plural = "encaixes"
+        # A senha se repete de um dia pro outro (a fila reinicia todo dia),
+        # entao a unicidade so faz sentido dentro do mesmo data_atendimento.
         unique_together = ("senha", "data_atendimento")
 
     def __str__(self):

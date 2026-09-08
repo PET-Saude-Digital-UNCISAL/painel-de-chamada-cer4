@@ -7,6 +7,11 @@ from core.services import registrar_encaixe
 
 
 class EncaixeSerializer(serializers.Serializer):
+    """Serializer puro (nao ModelSerializer) porque a criacao de verdade
+    passa por registrar_encaixe -- a mesma funcao de servico usada pela
+    view tradicional de encaixe -- em vez de um save() direto no model,
+    ja que registrar_encaixe cuida de gerar senha e posicao na fila."""
+
     nome_completo = serializers.CharField(max_length=150)
     cpf = serializers.CharField(max_length=14, required=False, allow_blank=True)
     data_nascimento = serializers.DateField(required=False, allow_null=True)
@@ -36,6 +41,9 @@ class EncaixeSerializer(serializers.Serializer):
 
 
 class FilaSerializer(serializers.ModelSerializer):
+    """Representacao somente-leitura de um EncaixePaciente pra listagem
+    de fila -- so os campos que o app precisa mostrar."""
+
     class Meta:
         model = EncaixePaciente
         fields = (
@@ -46,6 +54,10 @@ class FilaSerializer(serializers.ModelSerializer):
 
 
 class PacienteLoginSerializer(serializers.Serializer):
+    """Autentica paciente por CPF + senha, equivalente ao LoginPacienteForm
+    tradicional (so a metade paciente -- esta API nao cobre login de
+    staff)."""
+
     cpf = serializers.CharField(max_length=14)
     senha = serializers.CharField(write_only=True)
 
@@ -70,6 +82,10 @@ class PacienteLoginSerializer(serializers.Serializer):
 
 
 class PacienteCadastroSerializer(serializers.ModelSerializer):
+    """Equivalente ao CadastroPacienteForm tradicional: cria um paciente
+    novo com senha propria (nunca reaproveitando os campos do
+    UsuarioSistema)."""
+
     senha = serializers.CharField(min_length=8, write_only=True)
     confirmar_senha = serializers.CharField(write_only=True)
 
@@ -104,6 +120,10 @@ class PacienteCadastroSerializer(serializers.ModelSerializer):
 
 
 class PesquisaSatisfacaoSerializer(serializers.Serializer):
+    """Recebe a avaliacao por categoria (1 a 5 em cada aspecto) do
+    atendimento mais recente concluido hoje pro CPF informado -- so
+    aceita uma avaliacao por atendimento (ver validate abaixo)."""
+
     cpf = serializers.CharField(max_length=14)
     nota_atendimento = serializers.IntegerField(min_value=1, max_value=5)
     nota_espera = serializers.IntegerField(min_value=1, max_value=5)

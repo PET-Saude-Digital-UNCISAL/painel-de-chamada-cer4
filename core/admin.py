@@ -1,3 +1,6 @@
+# Cadastro no Django Admin -- uso interno/tecnico (nao e a interface
+# que a recepcao usa no dia a dia, essa fica nas telas do sistema
+# interno). Util pra inspecionar/corrigir dados pontualmente.
 from django.contrib import admin
 
 from core.models import EncaixePaciente, Paciente, TipoAtendimentoEncaixe, UsuarioSistema

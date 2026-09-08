@@ -1,3 +1,13 @@
+"""Importacao de planilha/arquivo de agendamentos enviado manualmente
+pela recepcao (tela de sincronizacao), como alternativa ao integrador
+automatico (core/integrador.py).
+
+Aceita CSV, XLSX/XLS, PDF, DOC/DOCX e ate imagem (via OCR) -- o formato e
+detectado pela extensao do arquivo, e cada um tem sua propria funcao de
+leitura (_ler_csv, _ler_xlsx etc.) que converte pra uma lista de
+LinhaImportada, formato comum que o resto do processamento usa.
+"""
+
 import csv
 import io
 import os
@@ -14,6 +24,9 @@ from django.utils import timezone
 from core.models import Agendamento, Paciente
 
 
+# Normaliza varios jeitos de escrever o tipo de atendimento (com/sem
+# acento, singular/plural, sinonimo de especialidade) pros tres valores
+# que o sistema realmente usa (consulta / terapia / exame_auditivo).
 TIPO_ATENDIMENTO_MAP = {
     "consulta": "consulta",
     "consultas": "consulta",
@@ -28,6 +41,9 @@ TIPO_ATENDIMENTO_MAP = {
     "terapia ocupacional": "terapia",
 }
 
+# Nomes de coluna aceitos pra cada campo, na ordem em que a leitura tenta
+# encontra-los -- a planilha pode vir com cabecalho em portugues, com ou
+# sem acento, e a gente nao controla como cada unidade nomeia as colunas.
 COLUNAS_ESPERADAS = [
     "nome_completo",
     "nome do paciente",
@@ -52,6 +68,9 @@ COLUNAS_ESPERADAS = [
 
 @dataclass
 class LinhaImportada:
+    """Uma linha da planilha ja normalizada e validada (ou nao -- ver
+    `valida`/`erros`) pronta pra virar Paciente + Agendamento."""
+
     nome_completo: str
     cpf: str
     data_nascimento: Optional[date] = None
@@ -63,6 +82,10 @@ class LinhaImportada:
 
 @dataclass
 class ResultadoImportacao:
+    """Resumo de uma importacao inteira, devolvido pra tela mostrar quantos
+    agendamentos entraram, quantos ja existiam (ignorados) e a lista de
+    linhas que falharam na validacao."""
+
     total: int = 0
     criados: int = 0
     ignorados: int = 0
@@ -71,10 +94,15 @@ class ResultadoImportacao:
 
 
 def _apenas_digitos(valor: str) -> str:
+    """Remove tudo que nao for digito do CPF vindo da planilha."""
     return re.sub(r"\D", "", valor)
 
 
 def _normalizar_data(valor: Any) -> Optional[date]:
+    """Tenta interpretar a data de nascimento em varios formatos comuns de
+    planilha (incluindo already-parsed date/datetime do openpyxl, e
+    Timestamp do pandas quando disponivel). Devolve None se nao
+    reconhecer nenhum formato -- data de nascimento nao e obrigatoria."""
     if isinstance(valor, date):
         return valor
     if isinstance(valor, datetime):
@@ -97,6 +125,8 @@ def _normalizar_data(valor: Any) -> Optional[date]:
 
 
 def _normalizar_tipo_atendimento(valor: Any) -> str:
+    """Usa TIPO_ATENDIMENTO_MAP pra mapear o texto livre da planilha num
+    dos tipos validos; sem correspondencia, assume "consulta"."""
     if not valor:
         return "consulta"
     texto = str(valor).strip().lower()
@@ -104,6 +134,8 @@ def _normalizar_tipo_atendimento(valor: Any) -> str:
 
 
 def _extrair_coluna(linha: dict, nomes_possiveis: list[str]) -> str:
+    """Procura o valor testando cada nome de coluna possivel em ordem --
+    a planilha real so vai ter uma dessas variantes de nome."""
     for nome in nomes_possiveis:
         if nome in linha:
             valor = linha[nome]
@@ -114,6 +146,9 @@ def _extrair_coluna(linha: dict, nomes_possiveis: list[str]) -> str:
 
 
 def _parse_linha_dict(linha: dict) -> LinhaImportada:
+    """Converte uma linha crua (dict de coluna -> valor, independente do
+    formato de origem) numa LinhaImportada, ja validando nome e CPF --
+    e o ponto comum por onde todo leitor de formato passa."""
     nome = _extrair_coluna(linha, ["nome_completo", "nome do paciente", "paciente", "nome"])
     cpf = _apenas_digitos(_extrair_coluna(linha, ["cpf"]))
     data_nasc = _normalizar_data(_extrair_coluna(linha, ["data_nascimento", "data de nascimento", "nascimento"]))
@@ -139,11 +174,14 @@ def _parse_linha_dict(linha: dict) -> LinhaImportada:
 
 
 def _ler_csv(arquivo: io.TextIOWrapper) -> list[LinhaImportada]:
+    """Le um CSV de verdade usando o cabecalho da primeira linha."""
     reader = csv.DictReader(arquivo)
     return [_parse_linha_dict(linha) for linha in reader]
 
 
 def _ler_xlsx(caminho: str) -> list[LinhaImportada]:
+    """Le a primeira planilha de um XLSX/XLS usando a primeira linha como
+    cabecalho; pula linhas totalmente vazias."""
     from openpyxl import load_workbook
     wb = load_workbook(caminho, read_only=True, data_only=True)
     ws = wb.active
@@ -159,6 +197,11 @@ def _ler_xlsx(caminho: str) -> list[LinhaImportada]:
 
 
 def _ler_pdf(caminho: str) -> list[LinhaImportada]:
+    """Extrai o texto do PDF e tenta interpreta-lo como CSV (usando o
+    Sniffer do modulo csv pra adivinhar o delimitador a partir das
+    primeiras linhas). PDFs de agendamento normalmente sao uma tabela
+    exportada que vira texto tabular ao extrair -- se o sniff falhar,
+    tenta de novo sem detectar dialeto antes de desistir."""
     import pdfplumber
     with pdfplumber.open(caminho) as pdf:
         texto_completo = "\n".join(page.extract_text() or "" for page in pdf.pages)
@@ -186,6 +229,9 @@ def _ler_pdf(caminho: str) -> list[LinhaImportada]:
 
 
 def _ler_docx(caminho: str) -> list[LinhaImportada]:
+    """Tenta primeiro ler o texto do documento como CSV; se o arquivo tiver
+    tabelas de verdade (mais comum em Word), usa a primeira linha de cada
+    tabela como cabecalho."""
     from docx import Document
     doc = Document(caminho)
     linhas = [p.text.strip() for p in doc.paragraphs if p.text.strip()]
@@ -211,6 +257,8 @@ def _ler_docx(caminho: str) -> list[LinhaImportada]:
 
 
 def _extrair_data_filename(nome_arquivo: str) -> Optional[date]:
+    """Tenta achar uma data (AAAA-MM-DD ou variantes) no proprio nome do
+    arquivo -- usada so quando a chamada nao informou target_date."""
     match = re.search(r"(\d{4})[-_]?(\d{2})[-_]?(\d{2})", nome_arquivo)
     if match:
         try:
@@ -221,6 +269,10 @@ def _extrair_data_filename(nome_arquivo: str) -> Optional[date]:
 
 
 def _salvar_temporario(arquivo) -> tuple[Path, str]:
+    """Grava o upload num arquivo temporario em disco (os leitores de
+    xlsx/pdf/docx precisam de um caminho, nao de um stream em memoria),
+    tentando descobrir a extensao certa mesmo se o nome original nao
+    tiver uma."""
     nome = getattr(arquivo, "name", "") or ""
     ext = Path(nome).suffix.lower() if nome else ""
     if not ext and hasattr(arquivo, "content_type"):
@@ -247,6 +299,16 @@ def _salvar_temporario(arquivo) -> tuple[Path, str]:
 def process_appointment_file(
     arquivo, target_date: Optional[date] = None, senha_padrao: str = "123456"
 ) -> ResultadoImportacao:
+    """Ponto de entrada da importacao: recebe o arquivo enviado pela
+    recepcao, detecta o formato pela extensao, converte cada linha em
+    Paciente + Agendamento e devolve um resumo (ResultadoImportacao).
+
+    Paciente novo (CPF ainda nao cadastrado) recebe uma senha padrao pro
+    portal -- ele pode trocar depois. Agendamento duplicado (mesmo
+    paciente + mesma data) e apenas contado como ignorado, nunca
+    sobrescrito, pra nao perder edicoes manuais feitas depois da ultima
+    importacao.
+    """
     if target_date is None:
         target_date = timezone.localdate()
 
@@ -316,6 +378,11 @@ def process_appointment_file(
 
 
 def _ler_imagem(caminho: str) -> list[LinhaImportada]:
+    """Ultimo recurso: OCR (pytesseract) sobre uma imagem da planilha
+    escaneada/fotografada. Se as dependencias de OCR nao estiverem
+    instaladas ou o reconhecimento falhar, devolve lista vazia em vez de
+    quebrar a importacao inteira -- a linha correspondente simplesmente
+    nao entra."""
     try:
         import pytesseract
         from PIL import Image

@@ -1,3 +1,12 @@
+"""Integracao com o sistema externo de agendamentos: busca os
+agendamentos do dia e importa como Paciente/Agendamento no banco local, e
+avisa o sistema externo quando um atendimento e concluido.
+
+`IntegradorBase` e a interface; `IntegradorHttp` e a implementacao real
+via REST. A separacao existe pra permitir testar `sincronizar_agendamentos`
+com um integrador falso, sem bater numa API de verdade.
+"""
+
 from dataclasses import dataclass, field
 from datetime import date, datetime
 from typing import Optional
@@ -10,6 +19,9 @@ from core.models import Agendamento, Paciente, EncaixePaciente
 
 @dataclass
 class AgendamentoExterno:
+    """Representa um agendamento como ele vem do sistema externo, antes de
+    virar um Paciente/Agendamento local -- um DTO simples, sem logica."""
+
     nome_completo: str
     cpf: str
     data_nascimento: Optional[str] = None
@@ -22,6 +34,9 @@ class AgendamentoExterno:
 
 
 class IntegradorBase:
+    """Contrato que qualquer integrador precisa cumprir. Sirva de dublê
+    nos testes (uma subclasse que devolve dados fixos, sem rede)."""
+
     BASE_URL = ""
     TIMEOUT = 30
 
@@ -33,6 +48,9 @@ class IntegradorBase:
 
 
 class IntegradorHttp(IntegradorBase):
+    """Implementacao real: fala com o sistema externo via HTTP/REST,
+    autenticando com um Bearer token."""
+
     def __init__(self, base_url: str, token: str = ""):
         self.BASE_URL = base_url.rstrip("/")
         self.token = token
@@ -66,6 +84,8 @@ class IntegradorHttp(IntegradorBase):
         ]
 
     def notificar_conclusao(self, encaixe: EncaixePaciente) -> bool:
+        # Falha de rede aqui nao pode travar o fluxo de atendimento -- so
+        # devolve False e quem chamou decide se tenta de novo depois.
         import requests
         url = f"{self.BASE_URL}/api/agendamentos/{encaixe.pk}/conclusao"
         payload = {
@@ -83,6 +103,19 @@ class IntegradorHttp(IntegradorBase):
 
 
 def sincronizar_agendamentos(data_alvo: Optional[date] = None, integrador: Optional[IntegradorBase] = None) -> dict:
+    """Busca os agendamentos do dia no sistema externo e grava/atualiza
+    Paciente + Agendamento localmente.
+
+    Paciente e resolvido por CPF: se ja existe, so vincula o novo
+    agendamento a ele (get_or_create nao sobrescreve os dados do paciente
+    existente); se nao existe, cria com os dados vindos do externo. O
+    Agendamento em si e feito por update_or_create na chave
+    (paciente, data_agendamento) -- rodar a sincronizacao de novo no mesmo
+    dia atualiza o agendamento existente em vez de duplicar.
+
+    Tudo dentro de uma unica transacao: ou a sincronizacao inteira
+    consolida, ou nada é gravado em caso de erro no meio do lote.
+    """
     from django.conf import settings
 
     if integrador is None:

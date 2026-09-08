@@ -2,6 +2,13 @@ from django.db import models
 
 
 class TipoAtendimentoEncaixe(models.Model):
+    """Marca qual(is) tipo(s) de atendimento um EncaixePaciente cobre.
+
+    Um encaixe pode ter mais de um tipo associado (por exemplo, consulta e
+    exame auditivo no mesmo dia), por isso e um modelo a parte com FK pro
+    encaixe em vez de um campo unico dentro de EncaixePaciente.
+    """
+
     CONSULTA = "consulta"
     TERAPIA = "terapia"
     EXAME_AUDITIVO = "exame_auditivo"

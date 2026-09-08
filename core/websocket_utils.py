@@ -1,3 +1,13 @@
+"""Funcoes que empurram eventos em tempo real via WebSocket (Django
+Channels) pros dois publicos que escutam: o Painel de Chamada (grupo
+`painel_chamada`, uma TV/monitor compartilhado) e cada paciente
+individualmente (grupo `paciente_{cpf}`, no celular dele).
+
+Nao ha estado aqui -- cada chamada le o banco na hora e manda um evento
+com o retrato atual da fila. Quem consome esses eventos sao os consumers
+em apps/display/consumers/.
+"""
+
 from datetime import datetime
 from asgiref.sync import async_to_sync
 from channels.layers import get_channel_layer
@@ -6,6 +16,13 @@ from core.models import EncaixePaciente
 
 
 def _group_send(group_name, event_type, **kwargs):
+    """Envia um evento para um grupo de canais, engolindo qualquer erro.
+
+    Erro de WebSocket (grupo sem ouvintes, camada de canais indisponivel
+    etc.) nunca pode derrubar a acao que disparou a notificacao -- chamar
+    um paciente, por exemplo, tem que funcionar mesmo se o tempo real
+    falhar; nesse caso o app mobile ainda pega a mudanca no proximo ciclo
+    de polling."""
     try:
         channel_layer = get_channel_layer()
         async_to_sync(channel_layer.group_send)(
@@ -18,6 +35,8 @@ def _group_send(group_name, event_type, **kwargs):
 
 
 def notificar_painel_chamada(encaixe, sala, guiche=""):
+    """Dispara o evento de "paciente chamado" pro Painel de Chamada exibir
+    a senha na tela (chamada individual, nao o retrato completo da fila)."""
     _group_send(
         "painel_chamada",
         "paciente_chamado",
@@ -46,6 +65,9 @@ def notificar_fila_atualizada():
 
 
 def _notificar_painel(hoje):
+    """Monta o retrato atual da fila do dia (quem esta aguardando/chamado/
+    em atendimento, mais os ultimos chamados) e manda pro Painel de
+    Chamada renderizar de novo."""
     fila = list(
         EncaixePaciente.objects.filter(
             data_atendimento=hoje,
@@ -134,6 +156,9 @@ def notificar_pacientes_em_espera(hoje=None):
 
 
 def notificar_paciente(cpf, event_type, **kwargs):
+    """Envia um evento avulso pro grupo de um paciente especifico (por
+    CPF) -- usado quando a notificacao nao se encaixa nos helpers acima
+    (ex.: eventos pontuais fora do ciclo normal de fila)."""
     if not cpf:
         return
     _group_send(

@@ -1,3 +1,5 @@
+# Rotas do app system, montadas sob /sistema/ em config/urls.py -- as
+# duas acoes de recepcao sobre a fila (chamar e marcar ausente).
 from django.urls import path
 
 from apps.system import views

@@ -100,6 +100,10 @@ def cadastro_view(request):
 
 def logout_view(request):
 
+    """Encerra a sessao (paciente ou staff, tanto faz quem esta logado) e
+    manda de volta pro login. session.flush() em vez de so limpar chaves
+    especificas garante que nada da sessao anterior sobrevive."""
+
     request.session.flush()
 
     return redirect("login")

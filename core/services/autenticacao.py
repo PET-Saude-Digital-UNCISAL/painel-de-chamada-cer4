@@ -72,6 +72,9 @@ _MESES_PT = ["", "janeiro", "fevereiro", "março", "abril", "maio", "junho", "ju
 
 def formatar_data_pt(d: date) -> str:
 
+    """Formata a data por extenso em portugues, ex.: "Segunda-feira, 03 de
+    setembro de 2026" -- usada no cabecalho das telas de login/cadastro."""
+
     return f"{_DIAS_PT[d.weekday()]}, {d.day:02d} de {_MESES_PT[d.month]} de {d.year}"
 
 

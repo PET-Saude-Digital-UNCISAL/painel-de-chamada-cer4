@@ -2,6 +2,17 @@ from channels.generic.websocket import AsyncJsonWebsocketConsumer
 
 
 class PainelChamadaConsumer(AsyncJsonWebsocketConsumer):
+    """Lado servidor da conexao WebSocket do Painel de Chamada (a tela de
+    TV compartilhada). So existe um grupo aqui (`painel_chamada`) porque o
+    painel e unico -- todo mundo conectado nele recebe os mesmos eventos,
+    disparados por core/websocket_utils.py sempre que a fila muda ou
+    alguem e chamado.
+
+    Cada metodo abaixo (paciente_chamado, fila_atualizada, painel_config)
+    corresponde ao "type" do evento mandado por group_send -- o Channels
+    roteia automaticamente pro metodo de mesmo nome.
+    """
+
     GROUP_NAME = "painel_chamada"
 
     async def connect(self):

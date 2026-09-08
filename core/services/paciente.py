@@ -30,6 +30,12 @@ PAINEL_CHAMADA_ASSETS_DIR = Path(__file__).resolve().parent.parent / "static" / 
 
 def _get_painel_chamada_asset_data_url(relative_path: str) -> str:
 
+    """Le um asset estatico do Painel de Chamada (fonte, logo, som de
+    chamada) e devolve como data URL base64, pra embutir direto no HTML
+    sem depender de outra requisicao -- essencial numa TV que fica ligada
+    o dia inteiro sem recarregar. lru_cache evita reler o arquivo do disco
+    a cada render."""
+
     asset_path = PAINEL_CHAMADA_ASSETS_DIR / relative_path
 
     content_type = guess_type(asset_path.name)[0] or "application/octet-stream"
@@ -41,6 +47,10 @@ def _get_painel_chamada_asset_data_url(relative_path: str) -> str:
 
 @dataclass(frozen=True)
 class _PainelChamadaDados:
+    """Retrato dos dados reais usados pra montar o contexto do Painel de
+    Chamada -- agrupados aqui so pra get_painel_chamada_context nao
+    precisar carregar cada pedaco separadamente."""
+
     hoje: date
     agora: datetime
     dias_pt: list
@@ -50,6 +60,10 @@ class _PainelChamadaDados:
 
 
 def _carregar_dados_painel() -> _PainelChamadaDados:
+    """Busca no banco tudo que get_painel_chamada_context precisa quando
+    roda com use_real_data=True: a chamada mais recente (ou o encaixe mais
+    recente do dia, se ninguem foi chamado ainda) e os ultimos 5 chamados,
+    pro rodape de "chamadas recentes"."""
     from django.utils import timezone
     hoje = timezone.localdate()
     agora = timezone.localtime()
@@ -73,6 +87,14 @@ def _carregar_dados_painel() -> _PainelChamadaDados:
 
 
 def get_painel_chamada_context(use_real_data: bool = False) -> dict:
+
+    """Monta o contexto completo da tela do Painel de Chamada (TV).
+
+    Com use_real_data=False devolve um payload com dados fixos de exemplo
+    (usado nas telas isoladas de desenvolvimento, sem precisar de banco
+    populado); com True, busca a fila e a chamada atual de verdade via
+    _carregar_dados_painel. Os dois casos populam exatamente as mesmas
+    chaves, pra o template nao precisar saber qual modo esta ativo."""
 
     if use_real_data:
         d = _carregar_dados_painel()
@@ -184,6 +206,9 @@ PACIENTE_CHAMADO_ASSETS_DIR = Path(__file__).resolve().parent.parent / "static" 
 
 def _get_paciente_chamado_asset_data_url(relative_path: str) -> str:
 
+    """Mesma ideia de _get_painel_chamada_asset_data_url, mas pros assets
+    proprios da tela de Paciente Chamado (fonte propria etc.)."""
+
     asset_path = PACIENTE_CHAMADO_ASSETS_DIR / relative_path
 
     content_type = guess_type(asset_path.name)[0] or "application/octet-stream"
@@ -270,6 +295,11 @@ def resolver_encaixe_da_sessao(request, *, permitir_fallback_por_senha=False):
 
 
 def get_paciente_chamado_context() -> dict:
+
+    """Payload de exemplo (dados fixos) pra tela de "Paciente Chamado"
+    quando nao ha um encaixe de verdade resolvido pela sessao -- ver
+    paciente_chamado_view em core/views/paciente.py, que usa isto como
+    fallback quando resolver_encaixe_da_sessao nao acha nada."""
 
     return {
 
@@ -573,6 +603,8 @@ def get_identificacao_paciente_context() -> dict:
 
 
 def _normalizar_nome(nome: str) -> str:
+    """Normaliza espacos e caixa pra comparar nome digitado com nome
+    cadastrado sem falso negativo por espaco duplo ou maiusculas."""
     return " ".join((nome or "").strip().split()).casefold()
 
 

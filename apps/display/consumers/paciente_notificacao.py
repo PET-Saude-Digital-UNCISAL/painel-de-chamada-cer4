@@ -2,6 +2,13 @@ from channels.generic.websocket import AsyncJsonWebsocketConsumer
 
 
 class PacienteNotificacaoConsumer(AsyncJsonWebsocketConsumer):
+    """Lado servidor da conexao WebSocket de um paciente individual, no
+    celular dele. Diferente do painel (grupo unico), aqui cada paciente
+    entra no seu proprio grupo (`paciente_{cpf}`), montado a partir do CPF
+    que vem na URL -- assim so ele recebe os eventos referentes ao proprio
+    atendimento.
+    """
+
     async def connect(self):
         self.cpf = self.scope["url_route"]["kwargs"]["cpf"]
         self.group_name = f"paciente_{self.cpf}"

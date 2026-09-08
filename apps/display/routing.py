@@ -1,3 +1,5 @@
+# Mapa de rotas WebSocket (ASGI) do app display -- equivalente ao
+# core/urls.py, mas para conexoes ws:// em vez de HTTP.
 from django.urls import re_path
 
 from apps.display.consumers.painel_consumer import PainelChamadaConsumer

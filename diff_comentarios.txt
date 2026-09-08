@@ -1,0 +1,1346 @@
+diff --git a/apps/core_domain/business_rules.py b/apps/core_domain/business_rules.py
+index 4d5ecf2..6f9aacd 100644
+--- a/apps/core_domain/business_rules.py
++++ b/apps/core_domain/business_rules.py
+@@ -4,19 +4,28 @@ from apps.core_domain.clock import SystemClock
+ 
+ 
+ def is_deadline_expired(deadline_at: datetime, clock=SystemClock) -> bool:
++    """True quando o instante atual (via clock, injetavel nos testes) ja
++    passou de `deadline_at`."""
+     return clock.now() > deadline_at
+ 
+ 
+ def can_run_reception_workflow(clock=SystemClock) -> bool:
++    """True de segunda a sexta -- a recepcao nao funciona no fim de semana,
++    entao fluxos que dependem de expediente (ex.: sincronizacao de
++    agendamentos) checam isso antes de rodar."""
+     current_weekday = clock.now().weekday()
+     return current_weekday < 5
+ 
+ 
+ def apenas_digitos(valor: str) -> str:
++    """Remove tudo que nao for digito -- usado pra normalizar CPF vindo de
++    formulario (com ou sem pontuacao) antes de comparar/gravar."""
+     return "".join(ch for ch in (valor or "") if ch.isdigit())
+ 
+ 
+ def formatar_cpf(cpf_digitos: str) -> str:
++    """Formata uma string de 11 digitos como CPF (000.000.000-00). Se nao
++    tiver exatamente 11 digitos, devolve o valor original sem mexer."""
+     d = apenas_digitos(cpf_digitos)
+     if len(d) != 11:
+         return cpf_digitos
+@@ -24,6 +33,9 @@ def formatar_cpf(cpf_digitos: str) -> str:
+ 
+ 
+ def cpf_e_valido(cpf: str) -> bool:
++    """Valida CPF pelo algoritmo oficial dos dois digitos verificadores.
++    Rejeita tambem sequencias repetidas (ex.: 111.111.111-11), que passam
++    no calculo mas nunca sao CPFs reais."""
+     d = apenas_digitos(cpf)
+     if len(d) != 11 or d == d[0] * 11:
+         return False
+@@ -36,6 +48,10 @@ def cpf_e_valido(cpf: str) -> bool:
+ 
+ 
+ def nivel_forca_senha(senha: str) -> int:
++    """Estima a forca de uma senha em uma escala de 0 a 3, somando pontos
++    por comprimento minimo, mistura de maiusculas/minusculas, mistura de
++    numero com simbolo e comprimento generoso. Usado so pra feedback visual
++    no formulario, nao como unica regra de validacao."""
+     if not senha:
+         return 0
+     pontos = 0
+diff --git a/apps/core_domain/models/agendamento.py b/apps/core_domain/models/agendamento.py
+index 2d61444..f0e281c 100644
+--- a/apps/core_domain/models/agendamento.py
++++ b/apps/core_domain/models/agendamento.py
+@@ -4,6 +4,16 @@ from apps.core_domain.models.paciente import Paciente
+ 
+ 
+ class Agendamento(models.Model):
++    """Um agendamento vindo do sistema de marcacao (importado via
++    core/importer.py e core/integrador.py, ou lancado manualmente).
++
++    E o compromisso original do paciente com uma data/hora; nao confundir
++    com EncaixePaciente, que so existe a partir do momento em que o
++    paciente de fato aparece e entra na fila do dia. Um Agendamento pode
++    nunca virar um EncaixePaciente (se o paciente faltar) ou pode gerar um
++    quando o check-in e feito.
++    """
++
+     class Status(models.TextChoices):
+         AGENDADO = "agendado", "Agendado"
+         CHECKIN_REALIZADO = "checkin_realizado", "Check-in Realizado"
+diff --git a/apps/core_domain/models/encaixe_paciente.py b/apps/core_domain/models/encaixe_paciente.py
+index ca3b975..9746cf6 100644
+--- a/apps/core_domain/models/encaixe_paciente.py
++++ b/apps/core_domain/models/encaixe_paciente.py
+@@ -3,8 +3,24 @@ from django.utils import timezone
+ 
+ 
+ class EncaixePaciente(models.Model):
++    """Uma senha na fila de atendimento de um dia especifico.
++
++    E o registro central de todo o fluxo de chamada: cada vez que um
++    paciente faz check-in (a partir de um agendamento) ou e encaixado pela
++    recepcao (sem agendamento previo), nasce um EncaixePaciente novo para
++    aquele dia. O painel de chamada, o acompanhamento do paciente e a
++    auditoria de percurso trabalham todos em cima desse modelo.
++
++    Um mesmo paciente (mesmo CPF) pode ter mais de um EncaixePaciente no
++    mesmo dia -- por exemplo, dois tipos de atendimento diferentes -- e por
++    isso a senha so precisa ser unica dentro do dia (unique_together com
++    data_atendimento), nao globalmente.
++    """
+ 
+     class Status(models.TextChoices):
++        # Ordem esperada de transicao: VALIDACAO -> AGUARDANDO -> CHAMADO ->
++        # ATENDIMENTO -> CONCLUIDO. AUSENTE acontece quando o paciente e
++        # chamado e nao comparece.
+         VALIDACAO = "validacao", "Validação"
+         AGUARDANDO = "aguardando", "Aguardando"
+         CHAMADO = "chamado", "Chamado"
+@@ -13,6 +29,9 @@ class EncaixePaciente(models.Model):
+         CONCLUIDO = "concluido", "Concluído"
+ 
+     class Origem(models.TextChoices):
++        # De onde veio esta senha: CHECKIN quando o paciente ja tinha
++        # agendamento e so confirmou presenca; ENCAIXE quando a recepcao
++        # adicionou o paciente na fila sem agendamento previo.
+         CHECKIN = "checkin", "Check-in"
+         ENCAIXE = "encaixe", "Encaixe"
+ 
+@@ -30,6 +49,8 @@ class EncaixePaciente(models.Model):
+     chamado_em = models.DateTimeField(null=True, blank=True)
+     concluido_em = models.DateTimeField(null=True, blank=True)
+     ausente_em = models.DateTimeField(null=True, blank=True)
++    # Quantas vezes essa senha foi chamada no painel -- usado pra decidir
++    # quando desistir de chamar e marcar como ausente.
+     vezes_chamado = models.PositiveSmallIntegerField(default=0)
+     criado_em = models.DateTimeField(auto_now_add=True)
+     origem = models.CharField(max_length=10, choices=Origem.choices, default=Origem.ENCAIXE)
+@@ -39,6 +60,8 @@ class EncaixePaciente(models.Model):
+         ordering = ("posicao_fila",)
+         verbose_name = "encaixe"
+         verbose_name_plural = "encaixes"
++        # A senha se repete de um dia pro outro (a fila reinicia todo dia),
++        # entao a unicidade so faz sentido dentro do mesmo data_atendimento.
+         unique_together = ("senha", "data_atendimento")
+ 
+     def __str__(self):
+diff --git a/apps/core_domain/models/paciente.py b/apps/core_domain/models/paciente.py
+index 05b1430..d0a230a 100644
+--- a/apps/core_domain/models/paciente.py
++++ b/apps/core_domain/models/paciente.py
+@@ -3,12 +3,26 @@ from django.db import models
+ 
+ 
+ class Paciente(models.Model):
++    """Cadastro de paciente, usado tanto no fluxo mobile (identificacao,
++    check-in, acompanhamento) quanto como referencia para agendamentos e
++    encaixes.
++
++    O cadastro em si nao muda quando o paciente entra na fila -- quem
++    representa "este paciente esta na fila hoje, nesta posicao, com este
++    status" e o EncaixePaciente, criado a cada atendimento.
++    """
++
+     nome_completo = models.CharField(max_length=150)
+     nome_mae = models.CharField(max_length=150, blank=True, default="")
+     cpf = models.CharField(max_length=14, unique=True)
+     data_nascimento = models.DateField(null=True, blank=True)
+     email = models.EmailField(blank=True)
++    # Hash da senha de acesso a area do paciente (portal), independente do
++    # login institucional dos usuarios do sistema (UsuarioSistema).
+     senha_hash = models.CharField(max_length=128)
++    # Soft delete: paciente inativo continua no banco (por causa do
++    # historico de agendamentos/encaixes), mas nao aparece mais como
++    # identificavel nas telas do fluxo mobile.
+     paciente_ativo = models.BooleanField(default=True)
+     criado_em = models.DateTimeField(auto_now_add=True)
+     atualizado_em = models.DateTimeField(auto_now=True)
+diff --git a/apps/core_domain/models/pesquisa_satisfacao.py b/apps/core_domain/models/pesquisa_satisfacao.py
+index 7ea8de1..f28dd9f 100644
+--- a/apps/core_domain/models/pesquisa_satisfacao.py
++++ b/apps/core_domain/models/pesquisa_satisfacao.py
+@@ -2,6 +2,16 @@ from django.db import models
+ 
+ 
+ class PesquisaSatisfacao(models.Model):
++    """Resposta da pesquisa de satisfacao preenchida pelo paciente depois
++    do atendimento.
++
++    Guarda nome/CPF do paciente separado do FK pro encaixe de proposito:
++    a resposta tem que sobreviver mesmo se o EncaixePaciente correspondente
++    for removido (por isso on_delete=SET_NULL), ja que o dado da pesquisa
++    em si continua valioso pra gestao de qualidade independente do
++    registro de fila que a originou.
++    """
++
+     encaixe = models.ForeignKey(
+         "core.EncaixePaciente",
+         on_delete=models.SET_NULL,
+diff --git a/apps/core_domain/models/tipo_atendimento_encaixe.py b/apps/core_domain/models/tipo_atendimento_encaixe.py
+index 48f1e04..a20ada5 100644
+--- a/apps/core_domain/models/tipo_atendimento_encaixe.py
++++ b/apps/core_domain/models/tipo_atendimento_encaixe.py
+@@ -2,6 +2,13 @@ from django.db import models
+ 
+ 
+ class TipoAtendimentoEncaixe(models.Model):
++    """Marca qual(is) tipo(s) de atendimento um EncaixePaciente cobre.
++
++    Um encaixe pode ter mais de um tipo associado (por exemplo, consulta e
++    exame auditivo no mesmo dia), por isso e um modelo a parte com FK pro
++    encaixe em vez de um campo unico dentro de EncaixePaciente.
++    """
++
+     CONSULTA = "consulta"
+     TERAPIA = "terapia"
+     EXAME_AUDITIVO = "exame_auditivo"
+diff --git a/apps/core_domain/models/usuario_sistema.py b/apps/core_domain/models/usuario_sistema.py
+index d44733d..c6d8e31 100644
+--- a/apps/core_domain/models/usuario_sistema.py
++++ b/apps/core_domain/models/usuario_sistema.py
+@@ -3,6 +3,15 @@ from django.db import models
+ 
+ 
+ class UsuarioSistema(models.Model):
++    """Conta de colaborador (recepcao, coordenacao, super admin) que acessa
++    a area institucional do sistema -- login proprio, separado do login de
++    autenticacao do Django (nao usa o model User padrao).
++
++    O nivel_acesso define o que o usuario pode fazer em conjunto com o
++    modelo NivelAcessoPermissao, que guarda quais permissoes cada nivel tem
++    habilitadas.
++    """
++
+     class NivelAcesso(models.TextChoices):
+         RECEPCIONISTA = "recepcionista", "Recepcionista"
+         COORDENACAO = "coordenacao", "Coordenação"
+@@ -16,6 +25,8 @@ class UsuarioSistema(models.Model):
+     cargo = models.CharField(max_length=100, default="")
+     departamento = models.CharField(max_length=100, default="")
+     foto_perfil = models.ImageField(upload_to='perfis/', null=True, blank=True)
++    # Soft delete: desativar em vez de apagar preserva o historico de quem
++    # fez o que (auditoria, encaixes registrados por este usuario etc.).
+     usuario_ativo = models.BooleanField(default=True)
+     criado_em = models.DateTimeField(auto_now_add=True)
+     atualizado_em = models.DateTimeField(auto_now=True)
+@@ -28,6 +39,7 @@ class UsuarioSistema(models.Model):
+ 
+     @property
+     def iniciais(self):
++        """Iniciais do nome pra exibir no avatar quando nao ha foto de perfil."""
+         partes = self.nome_completo.split()
+         return "".join(parte[0] for parte in partes[:2]).upper()
+ 
+diff --git a/apps/display/consumers/paciente_notificacao.py b/apps/display/consumers/paciente_notificacao.py
+index 2f80375..79b1b02 100644
+--- a/apps/display/consumers/paciente_notificacao.py
++++ b/apps/display/consumers/paciente_notificacao.py
+@@ -2,6 +2,13 @@ from channels.generic.websocket import AsyncJsonWebsocketConsumer
+ 
+ 
+ class PacienteNotificacaoConsumer(AsyncJsonWebsocketConsumer):
++    """Lado servidor da conexao WebSocket de um paciente individual, no
++    celular dele. Diferente do painel (grupo unico), aqui cada paciente
++    entra no seu proprio grupo (`paciente_{cpf}`), montado a partir do CPF
++    que vem na URL -- assim so ele recebe os eventos referentes ao proprio
++    atendimento.
++    """
++
+     async def connect(self):
+         self.cpf = self.scope["url_route"]["kwargs"]["cpf"]
+         self.group_name = f"paciente_{self.cpf}"
+diff --git a/apps/display/consumers/painel_consumer.py b/apps/display/consumers/painel_consumer.py
+index 5526b35..dc14f7c 100644
+--- a/apps/display/consumers/painel_consumer.py
++++ b/apps/display/consumers/painel_consumer.py
+@@ -2,6 +2,17 @@ from channels.generic.websocket import AsyncJsonWebsocketConsumer
+ 
+ 
+ class PainelChamadaConsumer(AsyncJsonWebsocketConsumer):
++    """Lado servidor da conexao WebSocket do Painel de Chamada (a tela de
++    TV compartilhada). So existe um grupo aqui (`painel_chamada`) porque o
++    painel e unico -- todo mundo conectado nele recebe os mesmos eventos,
++    disparados por core/websocket_utils.py sempre que a fila muda ou
++    alguem e chamado.
++
++    Cada metodo abaixo (paciente_chamado, fila_atualizada, painel_config)
++    corresponde ao "type" do evento mandado por group_send -- o Channels
++    roteia automaticamente pro metodo de mesmo nome.
++    """
++
+     GROUP_NAME = "painel_chamada"
+ 
+     async def connect(self):
+diff --git a/apps/display/routing.py b/apps/display/routing.py
+index e216bbd..533e54d 100644
+--- a/apps/display/routing.py
++++ b/apps/display/routing.py
+@@ -1,3 +1,5 @@
++# Mapa de rotas WebSocket (ASGI) do app display -- equivalente ao
++# core/urls.py, mas para conexoes ws:// em vez de HTTP.
+ from django.urls import re_path
+ 
+ from apps.display.consumers.painel_consumer import PainelChamadaConsumer
+diff --git a/apps/mobile/api/serializers.py b/apps/mobile/api/serializers.py
+index c66d28f..8550adc 100644
+--- a/apps/mobile/api/serializers.py
++++ b/apps/mobile/api/serializers.py
+@@ -7,6 +7,11 @@ from core.services import registrar_encaixe
+ 
+ 
+ class EncaixeSerializer(serializers.Serializer):
++    """Serializer puro (nao ModelSerializer) porque a criacao de verdade
++    passa por registrar_encaixe -- a mesma funcao de servico usada pela
++    view tradicional de encaixe -- em vez de um save() direto no model,
++    ja que registrar_encaixe cuida de gerar senha e posicao na fila."""
++
+     nome_completo = serializers.CharField(max_length=150)
+     cpf = serializers.CharField(max_length=14, required=False, allow_blank=True)
+     data_nascimento = serializers.DateField(required=False, allow_null=True)
+@@ -36,6 +41,9 @@ class EncaixeSerializer(serializers.Serializer):
+ 
+ 
+ class FilaSerializer(serializers.ModelSerializer):
++    """Representacao somente-leitura de um EncaixePaciente pra listagem
++    de fila -- so os campos que o app precisa mostrar."""
++
+     class Meta:
+         model = EncaixePaciente
+         fields = (
+@@ -46,6 +54,10 @@ class FilaSerializer(serializers.ModelSerializer):
+ 
+ 
+ class PacienteLoginSerializer(serializers.Serializer):
++    """Autentica paciente por CPF + senha, equivalente ao LoginPacienteForm
++    tradicional (so a metade paciente -- esta API nao cobre login de
++    staff)."""
++
+     cpf = serializers.CharField(max_length=14)
+     senha = serializers.CharField(write_only=True)
+ 
+@@ -70,6 +82,10 @@ class PacienteLoginSerializer(serializers.Serializer):
+ 
+ 
+ class PacienteCadastroSerializer(serializers.ModelSerializer):
++    """Equivalente ao CadastroPacienteForm tradicional: cria um paciente
++    novo com senha propria (nunca reaproveitando os campos do
++    UsuarioSistema)."""
++
+     senha = serializers.CharField(min_length=8, write_only=True)
+     confirmar_senha = serializers.CharField(write_only=True)
+ 
+@@ -104,6 +120,10 @@ class PacienteCadastroSerializer(serializers.ModelSerializer):
+ 
+ 
+ class PesquisaSatisfacaoSerializer(serializers.Serializer):
++    """Recebe a avaliacao por categoria (1 a 5 em cada aspecto) do
++    atendimento mais recente concluido hoje pro CPF informado -- so
++    aceita uma avaliacao por atendimento (ver validate abaixo)."""
++
+     cpf = serializers.CharField(max_length=14)
+     nota_atendimento = serializers.IntegerField(min_value=1, max_value=5)
+     nota_espera = serializers.IntegerField(min_value=1, max_value=5)
+diff --git a/apps/mobile/api/urls.py b/apps/mobile/api/urls.py
+index ab0db24..ea81701 100644
+--- a/apps/mobile/api/urls.py
++++ b/apps/mobile/api/urls.py
+@@ -1,3 +1,6 @@
++# Rotas da API REST do app mobile, montadas sob /api/v1/ em
++# config/urls.py. DefaultRouter gera as rotas padrao de cada ViewSet
++# (list/create conforme os mixins usados) automaticamente.
+ from django.urls import path
+ from rest_framework.routers import DefaultRouter
+ 
+diff --git a/apps/mobile/api/views.py b/apps/mobile/api/views.py
+index 5ac4c45..9ac873b 100644
+--- a/apps/mobile/api/views.py
++++ b/apps/mobile/api/views.py
+@@ -1,3 +1,12 @@
++"""API REST (Django REST Framework) do app mobile -- uma camada paralela
++as views tradicionais em core/views/paciente.py e core/views/encaixe.py,
++pensada pra consumo por um cliente que fale JSON (app nativo, SPA) em vez
++de receber HTML renderizado no servidor.
++
++Sem autenticacao de sessao/token por enquanto (AllowAny em tudo) -- cada
++endpoint identifica o paciente pelo CPF recebido no proprio payload.
++"""
++
+ from django.utils import timezone
+ 
+ from rest_framework import mixins, status, viewsets
+@@ -16,12 +25,21 @@ from apps.mobile.api.serializers import (
+ 
+ 
+ class EncaixeViewSet(mixins.CreateModelMixin, viewsets.GenericViewSet):
++    """Only exposes create (POST) -- criar um encaixe via API. Sem list
++    proposital: expor a fila inteira por aqui e responsabilidade do
++    FilaViewSet, com seus proprios filtros."""
++
+     queryset = EncaixePaciente.objects.none()
+     serializer_class = EncaixeSerializer
+     permission_classes = (AllowAny,)
+ 
+ 
+ class FilaViewSet(mixins.ListModelMixin, viewsets.GenericViewSet):
++    """Consulta da fila do dia. A acao extra `fila_atual` e o que a tela
++    de acompanhamento do app consome de fato -- devolve num unico payload
++    quem esta sendo chamado agora, os proximos da fila de espera e,
++    quando um CPF e informado, a posicao daquele paciente especifico."""
++
+     serializer_class = FilaSerializer
+     permission_classes = (AllowAny,)
+ 
+@@ -80,6 +98,10 @@ class FilaViewSet(mixins.ListModelMixin, viewsets.GenericViewSet):
+ 
+ 
+ class PacienteAuthViewSet(viewsets.GenericViewSet):
++    """Login e cadastro de paciente via API -- equivalente ao LoginPacienteForm
++    e CadastroPacienteForm usados pelas telas tradicionais, mas devolvendo
++    JSON em vez de renderizar/redirecionar."""
++
+     permission_classes = (AllowAny,)
+ 
+     @action(detail=False, methods=["post"], url_path="login")
+@@ -112,6 +134,9 @@ class PacienteAuthViewSet(viewsets.GenericViewSet):
+ 
+ 
+ class PesquisaSatisfacaoViewSet(mixins.CreateModelMixin, viewsets.GenericViewSet):
++    """Only exposes create (POST) -- envio da pesquisa de satisfacao pelo
++    app, equivalente a tela mobile/pesquisa_satisfacao.html."""
++
+     queryset = EncaixePaciente.objects.none()
+     serializer_class = PesquisaSatisfacaoSerializer
+     permission_classes = (AllowAny,)
+diff --git a/apps/system/urls.py b/apps/system/urls.py
+index 95a1d03..3742090 100644
+--- a/apps/system/urls.py
++++ b/apps/system/urls.py
+@@ -1,3 +1,5 @@
++# Rotas do app system, montadas sob /sistema/ em config/urls.py -- as
++# duas acoes de recepcao sobre a fila (chamar e marcar ausente).
+ from django.urls import path
+ 
+ from apps.system import views
+diff --git a/apps/system/views.py b/apps/system/views.py
+index 54bbf66..54c4e75 100644
+--- a/apps/system/views.py
++++ b/apps/system/views.py
+@@ -1,3 +1,9 @@
++"""Acoes da recepcao sobre a fila do dia: chamar um paciente (ou rechama-lo,
++se ele ja tinha sido marcado ausente) e marcar ausencia quando o paciente
++nao aparece. Views separadas do resto do "sistema" (core/views/sistema.py)
++porque moram no app apps.system, roteadas sob o prefixo /sistema/.
++"""
++
+ from django.db import transaction
+ from django.http import JsonResponse
+ from django.shortcuts import get_object_or_404
+@@ -12,6 +18,13 @@ from core.auth_decorators import permissao_requerida
+ @require_POST
+ @permissao_requerida("checkin")
+ def chamar_paciente_view(request):
++    """Chama o proximo paciente pra sala informada: muda o status pra
++    CHAMADO e dispara as tres notificacoes de WebSocket (painel de
++    chamada, retrato geral da fila, e o paciente individualmente).
++
++    Tambem serve pra rechamar alguem que ja tinha sido marcado AUSENTE --
++    nesse caso incrementa vezes_chamado, que e o contador usado pra
++    decidir quando desistir de chamar."""
+     senha = request.POST.get("senha", "")
+     sala = request.POST.get("sala", "Sala 1")
+     guiche = request.POST.get("guiche", "")
+@@ -58,6 +71,10 @@ def chamar_paciente_view(request):
+ @require_POST
+ @permissao_requerida("checkin")
+ def marcar_ausente_view(request):
++    """Marca como ausente um paciente que foi chamado (ou ja estava em
++    atendimento) e nao apareceu / precisou sair. So pode partir de CHAMADO
++    ou ATENDIMENTO -- um paciente ainda aguardando na fila nao pode ser
++    marcado ausente direto, ele precisa ser chamado primeiro."""
+     senha = request.POST.get("senha", "")
+ 
+     with transaction.atomic():
+diff --git a/core/admin.py b/core/admin.py
+index 19a82dc..6c9da27 100644
+--- a/core/admin.py
++++ b/core/admin.py
+@@ -1,3 +1,6 @@
++# Cadastro no Django Admin -- uso interno/tecnico (nao e a interface
++# que a recepcao usa no dia a dia, essa fica nas telas do sistema
++# interno). Util pra inspecionar/corrigir dados pontualmente.
+ from django.contrib import admin
+ 
+ from core.models import EncaixePaciente, Paciente, TipoAtendimentoEncaixe, UsuarioSistema
+diff --git a/core/auth_decorators.py b/core/auth_decorators.py
+index fab2323..195c4da 100644
+--- a/core/auth_decorators.py
++++ b/core/auth_decorators.py
+@@ -1,3 +1,9 @@
++"""Decorators de autenticacao/autorizacao para as views da area interna
++(sistema institucional). Nao usa o sistema de auth padrao do Django --
++o login de UsuarioSistema e proprio, guardado na sessao como
++`staff_usuario_id`.
++"""
++
+ from functools import wraps
+ 
+ from django.http import JsonResponse
+@@ -7,10 +13,16 @@ from core.models import UsuarioSistema
+ 
+ 
+ def _requisicao_ajax(request):
++    """Distingue uma chamada AJAX/fetch de uma navegacao normal de pagina,
++    pra decidir se a resposta de erro deve ser JSON (pro JS tratar) ou um
++    redirect/render de pagina inteira."""
+     return request.headers.get("x-requested-with") == "XMLHttpRequest" or request.content_type == "application/json"
+ 
+ 
+ def staff_required(view_func):
++    """Exige apenas que exista um UsuarioSistema ativo logado na sessao,
++    sem checar permissao especifica nenhuma. Views que precisam de uma
++    permissao pontual devem usar `permissao_requerida` em vez deste."""
+     @wraps(view_func)
+     def _wrapped(request, *args, **kwargs):
+         uid = request.session.get("staff_usuario_id")
+diff --git a/core/business_rules.py b/core/business_rules.py
+index ae5e93a..954dab5 100644
+--- a/core/business_rules.py
++++ b/core/business_rules.py
+@@ -1 +1,4 @@
++# Mesmo motivo do core/models.py: as regras de negocio moram em
++# apps/core_domain/business_rules.py, isto aqui e so o caminho de import
++# antigo.
+ from apps.core_domain.business_rules import *
+diff --git a/core/clock.py b/core/clock.py
+index 96f9af7..98057d5 100644
+--- a/core/clock.py
++++ b/core/clock.py
+@@ -1 +1,3 @@
++# Mesmo motivo do core/models.py: SystemClock mora em
++# apps/core_domain/clock.py, isto aqui e so o caminho de import antigo.
+ from apps.core_domain.clock import *
+diff --git a/core/dev_urls.py b/core/dev_urls.py
+index 6fe5901..b3d5bdf 100644
+--- a/core/dev_urls.py
++++ b/core/dev_urls.py
+@@ -1,3 +1,6 @@
++# Rotas de desenvolvimento, montadas sob /__dev__/ em config/urls.py --
++# telas isoladas com dados mockados, pra trabalhar no front-end sem
++# depender de um banco populado.
+ from django.urls import path
+ 
+ from core import views
+diff --git a/core/forms.py b/core/forms.py
+index 6f8e57f..cde4c06 100644
+--- a/core/forms.py
++++ b/core/forms.py
+@@ -31,6 +31,8 @@ class EncaixeForm(forms.Form):
+     anexo = forms.FileField(required=False, label="Anexo")
+ 
+     def clean_anexo(self):
++        # So aceita os formatos que a recepcao normalmente recebe (laudo,
++        # pedido medico digitalizado) -- qualquer outra extensao e rejeitada.
+         arquivo = self.cleaned_data.get("anexo")
+         if arquivo:
+             nome = arquivo.name.lower()
+@@ -40,6 +42,8 @@ class EncaixeForm(forms.Form):
+ 
+ 
+ class UsuarioSistemaForm(forms.ModelForm):
++    """Formulário de cadastro/edição de colaborador na tela de Configurações."""
++
+     cpf = forms.CharField(max_length=14)
+ 
+     class Meta:
+@@ -217,6 +221,10 @@ class LoginPacienteForm(forms.Form):
+         return re.sub(r"\D", "", cpf)
+ 
+     def clean(self):
++        # Um unico formulario de login serve tanto pro paciente quanto pro
++        # colaborador: tenta autenticar como UsuarioSistema primeiro e,
++        # nao dando certo, tenta como Paciente. Guarda em cleaned_data qual
++        # dos dois autenticou pra view decidir pra onde redirecionar.
+         cleaned = super().clean()
+         cpf = cleaned.get("cpf")
+         senha = cleaned.get("senha")
+@@ -322,6 +330,9 @@ class CadastroPacienteForm(forms.ModelForm):
+         return cleaned
+ 
+     def save(self, commit=True):
++        # ModelForm padrao nao sabe lidar com o campo "senha" (nao existe no
++        # model, o model guarda senha_hash) -- por isso o save e
++        # sobrescrito pra fazer o hash antes de persistir.
+         paciente = super().save(commit=False)
+         paciente.set_senha(self.cleaned_data["senha"])
+         if commit:
+diff --git a/core/importer.py b/core/importer.py
+index da3bf97..3fa9ef1 100644
+--- a/core/importer.py
++++ b/core/importer.py
+@@ -1,3 +1,13 @@
++"""Importacao de planilha/arquivo de agendamentos enviado manualmente
++pela recepcao (tela de sincronizacao), como alternativa ao integrador
++automatico (core/integrador.py).
++
++Aceita CSV, XLSX/XLS, PDF, DOC/DOCX e ate imagem (via OCR) -- o formato e
++detectado pela extensao do arquivo, e cada um tem sua propria funcao de
++leitura (_ler_csv, _ler_xlsx etc.) que converte pra uma lista de
++LinhaImportada, formato comum que o resto do processamento usa.
++"""
++
+ import csv
+ import io
+ import os
+@@ -14,6 +24,9 @@ from django.utils import timezone
+ from core.models import Agendamento, Paciente
+ 
+ 
++# Normaliza varios jeitos de escrever o tipo de atendimento (com/sem
++# acento, singular/plural, sinonimo de especialidade) pros tres valores
++# que o sistema realmente usa (consulta / terapia / exame_auditivo).
+ TIPO_ATENDIMENTO_MAP = {
+     "consulta": "consulta",
+     "consultas": "consulta",
+@@ -28,6 +41,9 @@ TIPO_ATENDIMENTO_MAP = {
+     "terapia ocupacional": "terapia",
+ }
+ 
++# Nomes de coluna aceitos pra cada campo, na ordem em que a leitura tenta
++# encontra-los -- a planilha pode vir com cabecalho em portugues, com ou
++# sem acento, e a gente nao controla como cada unidade nomeia as colunas.
+ COLUNAS_ESPERADAS = [
+     "nome_completo",
+     "nome do paciente",
+@@ -52,6 +68,9 @@ COLUNAS_ESPERADAS = [
+ 
+ @dataclass
+ class LinhaImportada:
++    """Uma linha da planilha ja normalizada e validada (ou nao -- ver
++    `valida`/`erros`) pronta pra virar Paciente + Agendamento."""
++
+     nome_completo: str
+     cpf: str
+     data_nascimento: Optional[date] = None
+@@ -63,6 +82,10 @@ class LinhaImportada:
+ 
+ @dataclass
+ class ResultadoImportacao:
++    """Resumo de uma importacao inteira, devolvido pra tela mostrar quantos
++    agendamentos entraram, quantos ja existiam (ignorados) e a lista de
++    linhas que falharam na validacao."""
++
+     total: int = 0
+     criados: int = 0
+     ignorados: int = 0
+@@ -71,10 +94,15 @@ class ResultadoImportacao:
+ 
+ 
+ def _apenas_digitos(valor: str) -> str:
++    """Remove tudo que nao for digito do CPF vindo da planilha."""
+     return re.sub(r"\D", "", valor)
+ 
+ 
+ def _normalizar_data(valor: Any) -> Optional[date]:
++    """Tenta interpretar a data de nascimento em varios formatos comuns de
++    planilha (incluindo already-parsed date/datetime do openpyxl, e
++    Timestamp do pandas quando disponivel). Devolve None se nao
++    reconhecer nenhum formato -- data de nascimento nao e obrigatoria."""
+     if isinstance(valor, date):
+         return valor
+     if isinstance(valor, datetime):
+@@ -97,6 +125,8 @@ def _normalizar_data(valor: Any) -> Optional[date]:
+ 
+ 
+ def _normalizar_tipo_atendimento(valor: Any) -> str:
++    """Usa TIPO_ATENDIMENTO_MAP pra mapear o texto livre da planilha num
++    dos tipos validos; sem correspondencia, assume "consulta"."""
+     if not valor:
+         return "consulta"
+     texto = str(valor).strip().lower()
+@@ -104,6 +134,8 @@ def _normalizar_tipo_atendimento(valor: Any) -> str:
+ 
+ 
+ def _extrair_coluna(linha: dict, nomes_possiveis: list[str]) -> str:
++    """Procura o valor testando cada nome de coluna possivel em ordem --
++    a planilha real so vai ter uma dessas variantes de nome."""
+     for nome in nomes_possiveis:
+         if nome in linha:
+             valor = linha[nome]
+@@ -114,6 +146,9 @@ def _extrair_coluna(linha: dict, nomes_possiveis: list[str]) -> str:
+ 
+ 
+ def _parse_linha_dict(linha: dict) -> LinhaImportada:
++    """Converte uma linha crua (dict de coluna -> valor, independente do
++    formato de origem) numa LinhaImportada, ja validando nome e CPF --
++    e o ponto comum por onde todo leitor de formato passa."""
+     nome = _extrair_coluna(linha, ["nome_completo", "nome do paciente", "paciente", "nome"])
+     cpf = _apenas_digitos(_extrair_coluna(linha, ["cpf"]))
+     data_nasc = _normalizar_data(_extrair_coluna(linha, ["data_nascimento", "data de nascimento", "nascimento"]))
+@@ -139,11 +174,14 @@ def _parse_linha_dict(linha: dict) -> LinhaImportada:
+ 
+ 
+ def _ler_csv(arquivo: io.TextIOWrapper) -> list[LinhaImportada]:
++    """Le um CSV de verdade usando o cabecalho da primeira linha."""
+     reader = csv.DictReader(arquivo)
+     return [_parse_linha_dict(linha) for linha in reader]
+ 
+ 
+ def _ler_xlsx(caminho: str) -> list[LinhaImportada]:
++    """Le a primeira planilha de um XLSX/XLS usando a primeira linha como
++    cabecalho; pula linhas totalmente vazias."""
+     from openpyxl import load_workbook
+     wb = load_workbook(caminho, read_only=True, data_only=True)
+     ws = wb.active
+@@ -159,6 +197,11 @@ def _ler_xlsx(caminho: str) -> list[LinhaImportada]:
+ 
+ 
+ def _ler_pdf(caminho: str) -> list[LinhaImportada]:
++    """Extrai o texto do PDF e tenta interpreta-lo como CSV (usando o
++    Sniffer do modulo csv pra adivinhar o delimitador a partir das
++    primeiras linhas). PDFs de agendamento normalmente sao uma tabela
++    exportada que vira texto tabular ao extrair -- se o sniff falhar,
++    tenta de novo sem detectar dialeto antes de desistir."""
+     import pdfplumber
+     with pdfplumber.open(caminho) as pdf:
+         texto_completo = "\n".join(page.extract_text() or "" for page in pdf.pages)
+@@ -186,6 +229,9 @@ def _ler_pdf(caminho: str) -> list[LinhaImportada]:
+ 
+ 
+ def _ler_docx(caminho: str) -> list[LinhaImportada]:
++    """Tenta primeiro ler o texto do documento como CSV; se o arquivo tiver
++    tabelas de verdade (mais comum em Word), usa a primeira linha de cada
++    tabela como cabecalho."""
+     from docx import Document
+     doc = Document(caminho)
+     linhas = [p.text.strip() for p in doc.paragraphs if p.text.strip()]
+@@ -211,6 +257,8 @@ def _ler_docx(caminho: str) -> list[LinhaImportada]:
+ 
+ 
+ def _extrair_data_filename(nome_arquivo: str) -> Optional[date]:
++    """Tenta achar uma data (AAAA-MM-DD ou variantes) no proprio nome do
++    arquivo -- usada so quando a chamada nao informou target_date."""
+     match = re.search(r"(\d{4})[-_]?(\d{2})[-_]?(\d{2})", nome_arquivo)
+     if match:
+         try:
+@@ -221,6 +269,10 @@ def _extrair_data_filename(nome_arquivo: str) -> Optional[date]:
+ 
+ 
+ def _salvar_temporario(arquivo) -> tuple[Path, str]:
++    """Grava o upload num arquivo temporario em disco (os leitores de
++    xlsx/pdf/docx precisam de um caminho, nao de um stream em memoria),
++    tentando descobrir a extensao certa mesmo se o nome original nao
++    tiver uma."""
+     nome = getattr(arquivo, "name", "") or ""
+     ext = Path(nome).suffix.lower() if nome else ""
+     if not ext and hasattr(arquivo, "content_type"):
+@@ -247,6 +299,16 @@ def _salvar_temporario(arquivo) -> tuple[Path, str]:
+ def process_appointment_file(
+     arquivo, target_date: Optional[date] = None, senha_padrao: str = "123456"
+ ) -> ResultadoImportacao:
++    """Ponto de entrada da importacao: recebe o arquivo enviado pela
++    recepcao, detecta o formato pela extensao, converte cada linha em
++    Paciente + Agendamento e devolve um resumo (ResultadoImportacao).
++
++    Paciente novo (CPF ainda nao cadastrado) recebe uma senha padrao pro
++    portal -- ele pode trocar depois. Agendamento duplicado (mesmo
++    paciente + mesma data) e apenas contado como ignorado, nunca
++    sobrescrito, pra nao perder edicoes manuais feitas depois da ultima
++    importacao.
++    """
+     if target_date is None:
+         target_date = timezone.localdate()
+ 
+@@ -316,6 +378,11 @@ def process_appointment_file(
+ 
+ 
+ def _ler_imagem(caminho: str) -> list[LinhaImportada]:
++    """Ultimo recurso: OCR (pytesseract) sobre uma imagem da planilha
++    escaneada/fotografada. Se as dependencias de OCR nao estiverem
++    instaladas ou o reconhecimento falhar, devolve lista vazia em vez de
++    quebrar a importacao inteira -- a linha correspondente simplesmente
++    nao entra."""
+     try:
+         import pytesseract
+         from PIL import Image
+diff --git a/core/integrador.py b/core/integrador.py
+index 04c9373..101099e 100644
+--- a/core/integrador.py
++++ b/core/integrador.py
+@@ -1,3 +1,12 @@
++"""Integracao com o sistema externo de agendamentos: busca os
++agendamentos do dia e importa como Paciente/Agendamento no banco local, e
++avisa o sistema externo quando um atendimento e concluido.
++
++`IntegradorBase` e a interface; `IntegradorHttp` e a implementacao real
++via REST. A separacao existe pra permitir testar `sincronizar_agendamentos`
++com um integrador falso, sem bater numa API de verdade.
++"""
++
+ from dataclasses import dataclass, field
+ from datetime import date, datetime
+ from typing import Optional
+@@ -10,6 +19,9 @@ from core.models import Agendamento, Paciente, EncaixePaciente
+ 
+ @dataclass
+ class AgendamentoExterno:
++    """Representa um agendamento como ele vem do sistema externo, antes de
++    virar um Paciente/Agendamento local -- um DTO simples, sem logica."""
++
+     nome_completo: str
+     cpf: str
+     data_nascimento: Optional[str] = None
+@@ -22,6 +34,9 @@ class AgendamentoExterno:
+ 
+ 
+ class IntegradorBase:
++    """Contrato que qualquer integrador precisa cumprir. Sirva de dublê
++    nos testes (uma subclasse que devolve dados fixos, sem rede)."""
++
+     BASE_URL = ""
+     TIMEOUT = 30
+ 
+@@ -33,6 +48,9 @@ class IntegradorBase:
+ 
+ 
+ class IntegradorHttp(IntegradorBase):
++    """Implementacao real: fala com o sistema externo via HTTP/REST,
++    autenticando com um Bearer token."""
++
+     def __init__(self, base_url: str, token: str = ""):
+         self.BASE_URL = base_url.rstrip("/")
+         self.token = token
+@@ -66,6 +84,8 @@ class IntegradorHttp(IntegradorBase):
+         ]
+ 
+     def notificar_conclusao(self, encaixe: EncaixePaciente) -> bool:
++        # Falha de rede aqui nao pode travar o fluxo de atendimento -- so
++        # devolve False e quem chamou decide se tenta de novo depois.
+         import requests
+         url = f"{self.BASE_URL}/api/agendamentos/{encaixe.pk}/conclusao"
+         payload = {
+@@ -83,6 +103,19 @@ class IntegradorHttp(IntegradorBase):
+ 
+ 
+ def sincronizar_agendamentos(data_alvo: Optional[date] = None, integrador: Optional[IntegradorBase] = None) -> dict:
++    """Busca os agendamentos do dia no sistema externo e grava/atualiza
++    Paciente + Agendamento localmente.
++
++    Paciente e resolvido por CPF: se ja existe, so vincula o novo
++    agendamento a ele (get_or_create nao sobrescreve os dados do paciente
++    existente); se nao existe, cria com os dados vindos do externo. O
++    Agendamento em si e feito por update_or_create na chave
++    (paciente, data_agendamento) -- rodar a sincronizacao de novo no mesmo
++    dia atualiza o agendamento existente em vez de duplicar.
++
++    Tudo dentro de uma unica transacao: ou a sincronizacao inteira
++    consolida, ou nada é gravado em caso de erro no meio do lote.
++    """
+     from django.conf import settings
+ 
+     if integrador is None:
+diff --git a/core/management/commands/seed_pacientes.py b/core/management/commands/seed_pacientes.py
+index 6fa9442..c27475f 100644
+--- a/core/management/commands/seed_pacientes.py
++++ b/core/management/commands/seed_pacientes.py
+@@ -1,3 +1,8 @@
++"""Comando de desenvolvimento: cria 10 pacientes ficticios, cada um ja
++com um Agendamento pra hoje, cobrindo os tres tipos de atendimento --
++pensado pra popular rapido um ambiente vazio e testar o fluxo de
++check-in ponta a ponta. Idempotente por CPF."""
++
+ from django.core.management.base import BaseCommand
+ from django.utils import timezone
+ 
+diff --git a/core/management/commands/seed_usuarios.py b/core/management/commands/seed_usuarios.py
+index 976f22f..cd8c26e 100644
+--- a/core/management/commands/seed_usuarios.py
++++ b/core/management/commands/seed_usuarios.py
+@@ -1,3 +1,9 @@
++"""Comando de desenvolvimento: cria (ou atualiza a senha de) tres
++usuarios de teste, um pra cada nivel de acesso -- util pra testar
++permissoes sem precisar cadastrar manualmente pela tela. Idempotente:
++rodar de novo so reseta as senhas, nao duplica os usuarios (CPF e
++unico)."""
++
+ from django.core.management.base import BaseCommand
+ 
+ from core.models import UsuarioSistema
+diff --git a/core/management/commands/sincronizar_agendamentos.py b/core/management/commands/sincronizar_agendamentos.py
+index f6f12af..424532f 100644
+--- a/core/management/commands/sincronizar_agendamentos.py
++++ b/core/management/commands/sincronizar_agendamentos.py
+@@ -1,3 +1,9 @@
++"""Comando de linha de comando pra rodar a sincronizacao de
++agendamentos manualmente (uso tipico: agendado via cron/tarefa
++programada no servidor). Equivalente ao clique em
++sincronizar_agendamentos_view, mas sem depender de alguem estar logado
++na tela."""
++
+ from datetime import date
+ 
+ from django.core.management.base import BaseCommand
+diff --git a/core/models.py b/core/models.py
+index bc4d7e9..e80cb4d 100644
+--- a/core/models.py
++++ b/core/models.py
+@@ -1 +1,5 @@
++# Caminho de import historico: o codigo (views, services, testes) importa
++# os modelos como core.models.X. Os modelos de verdade vivem em
++# apps/core_domain/models/ -- este arquivo so os reexporta pra nao quebrar
++# quem ainda referencia o caminho antigo.
+ from apps.core_domain.models import *
+diff --git a/core/services/autenticacao.py b/core/services/autenticacao.py
+index 83bee21..0bab8ae 100644
+--- a/core/services/autenticacao.py
++++ b/core/services/autenticacao.py
+@@ -72,6 +72,9 @@ _MESES_PT = ["", "janeiro", "fevereiro", "março", "abril", "maio", "junho", "ju
+ 
+ def formatar_data_pt(d: date) -> str:
+ 
++    """Formata a data por extenso em portugues, ex.: "Segunda-feira, 03 de
++    setembro de 2026" -- usada no cabecalho das telas de login/cadastro."""
++
+     return f"{_DIAS_PT[d.weekday()]}, {d.day:02d} de {_MESES_PT[d.month]} de {d.year}"
+ 
+ 
+diff --git a/core/services/paciente.py b/core/services/paciente.py
+index df549a2..3f9c35d 100644
+--- a/core/services/paciente.py
++++ b/core/services/paciente.py
+@@ -30,6 +30,12 @@ PAINEL_CHAMADA_ASSETS_DIR = Path(__file__).resolve().parent.parent / "static" /
+ 
+ def _get_painel_chamada_asset_data_url(relative_path: str) -> str:
+ 
++    """Le um asset estatico do Painel de Chamada (fonte, logo, som de
++    chamada) e devolve como data URL base64, pra embutir direto no HTML
++    sem depender de outra requisicao -- essencial numa TV que fica ligada
++    o dia inteiro sem recarregar. lru_cache evita reler o arquivo do disco
++    a cada render."""
++
+     asset_path = PAINEL_CHAMADA_ASSETS_DIR / relative_path
+ 
+     content_type = guess_type(asset_path.name)[0] or "application/octet-stream"
+@@ -41,6 +47,10 @@ def _get_painel_chamada_asset_data_url(relative_path: str) -> str:
+ 
+ @dataclass(frozen=True)
+ class _PainelChamadaDados:
++    """Retrato dos dados reais usados pra montar o contexto do Painel de
++    Chamada -- agrupados aqui so pra get_painel_chamada_context nao
++    precisar carregar cada pedaco separadamente."""
++
+     hoje: date
+     agora: datetime
+     dias_pt: list
+@@ -50,6 +60,10 @@ class _PainelChamadaDados:
+ 
+ 
+ def _carregar_dados_painel() -> _PainelChamadaDados:
++    """Busca no banco tudo que get_painel_chamada_context precisa quando
++    roda com use_real_data=True: a chamada mais recente (ou o encaixe mais
++    recente do dia, se ninguem foi chamado ainda) e os ultimos 5 chamados,
++    pro rodape de "chamadas recentes"."""
+     from django.utils import timezone
+     hoje = timezone.localdate()
+     agora = timezone.localtime()
+@@ -74,6 +88,14 @@ def _carregar_dados_painel() -> _PainelChamadaDados:
+ 
+ def get_painel_chamada_context(use_real_data: bool = False) -> dict:
+ 
++    """Monta o contexto completo da tela do Painel de Chamada (TV).
++
++    Com use_real_data=False devolve um payload com dados fixos de exemplo
++    (usado nas telas isoladas de desenvolvimento, sem precisar de banco
++    populado); com True, busca a fila e a chamada atual de verdade via
++    _carregar_dados_painel. Os dois casos populam exatamente as mesmas
++    chaves, pra o template nao precisar saber qual modo esta ativo."""
++
+     if use_real_data:
+         d = _carregar_dados_painel()
+ 
+@@ -184,6 +206,9 @@ PACIENTE_CHAMADO_ASSETS_DIR = Path(__file__).resolve().parent.parent / "static"
+ 
+ def _get_paciente_chamado_asset_data_url(relative_path: str) -> str:
+ 
++    """Mesma ideia de _get_painel_chamada_asset_data_url, mas pros assets
++    proprios da tela de Paciente Chamado (fonte propria etc.)."""
++
+     asset_path = PACIENTE_CHAMADO_ASSETS_DIR / relative_path
+ 
+     content_type = guess_type(asset_path.name)[0] or "application/octet-stream"
+@@ -271,6 +296,11 @@ def resolver_encaixe_da_sessao(request, *, permitir_fallback_por_senha=False):
+ 
+ def get_paciente_chamado_context() -> dict:
+ 
++    """Payload de exemplo (dados fixos) pra tela de "Paciente Chamado"
++    quando nao ha um encaixe de verdade resolvido pela sessao -- ver
++    paciente_chamado_view em core/views/paciente.py, que usa isto como
++    fallback quando resolver_encaixe_da_sessao nao acha nada."""
++
+     return {
+ 
+         "page_title": "Paciente Chamado",
+@@ -573,6 +603,8 @@ def get_identificacao_paciente_context() -> dict:
+ 
+ 
+ def _normalizar_nome(nome: str) -> str:
++    """Normaliza espacos e caixa pra comparar nome digitado com nome
++    cadastrado sem falso negativo por espaco duplo ou maiusculas."""
+     return " ".join((nome or "").strip().split()).casefold()
+ 
+ 
+diff --git a/core/services/sistema.py b/core/services/sistema.py
+index da09d6a..eee07c5 100644
+--- a/core/services/sistema.py
++++ b/core/services/sistema.py
+@@ -21,6 +21,10 @@ from core.models import EncaixePaciente
+ 
+ class ScreenDefinition:
+ 
++    """Um item da lista de telas isoladas de desenvolvimento (ver
++    SCREEN_DEFINITIONS abaixo) -- usado pra montar os cards do painel de
++    telas e resolver a rota generica /telas/<slug>/ em screen_view."""
++
+     slug: str
+ 
+     title: str
+@@ -30,6 +34,9 @@ class ScreenDefinition:
+     status: str
+ 
+ 
++# Catalogo das telas isoladas visitaveis pela rota generica
++# /telas/<slug>/ (screen_view) e listadas no painel de desenvolvimento --
++# cada entrada vira um card com titulo, responsavel e status.
+ SCREEN_DEFINITIONS = [
+ 
+     # Telas individuais que aparecerão em seus próprios cards
+@@ -1002,11 +1009,18 @@ def get_screen_context(screen_slug: str) -> Optional[dict]:
+ 
+ def _only_digits(value: str) -> str:
+ 
++    """Remove tudo que nao for digito -- usado pra normalizar CPF nos
++    filtros de busca da auditoria de percurso."""
++
+     return "".join(ch for ch in value if ch.isdigit())
+ 
+ 
+ def _parse_iso_date(value: str) -> Optional[date]:
+ 
++    """Converte uma data ISO (AAAA-MM-DD) vinda de querystring/filtro em
++    date; devolve None se o valor estiver vazio ou for invalido, em vez
++    de propagar excecao pro chamador tratar."""
++
+     try:
+ 
+         return date.fromisoformat((value or "").strip())
+@@ -1055,6 +1069,13 @@ def _resolve_auditoria_date_range(filtros_dict: dict) -> tuple[Optional[date], O
+ 
+ def _build_date_filter_modal_context(filtros_dict: dict, today: date) -> dict:
+ 
++    """Monta a grade de dias do mini-calendario do filtro de data da
++    auditoria de percurso: um dict por dia do mes de referencia (o mes do
++    inicio do intervalo filtrado, ou o mes atual se nao ha filtro), com
++    espacos vazios preenchidos no inicio/fim pra fechar a grade em
++    semanas completas, e marcando quais dias caem dentro do intervalo
++    selecionado."""
++
+     start_date, end_date = _resolve_auditoria_date_range(filtros_dict)
+ 
+     month_reference = start_date or today
+diff --git a/core/urls.py b/core/urls.py
+index 8a53d82..93d6f08 100644
+--- a/core/urls.py
++++ b/core/urls.py
+@@ -1,3 +1,6 @@
++# Rotas do app core, montadas na raiz em config/urls.py -- o grosso do
++# produto: fluxo mobile do paciente, painel de chamada, telas do
++# sistema interno e as rotas isoladas de tela por slug.
+ from django.urls import path
+ 
+ from core import views
+diff --git a/core/views/autenticacao.py b/core/views/autenticacao.py
+index 6d6a9b6..21b83e8 100644
+--- a/core/views/autenticacao.py
++++ b/core/views/autenticacao.py
+@@ -100,6 +100,10 @@ def cadastro_view(request):
+ 
+ def logout_view(request):
+ 
++    """Encerra a sessao (paciente ou staff, tanto faz quem esta logado) e
++    manda de volta pro login. session.flush() em vez de so limpar chaves
++    especificas garante que nada da sessao anterior sobrevive."""
++
+     request.session.flush()
+ 
+     return redirect("login")
+diff --git a/core/views/paciente.py b/core/views/paciente.py
+index dad5af6..ff90363 100644
+--- a/core/views/paciente.py
++++ b/core/views/paciente.py
+@@ -33,6 +33,10 @@ from core.services import (
+ 
+ def painel_chamada_view(request):
+ 
++    """Tela de TV do Painel de Chamada -- so renderiza o contexto com
++    dados reais do banco (use_real_data=True); a atualizacao em tempo
++    real depois disso e toda via WebSocket, ver painel_chamada.html."""
++
+     context = get_painel_chamada_context(use_real_data=True)
+ 
+     return render(request, "display/painel_chamada.html", context)
+@@ -241,6 +245,9 @@ def checagem_documentos_paciente_view(request):
+ @xframe_options_sameorigin
+ 
+ def checkin_concluido_view(request):
++    """Tela de confirmacao logo apos o check-in. Se a sessao resolve um
++    encaixe de verdade, mostra a senha gerada; sem sessao valida, cai no
++    contexto de exemplo (get_checkin_concluido_context)."""
+     # Mesma resolução de sessão usada em todo o fluxo do paciente (ver
+     # resolver_encaixe_da_sessao em core/services.py).
+     encaixe = resolver_encaixe_da_sessao(request)
+@@ -284,6 +291,10 @@ def checkin_concluido_view(request):
+ 
+ def checkin_assistido_view(request):
+ 
++    """Tela estatica de orientacao pro paciente que precisa de ajuda
++    presencial da recepcao pra fazer o check-in (sempre dados de exemplo,
++    nao depende de sessao)."""
++
+     return render(
+ 
+         request,
+@@ -299,6 +310,10 @@ def checkin_assistido_view(request):
+ 
+ def bloqueio_direcionamento_view(request):
+ 
++    """Tela exibida quando o fluxo automatico do paciente e bloqueado e ele
++    precisa ser direcionado manualmente pela recepcao (sempre dados de
++    exemplo)."""
++
+     return render(
+ 
+         request,
+@@ -314,6 +329,14 @@ def bloqueio_direcionamento_view(request):
+ 
+ def identificacao_paciente_view(request):
+ 
++    """Primeira tela do fluxo mobile: recebe CPF (+ data de nascimento e
++    nome da mae, quando exigidos por identidade_confere) e faz o check-in.
++
++    Em caso de sucesso, a sessao e resetada por completo (session.flush())
++    antes de gravar o novo paciente/encaixe -- isso e o que impede um
++    dispositivo compartilhado (ex.: tablet da recepcao) de misturar dados
++    de um paciente com o do check-in seguinte."""
++
+     if request.method == "POST":
+ 
+         form = IdentificacaoForm(request.POST)
+@@ -371,6 +394,19 @@ def identificacao_paciente_view(request):
+ 
+ def fluxo_paciente_view(request):
+ 
++    """View unica que renderiza qualquer etapa do fluxo mobile do
++    paciente dentro do mesmo template (mobile/fluxo_paciente.html),
++    escolhida via ?step= (identificacao, checkin-assistido, bloqueio,
++    agendamento-nao-encontrado, checkin-concluido, acompanhamento,
++    paciente-chamado, perdeu-chamada).
++
++    E uma tela de demonstracao/preview isolado -- serve pra ver qualquer
++    etapa do fluxo sem precisar navegar pelo app de verdade. As telas
++    "de producao" de cada etapa individual sao as views proprias (ex.:
++    identificacao_paciente_view, checkin_assistido_view etc.); esta view
++    nao substitui aquelas, so oferece um jeito rapido de visualizar tudo
++    junto durante o desenvolvimento."""
++
+     from datetime import date, datetime, timedelta
+ 
+ 
+@@ -789,6 +825,10 @@ def perdeu_chamada_view(request, **kwargs):
+ 
+ def paciente_status_api_view(request):
+ 
++    """Endpoint simples de consulta por CPF (usado por telas que fazem
++    polling do proprio status fora do fluxo de sessao normal). Devolve o
++    encaixe mais recente daquele CPF, independente do dia."""
++
+     cpf = request.GET.get("cpf", "").strip()
+ 
+     if not cpf:
+@@ -886,6 +926,9 @@ def visualizar_agendamento_view(request):
+ 
+ def agendamento_nao_encontrado_view(request):
+ 
++    """Tela de erro exibida quando a identificacao falha (CPF sem cadastro,
++    identidade nao confere, ou paciente sem agendamento/checkin pra hoje)."""
++
+     return render(request, 'mobile/agendamento_nao_encontrado.html')
+ 
+ 
+diff --git a/core/views/sistema.py b/core/views/sistema.py
+index 48a2ce1..45b54e7 100644
+--- a/core/views/sistema.py
++++ b/core/views/sistema.py
+@@ -30,6 +30,10 @@ from core.services import (
+ 
+ def _usuario_logado(request):
+ 
++    """Busca o UsuarioSistema da sessao atual (ou None se nao ha ninguem
++    logado) -- usado pelas telas do sistema interno pra exibir nome/cargo
++    no cabecalho sem precisar repetir essa consulta em cada view."""
++
+     uid = request.session.get("staff_usuario_id")
+ 
+     return UsuarioSistema.objects.filter(pk=uid).first() if uid else None
+@@ -194,6 +198,9 @@ def dashboard_monitoramento_view(request):
+ 
+ @staff_required
+ def dashboard_metrics_api(request):
++    """Endpoint JSON usado pelos graficos do dashboard de monitoramento:
++    aplica os mesmos filtros da tela (periodo, turno, tipo de atendimento)
++    e devolve totais, percentuais e a serie historica dos ultimos dias."""
+     from datetime import date, timedelta
+     from django.db.models import Count, Avg, Q, F, DurationField, ExpressionWrapper, Value
+     from django.db.models.functions import ExtractEpoch
+@@ -307,6 +314,9 @@ def dashboard_metrics_api(request):
+ 
+ @staff_required
+ def qualidade_metrics_api(request):
++    """Endpoint JSON com as metricas de qualidade (notas medias por
++    categoria da pesquisa de satisfacao) usado pela tela de Gestao de
++    Qualidade."""
+     from datetime import date, timedelta
+     from django.db.models import Count, Avg
+     from apps.core_domain.models import PesquisaSatisfacao
+@@ -640,6 +650,9 @@ def salvar_permissoes_nivel_view(request):
+ 
+ def health_check_view(request):
+ 
++    """Endpoint simples pro serviço de deploy (Render) confirmar que a
++    aplicacao esta no ar."""
++
+     return JsonResponse({"status": "healthy"})
+ 
+ 
+@@ -1004,6 +1017,9 @@ def dev_mock_screen_view(request, screen_slug):
+ 
+ def gestao_qualidade_view(request):
+ 
++    """Tela de Gestao de Qualidade -- so renderiza o shell; os numeros em
++    si vem via qualidade_metrics_api, consumido pelo JS da pagina."""
++
+     return render(request, 'system/gestao_qualidade.html', {
+ 
+         "interno": request.GET.get("interno") == "1",
+@@ -1017,6 +1033,12 @@ def gestao_qualidade_view(request):
+ 
+ def pesquisa_satisfacao_view(request):
+ 
++    """Tela de pesquisa de satisfacao mostrada ao paciente logo apos a
++    conclusao do atendimento (ver concluir_atendimento_view, que monta o
++    redirect_url pra cá com o CPF). Se o CPF vier na URL, busca o nome do
++    paciente so pra personalizar a saudacao -- a resposta em si e
++    anonima/por CPF, nao exige login."""
++
+     cpf = request.GET.get("cpf", "")
+ 
+     paciente_nome = ""
+@@ -1048,6 +1070,11 @@ def pesquisa_satisfacao_view(request):
+ 
+ def meu_perfil_view(request):
+ 
++    """Tela "Meu Perfil", compartilhada entre paciente e staff logados --
++    edita dados basicos e troca de senha. As funcoes internas abaixo
++    resolvem qual das duas sessoes (paciente ou staff) esta ativa e
++    montam um contexto no mesmo formato pra ambos os casos."""
++
+     def _iniciais(nome):
+ 
+         partes = (nome or "").split()
+@@ -1197,6 +1224,9 @@ def meu_perfil_view(request):
+ 
+ @staff_required
+ def dashboard_metrics_export(request):
++    """Gera um CSV pra download com os mesmos filtros e dados do dashboard
++    de monitoramento -- pensado pra alguem levar os numeros pra fora do
++    sistema (planilha, relatorio)."""
+     import csv
+     from datetime import date, timedelta
+ 
+@@ -1248,6 +1278,11 @@ def dashboard_metrics_export(request):
+ 
+ def sincronizar_agendamentos_view(request):
+ 
++    """Aciona manualmente a sincronizacao de agendamentos do dia
++    (core.integrador.sincronizar_agendamentos) a partir da tela -- mesma
++    logica usada pelo comando de management, so que disparada por um
++    clique em vez de agendada."""
++
+     from datetime import date
+     from core.integrador import sincronizar_agendamentos
+ 
+diff --git a/core/websocket_utils.py b/core/websocket_utils.py
+index 85b7450..1c693ad 100644
+--- a/core/websocket_utils.py
++++ b/core/websocket_utils.py
+@@ -1,3 +1,13 @@
++"""Funcoes que empurram eventos em tempo real via WebSocket (Django
++Channels) pros dois publicos que escutam: o Painel de Chamada (grupo
++`painel_chamada`, uma TV/monitor compartilhado) e cada paciente
++individualmente (grupo `paciente_{cpf}`, no celular dele).
++
++Nao ha estado aqui -- cada chamada le o banco na hora e manda um evento
++com o retrato atual da fila. Quem consome esses eventos sao os consumers
++em apps/display/consumers/.
++"""
++
+ from datetime import datetime
+ from asgiref.sync import async_to_sync
+ from channels.layers import get_channel_layer
+@@ -6,6 +16,13 @@ from core.models import EncaixePaciente
+ 
+ 
+ def _group_send(group_name, event_type, **kwargs):
++    """Envia um evento para um grupo de canais, engolindo qualquer erro.
++
++    Erro de WebSocket (grupo sem ouvintes, camada de canais indisponivel
++    etc.) nunca pode derrubar a acao que disparou a notificacao -- chamar
++    um paciente, por exemplo, tem que funcionar mesmo se o tempo real
++    falhar; nesse caso o app mobile ainda pega a mudanca no proximo ciclo
++    de polling."""
+     try:
+         channel_layer = get_channel_layer()
+         async_to_sync(channel_layer.group_send)(
+@@ -18,6 +35,8 @@ def _group_send(group_name, event_type, **kwargs):
+ 
+ 
+ def notificar_painel_chamada(encaixe, sala, guiche=""):
++    """Dispara o evento de "paciente chamado" pro Painel de Chamada exibir
++    a senha na tela (chamada individual, nao o retrato completo da fila)."""
+     _group_send(
+         "painel_chamada",
+         "paciente_chamado",
+@@ -46,6 +65,9 @@ def notificar_fila_atualizada():
+ 
+ 
+ def _notificar_painel(hoje):
++    """Monta o retrato atual da fila do dia (quem esta aguardando/chamado/
++    em atendimento, mais os ultimos chamados) e manda pro Painel de
++    Chamada renderizar de novo."""
+     fila = list(
+         EncaixePaciente.objects.filter(
+             data_atendimento=hoje,
+@@ -134,6 +156,9 @@ def notificar_pacientes_em_espera(hoje=None):
+ 
+ 
+ def notificar_paciente(cpf, event_type, **kwargs):
++    """Envia um evento avulso pro grupo de um paciente especifico (por
++    CPF) -- usado quando a notificacao nao se encaixa nos helpers acima
++    (ex.: eventos pontuais fora do ciclo normal de fila)."""
+     if not cpf:
+         return
+     _group_send(

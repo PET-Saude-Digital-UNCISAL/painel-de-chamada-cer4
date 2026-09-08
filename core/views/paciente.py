@@ -33,6 +33,10 @@ from core.services import (
 
 def painel_chamada_view(request):
 
+    """Tela de TV do Painel de Chamada -- so renderiza o contexto com
+    dados reais do banco (use_real_data=True); a atualizacao em tempo
+    real depois disso e toda via WebSocket, ver painel_chamada.html."""
+
     context = get_painel_chamada_context(use_real_data=True)
 
     return render(request, "display/painel_chamada.html", context)
@@ -241,6 +245,9 @@ def checagem_documentos_paciente_view(request):
 @xframe_options_sameorigin
 
 def checkin_concluido_view(request):
+    """Tela de confirmacao logo apos o check-in. Se a sessao resolve um
+    encaixe de verdade, mostra a senha gerada; sem sessao valida, cai no
+    contexto de exemplo (get_checkin_concluido_context)."""
     # Mesma resolução de sessão usada em todo o fluxo do paciente (ver
     # resolver_encaixe_da_sessao em core/services.py).
     encaixe = resolver_encaixe_da_sessao(request)
@@ -284,6 +291,10 @@ def checkin_concluido_view(request):
 
 def checkin_assistido_view(request):
 
+    """Tela estatica de orientacao pro paciente que precisa de ajuda
+    presencial da recepcao pra fazer o check-in (sempre dados de exemplo,
+    nao depende de sessao)."""
+
     return render(
 
         request,
@@ -299,6 +310,10 @@ def checkin_assistido_view(request):
 
 def bloqueio_direcionamento_view(request):
 
+    """Tela exibida quando o fluxo automatico do paciente e bloqueado e ele
+    precisa ser direcionado manualmente pela recepcao (sempre dados de
+    exemplo)."""
+
     return render(
 
         request,
@@ -313,6 +328,14 @@ def bloqueio_direcionamento_view(request):
 @xframe_options_sameorigin
 
 def identificacao_paciente_view(request):
+
+    """Primeira tela do fluxo mobile: recebe CPF (+ data de nascimento e
+    nome da mae, quando exigidos por identidade_confere) e faz o check-in.
+
+    Em caso de sucesso, a sessao e resetada por completo (session.flush())
+    antes de gravar o novo paciente/encaixe -- isso e o que impede um
+    dispositivo compartilhado (ex.: tablet da recepcao) de misturar dados
+    de um paciente com o do check-in seguinte."""
 
     if request.method == "POST":
 
@@ -370,6 +393,19 @@ def identificacao_paciente_view(request):
 
 
 def fluxo_paciente_view(request):
+
+    """View unica que renderiza qualquer etapa do fluxo mobile do
+    paciente dentro do mesmo template (mobile/fluxo_paciente.html),
+    escolhida via ?step= (identificacao, checkin-assistido, bloqueio,
+    agendamento-nao-encontrado, checkin-concluido, acompanhamento,
+    paciente-chamado, perdeu-chamada).
+
+    E uma tela de demonstracao/preview isolado -- serve pra ver qualquer
+    etapa do fluxo sem precisar navegar pelo app de verdade. As telas
+    "de producao" de cada etapa individual sao as views proprias (ex.:
+    identificacao_paciente_view, checkin_assistido_view etc.); esta view
+    nao substitui aquelas, so oferece um jeito rapido de visualizar tudo
+    junto durante o desenvolvimento."""
 
     from datetime import date, datetime, timedelta
 
@@ -789,6 +825,10 @@ def perdeu_chamada_view(request, **kwargs):
 
 def paciente_status_api_view(request):
 
+    """Endpoint simples de consulta por CPF (usado por telas que fazem
+    polling do proprio status fora do fluxo de sessao normal). Devolve o
+    encaixe mais recente daquele CPF, independente do dia."""
+
     cpf = request.GET.get("cpf", "").strip()
 
     if not cpf:
@@ -885,6 +925,9 @@ def visualizar_agendamento_view(request):
 @xframe_options_sameorigin
 
 def agendamento_nao_encontrado_view(request):
+
+    """Tela de erro exibida quando a identificacao falha (CPF sem cadastro,
+    identidade nao confere, ou paciente sem agendamento/checkin pra hoje)."""
 
     return render(request, 'mobile/agendamento_nao_encontrado.html')
 

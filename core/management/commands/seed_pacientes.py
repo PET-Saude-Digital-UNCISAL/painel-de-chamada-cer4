@@ -1,3 +1,8 @@
+"""Comando de desenvolvimento: cria 10 pacientes ficticios, cada um ja
+com um Agendamento pra hoje, cobrindo os tres tipos de atendimento --
+pensado pra popular rapido um ambiente vazio e testar o fluxo de
+check-in ponta a ponta. Idempotente por CPF."""
+
 from django.core.management.base import BaseCommand
 from django.utils import timezone
 

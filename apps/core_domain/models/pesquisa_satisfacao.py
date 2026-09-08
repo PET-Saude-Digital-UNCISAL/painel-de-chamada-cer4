@@ -2,6 +2,16 @@ from django.db import models
 
 
 class PesquisaSatisfacao(models.Model):
+    """Resposta da pesquisa de satisfacao preenchida pelo paciente depois
+    do atendimento.
+
+    Guarda nome/CPF do paciente separado do FK pro encaixe de proposito:
+    a resposta tem que sobreviver mesmo se o EncaixePaciente correspondente
+    for removido (por isso on_delete=SET_NULL), ja que o dado da pesquisa
+    em si continua valioso pra gestao de qualidade independente do
+    registro de fila que a originou.
+    """
+
     encaixe = models.ForeignKey(
         "core.EncaixePaciente",
         on_delete=models.SET_NULL,

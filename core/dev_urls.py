@@ -1,3 +1,6 @@
+# Rotas de desenvolvimento, montadas sob /__dev__/ em config/urls.py --
+# telas isoladas com dados mockados, pra trabalhar no front-end sem
+# depender de um banco populado.
 from django.urls import path
 
 from core import views

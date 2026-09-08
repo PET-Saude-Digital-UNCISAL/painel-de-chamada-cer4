@@ -31,6 +31,8 @@ class EncaixeForm(forms.Form):
     anexo = forms.FileField(required=False, label="Anexo")
 
     def clean_anexo(self):
+        # So aceita os formatos que a recepcao normalmente recebe (laudo,
+        # pedido medico digitalizado) -- qualquer outra extensao e rejeitada.
         arquivo = self.cleaned_data.get("anexo")
         if arquivo:
             nome = arquivo.name.lower()
@@ -40,6 +42,8 @@ class EncaixeForm(forms.Form):
 
 
 class UsuarioSistemaForm(forms.ModelForm):
+    """Formulário de cadastro/edição de colaborador na tela de Configurações."""
+
     cpf = forms.CharField(max_length=14)
 
     class Meta:
@@ -217,6 +221,10 @@ class LoginPacienteForm(forms.Form):
         return re.sub(r"\D", "", cpf)
 
     def clean(self):
+        # Um unico formulario de login serve tanto pro paciente quanto pro
+        # colaborador: tenta autenticar como UsuarioSistema primeiro e,
+        # nao dando certo, tenta como Paciente. Guarda em cleaned_data qual
+        # dos dois autenticou pra view decidir pra onde redirecionar.
         cleaned = super().clean()
         cpf = cleaned.get("cpf")
         senha = cleaned.get("senha")
@@ -322,6 +330,9 @@ class CadastroPacienteForm(forms.ModelForm):
         return cleaned
 
     def save(self, commit=True):
+        # ModelForm padrao nao sabe lidar com o campo "senha" (nao existe no
+        # model, o model guarda senha_hash) -- por isso o save e
+        # sobrescrito pra fazer o hash antes de persistir.
         paciente = super().save(commit=False)
         paciente.set_senha(self.cleaned_data["senha"])
         if commit:

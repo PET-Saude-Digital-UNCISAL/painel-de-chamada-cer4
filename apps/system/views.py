@@ -1,3 +1,9 @@
+"""Acoes da recepcao sobre a fila do dia: chamar um paciente (ou rechama-lo,
+se ele ja tinha sido marcado ausente) e marcar ausencia quando o paciente
+nao aparece. Views separadas do resto do "sistema" (core/views/sistema.py)
+porque moram no app apps.system, roteadas sob o prefixo /sistema/.
+"""
+
 from django.db import transaction
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404
@@ -12,6 +18,13 @@ from core.auth_decorators import permissao_requerida
 @require_POST
 @permissao_requerida("checkin")
 def chamar_paciente_view(request):
+    """Chama o proximo paciente pra sala informada: muda o status pra
+    CHAMADO e dispara as tres notificacoes de WebSocket (painel de
+    chamada, retrato geral da fila, e o paciente individualmente).
+
+    Tambem serve pra rechamar alguem que ja tinha sido marcado AUSENTE --
+    nesse caso incrementa vezes_chamado, que e o contador usado pra
+    decidir quando desistir de chamar."""
     senha = request.POST.get("senha", "")
     sala = request.POST.get("sala", "Sala 1")
     guiche = request.POST.get("guiche", "")
@@ -58,6 +71,10 @@ def chamar_paciente_view(request):
 @require_POST
 @permissao_requerida("checkin")
 def marcar_ausente_view(request):
+    """Marca como ausente um paciente que foi chamado (ou ja estava em
+    atendimento) e nao apareceu / precisou sair. So pode partir de CHAMADO
+    ou ATENDIMENTO -- um paciente ainda aguardando na fila nao pode ser
+    marcado ausente direto, ele precisa ser chamado primeiro."""
     senha = request.POST.get("senha", "")
 
     with transaction.atomic():
