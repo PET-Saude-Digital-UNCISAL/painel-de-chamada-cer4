@@ -52,8 +52,11 @@ from core.services._legacy import (
     list_patient_screens as list_patient_screens,
     list_team_screens as list_team_screens,
     registrar_checkin as registrar_checkin,
-    registrar_encaixe as registrar_encaixe,
     resolver_encaixe_da_sessao as resolver_encaixe_da_sessao,
+)
+
+from core.services.encaixe import (
+    registrar_encaixe as registrar_encaixe,
 )
 
 from core.services.autenticacao import (

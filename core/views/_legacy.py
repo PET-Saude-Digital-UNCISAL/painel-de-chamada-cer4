@@ -19,13 +19,13 @@ from django.views.decorators.http import require_http_methods, require_POST
 
 from core.dev_builders import build_fake_screen_list, build_mocked_screen_payload
 
-from core.forms import AlterarSenhaForm, EncaixeForm, IdentificacaoForm, MeuPerfilForm, PacientePerfilForm, UsuarioSistemaForm
+from core.forms import AlterarSenhaForm, IdentificacaoForm, MeuPerfilForm, PacientePerfilForm, UsuarioSistemaForm
 
 from core.importer import process_appointment_file
 
 from core.models import Agendamento, EncaixePaciente, NivelAcessoPermissao, Paciente, UsuarioSistema
 
-from core.websocket_utils import notificar_fila_atualizada, notificar_paciente
+
 from core.auth_decorators import permissao_requerida, staff_required
 
 from core.services import (
@@ -58,7 +58,6 @@ from core.services import (
 
     registrar_checkin,
 
-    registrar_encaixe,
 
     resolver_encaixe_da_sessao,
 
@@ -2034,140 +2033,6 @@ def pesquisa_satisfacao_view(request):
     })
 
 
-
-
-
-@require_POST
-
-def encaixe_view(request):
-
-    """Recebe o formulário de encaixe, persiste e retorna JSON com a senha gerada."""
-
-    form = EncaixeForm(request.POST, request.FILES)
-
-    if form.is_valid():
-
-        try:
-
-            encaixe = registrar_encaixe(form.cleaned_data, arquivo=request.FILES.get("anexo"))
-
-            return JsonResponse({"ok": True, "senha": encaixe.senha, "posicao": encaixe.posicao_fila})
-
-        except Exception as e:
-
-            return JsonResponse({"ok": False, "erros": {"__all__": [str(e)]}}, status=500)
-
-
-
-    return JsonResponse({"ok": False, "erros": form.errors}, status=400)
-
-
-
-
-
-@require_POST
-
-@permissao_requerida("checkin")
-
-def validar_encaixe_view(request, encaixe_id):
-
-    """Transiciona VALIDACAO â†’ AGUARDANDO."""
-
-    encaixe = get_object_or_404(EncaixePaciente, pk=encaixe_id)
-
-    if encaixe.status != EncaixePaciente.Status.VALIDACAO:
-
-        return JsonResponse({"ok": False, "erro": "Status inválido para validação."}, status=400)
-
-    encaixe.status = EncaixePaciente.Status.AGUARDANDO
-
-    encaixe.save(update_fields=["status"])
-
-    notificar_fila_atualizada()
-
-    return JsonResponse({"ok": True})
-
-
-
-
-
-@require_POST
-
-@permissao_requerida("checkin")
-
-def iniciar_atendimento_view(request, encaixe_id):
-
-    """Transiciona CHAMADO â†’ ATENDIMENTO."""
-
-    encaixe = get_object_or_404(EncaixePaciente, pk=encaixe_id)
-
-    if encaixe.status != EncaixePaciente.Status.CHAMADO:
-
-        return JsonResponse({"ok": False, "erro": "Paciente não foi chamado."}, status=400)
-
-    encaixe.status = EncaixePaciente.Status.ATENDIMENTO
-
-    encaixe.save(update_fields=["status"])
-
-    notificar_fila_atualizada()
-    notificar_paciente(
-        encaixe.cpf,
-        "paciente_atendimento",
-        senha=encaixe.senha,
-        nome=encaixe.nome_completo,
-        sala=encaixe.sala,
-        timestamp=timezone.now().isoformat(),
-    )
-
-    return JsonResponse({"ok": True})
-
-
-
-
-
-@require_POST
-
-@permissao_requerida("checkin")
-
-def concluir_atendimento_view(request, encaixe_id):
-
-    """Transiciona ATENDIMENTO â†’ CONCLUIDO."""
-
-    encaixe = get_object_or_404(EncaixePaciente, pk=encaixe_id)
-
-    if encaixe.status != EncaixePaciente.Status.ATENDIMENTO:
-
-        return JsonResponse({"ok": False, "erro": "Atendimento nÃ£o estÃ¡ em andamento."}, status=400)
-    encaixe.status = EncaixePaciente.Status.CONCLUIDO
-    encaixe.concluido_em = timezone.now()
-
-    encaixe.save(update_fields=["status", "concluido_em"])
-
-    notificar_fila_atualizada()
-    notificar_paciente(
-        encaixe.cpf,
-        "paciente_concluido",
-        senha=encaixe.senha,
-        nome=encaixe.nome_completo,
-        timestamp=timezone.now().isoformat(),
-    )
-
-    from django.conf import settings
-    from core.integrador import IntegradorHttp
-
-    base_url = getattr(settings, "INTEGRADOR_BASE_URL", "")
-    if base_url:
-        token = getattr(settings, "INTEGRADOR_TOKEN", "")
-        integrador = IntegradorHttp(base_url=base_url, token=token)
-        integrador.notificar_conclusao(encaixe)
-
-    return JsonResponse({
-
-        "ok": True,
-
-        "redirect_url": f"/pesquisa-satisfacao/?cpf={encaixe.cpf}",
-
-    })
 
 
 
