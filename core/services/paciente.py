@@ -657,8 +657,16 @@ def registrar_checkin(paciente, data_nasc, nome_mae) -> EncaixePaciente | None:
     # retorna o encaixe já existente. Isso também cobre o caso em que o
     # Agendamento de hoje já foi marcado como CHECKIN_REALIZADO pelo primeiro
     # check-in, então essa checagem precisa vir antes do filtro por AGENDADO.
+    # Filtra por paciente (FK) OU cpf (legado): a FK cobre tambem um encaixe
+    # de hoje feito via fluxo de encaixe manual (recepcao) que porventura
+    # nao tenha ficado vinculado ao Paciente; o cpf garante compatibilidade
+    # com registros onde a FK nao pode ser preenchida.
+    from django.db.models import Q
+
     encaixe_existente = (
-        EncaixePaciente.objects.filter(cpf=paciente.cpf, data_atendimento=hoje)
+        EncaixePaciente.objects.filter(
+            Q(paciente=paciente) | Q(cpf=paciente.cpf), data_atendimento=hoje
+        )
         .order_by("-criado_em")
         .first()
     )
@@ -705,6 +713,8 @@ def registrar_checkin(paciente, data_nasc, nome_mae) -> EncaixePaciente | None:
 
 
         encaixe = EncaixePaciente.objects.create(
+
+            paciente=paciente,
 
             nome_completo=paciente.nome_completo,
 

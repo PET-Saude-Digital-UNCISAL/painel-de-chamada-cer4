@@ -10,7 +10,8 @@ fluxo de check-in do paciente (proxima fatia), nao ao de encaixe.
 
 from django.utils import timezone
 
-from core.models import EncaixePaciente, TipoAtendimentoEncaixe
+from apps.core_domain.business_rules import apenas_digitos
+from core.models import EncaixePaciente, Paciente, TipoAtendimentoEncaixe
 from core.websocket_utils import notificar_fila_atualizada
 
 
@@ -44,7 +45,19 @@ def registrar_encaixe(cleaned_data: dict, arquivo=None) -> EncaixePaciente:
 
 
 
+        # Encaixe pode ser feito pela rececao sem que o paciente tenha
+        # cadastro previo (Paciente) -- por isso o lookup e best-effort e
+        # paciente fica None quando nao ha correspondencia por CPF. O CPF
+        # digitado no modal de encaixe vem com mascara (000.000.000-00) e
+        # EncaixeForm nao normaliza, mas Paciente.cpf e sempre gravado so
+        # com digitos -- por isso a normalizacao aqui antes do lookup.
+        paciente = Paciente.objects.filter(
+            cpf=apenas_digitos(cleaned_data["cpf"]), paciente_ativo=True
+        ).first()
+
         encaixe = EncaixePaciente.objects.create(
+
+            paciente=paciente,
 
             nome_completo=cleaned_data["nome_completo"],
 

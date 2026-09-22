@@ -1,6 +1,7 @@
 from django.db import models
 
 from apps.core_domain.models.paciente import Paciente
+from apps.core_domain.models.tipo_atendimento_encaixe import TipoAtendimentoEncaixe
 
 
 class Agendamento(models.Model):
@@ -28,7 +29,11 @@ class Agendamento(models.Model):
     status = models.CharField(
         max_length=20, choices=Status.choices, default=Status.AGENDADO
     )
-    tipo_atendimento = models.CharField(max_length=20)
+    # Mesmo vocabulario de TipoAtendimentoEncaixe.TIPOS -- quando o checkin
+    # deste agendamento cria o encaixe, o valor daqui e passado direto pra
+    # la (ver registrar_checkin em core/services/paciente.py), entao os
+    # dois campos precisam aceitar exatamente os mesmos valores.
+    tipo_atendimento = models.CharField(max_length=20, choices=TipoAtendimentoEncaixe.TIPOS)
     observacoes = models.TextField(blank=True)
     criado_em = models.DateTimeField(auto_now_add=True)
     atualizado_em = models.DateTimeField(auto_now=True)

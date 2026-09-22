@@ -175,6 +175,7 @@ class PesquisaSatisfacaoSerializer(serializers.Serializer):
         nota_geral = round(sum(categorias) / len(categorias))
         return PesquisaSatisfacao.objects.create(
             encaixe=encaixe,
+            paciente=encaixe.paciente,
             paciente_nome=encaixe.nome_completo,
             paciente_cpf=validated_data["cpf"],
             nota=nota_geral,

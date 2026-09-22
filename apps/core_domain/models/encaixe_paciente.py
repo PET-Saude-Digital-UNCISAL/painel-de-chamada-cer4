@@ -39,6 +39,19 @@ class EncaixePaciente(models.Model):
     cpf = models.CharField(max_length=14)
     data_nascimento = models.DateField(null=True, blank=True)
     nome_mae = models.CharField(max_length=150, blank=True)
+    # Relacao real com o cadastro do paciente, adicionada depois dos campos
+    # acima (mantidos por compatibilidade com codigo existente que ainda le
+    # nome_completo/cpf/data_nascimento/nome_mae diretamente do encaixe).
+    # Null porque pode existir encaixe sem cadastro previo (recepcao registra
+    # so os dados da senha) ou registros historicos sem correspondencia por
+    # CPF.
+    paciente = models.ForeignKey(
+        "core.Paciente",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="encaixes",
+    )
     justificativa = models.TextField(blank=True)
     anexo = models.FileField(upload_to="encaixes/%Y/%m/%d/", null=True, blank=True)
     senha = models.CharField(max_length=10)

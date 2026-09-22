@@ -21,6 +21,16 @@ class PesquisaSatisfacao(models.Model):
     )
     paciente_nome = models.CharField(max_length=150, blank=True)
     paciente_cpf = models.CharField(max_length=14, db_index=True)
+    # Relacao real com o cadastro do paciente, alem dos campos acima
+    # (mantidos por compatibilidade). Null pelo mesmo motivo do encaixe: nem
+    # toda pesquisa tem paciente cadastrado ou correspondencia por CPF.
+    paciente = models.ForeignKey(
+        "core.Paciente",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="pesquisas_satisfacao",
+    )
     nota = models.PositiveSmallIntegerField()
     # Notas por atributo (1 a 5). Nulas em registros antigos, coletados antes
     # da pesquisa passar a perguntar por categoria — `nota` acima continua
