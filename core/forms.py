@@ -311,7 +311,7 @@ class CadastroPacienteForm(forms.ModelForm):
         digits = re.sub(r"\D", "", self.cleaned_data["cpf"])
         if not cpf_e_valido(digits):
             raise forms.ValidationError("CPF inválido.")
-        if Paciente.objects.filter(cpf=digits).exists():
+        if Paciente.all_objects.filter(cpf=digits).exists():
             raise forms.ValidationError("Já existe uma conta cadastrada com este CPF.")
         return digits
 

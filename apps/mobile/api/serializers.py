@@ -97,7 +97,7 @@ class PacienteCadastroSerializer(serializers.ModelSerializer):
         digits = value
         if not cpf_e_valido(digits):
             raise serializers.ValidationError("CPF inválido.")
-        if Paciente.objects.filter(cpf=digits).exists():
+        if Paciente.all_objects.filter(cpf=digits).exists():
             raise serializers.ValidationError("Já existe uma conta com este CPF.")
         return digits
 
