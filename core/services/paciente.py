@@ -698,7 +698,7 @@ def registrar_checkin(paciente, data_nasc, nome_mae) -> EncaixePaciente | None:
 
         ultimo = (
 
-            EncaixePaciente.objects.filter(data_atendimento=hoje)
+            EncaixePaciente.all_objects.filter(data_atendimento=hoje)
 
             .order_by("-posicao_fila")
 
