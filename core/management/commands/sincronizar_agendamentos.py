@@ -6,9 +6,11 @@ na tela."""
 
 from datetime import date
 
-from django.core.management.base import BaseCommand
+from django.core.management.base import BaseCommand, CommandError
 
+from apps.core_domain.auditoria import usando_ator
 from core.integrador import IntegradorHttp, sincronizar_agendamentos
+from core.models import UsuarioSistema
 
 
 class Command(BaseCommand):
@@ -30,6 +32,14 @@ class Command(BaseCommand):
             type=str,
             help="Token de autenticação (sobrescreve settings.INTEGRADOR_TOKEN)",
         )
+        parser.add_argument(
+            "--ator",
+            type=str,
+            help=(
+                "E-mail institucional do UsuarioSistema registrado como autor "
+                "dos agendamentos (padrão: nenhum, campos de auditoria vazios)"
+            ),
+        )
 
     def handle(self, *args, **options):
         from django.conf import settings
@@ -44,8 +54,21 @@ class Command(BaseCommand):
             ))
             return
 
+        ator = None
+        if options.get("ator"):
+            ator = UsuarioSistema.objects.filter(
+                email_institucional=options["ator"], usuario_ativo=True
+            ).first()
+            if not ator:
+                raise CommandError(
+                    f"Nenhum UsuarioSistema ativo com o e-mail {options['ator']}."
+                )
+
         integrador = IntegradorHttp(base_url=base_url, token=token)
-        resultado = sincronizar_agendamentos(data_alvo=data_alvo, integrador=integrador)
+        # Rodando por cron nao ha sessao: sem --ator, os campos "por" dos
+        # pacientes/agendamentos criados ou atualizados ficam vazios.
+        with usando_ator(ator):
+            resultado = sincronizar_agendamentos(data_alvo=data_alvo, integrador=integrador)
 
         if resultado.get("ok"):
             self.stdout.write(self.style.SUCCESS(

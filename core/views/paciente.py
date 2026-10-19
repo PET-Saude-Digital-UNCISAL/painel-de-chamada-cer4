@@ -11,6 +11,7 @@ from django.utils import timezone
 from django.views.decorators.clickjacking import xframe_options_sameorigin
 from django.views.decorators.http import require_http_methods
 
+from apps.core_domain.auditoria import sem_ator
 from core.forms import IdentificacaoForm
 from core.models import EncaixePaciente, Paciente
 from core.services import (
@@ -326,7 +327,7 @@ def bloqueio_direcionamento_view(request):
 
 
 @xframe_options_sameorigin
-
+@sem_ator
 def identificacao_paciente_view(request):
 
     """Primeira tela do fluxo mobile: recebe CPF (+ data de nascimento e
@@ -392,6 +393,7 @@ def identificacao_paciente_view(request):
     return render(request, "mobile/identificacao_paciente.html", context)
 
 
+@sem_ator
 def fluxo_paciente_view(request):
 
     """View unica que renderiza qualquer etapa do fluxo mobile do
