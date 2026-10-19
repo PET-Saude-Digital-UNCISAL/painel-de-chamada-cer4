@@ -1,8 +1,10 @@
 from django.contrib.auth.hashers import check_password, make_password
 from django.db import models
 
+from apps.core_domain.auditoria.mixins import AuditoriaMixin, ExclusaoLogicaMixin
 
-class Paciente(models.Model):
+
+class Paciente(AuditoriaMixin, ExclusaoLogicaMixin, models.Model):
     """Cadastro de paciente, usado tanto no fluxo mobile (identificacao,
     check-in, acompanhamento) quanto como referencia para agendamentos e
     encaixes.
@@ -24,14 +26,21 @@ class Paciente(models.Model):
     # historico de agendamentos/encaixes), mas nao aparece mais como
     # identificavel nas telas do fluxo mobile.
     paciente_ativo = models.BooleanField(default=True)
-    criado_em = models.DateTimeField(auto_now_add=True)
-    atualizado_em = models.DateTimeField(auto_now=True)
 
     class Meta:
         app_label = "core"
         ordering = ("nome_completo",)
         verbose_name = "paciente"
         verbose_name_plural = "pacientes"
+        constraints = [
+            models.CheckConstraint(
+                condition=(
+                    models.Q(excluido_em__isnull=True, excluido_por__isnull=True)
+                    | models.Q(excluido_em__isnull=False, excluido_por__isnull=False)
+                ),
+                name="%(class)s_excluido_em_e_por_juntos",
+            )
+        ]
 
     def set_senha(self, senha_plana: str) -> None:
         self.senha_hash = make_password(senha_plana)

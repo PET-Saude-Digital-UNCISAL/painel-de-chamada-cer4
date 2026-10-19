@@ -1,10 +1,12 @@
 from django.db import models
 
+from apps.core_domain.auditoria.mixins import AuditoriaMixin, ExclusaoLogicaMixin
+
 from apps.core_domain.models.paciente import Paciente
 from apps.core_domain.models.tipo_atendimento_encaixe import TipoAtendimentoEncaixe
 
 
-class Agendamento(models.Model):
+class Agendamento(AuditoriaMixin, ExclusaoLogicaMixin, models.Model):
     """Um agendamento vindo do sistema de marcacao (importado via
     core/importer.py e core/integrador.py, ou lancado manualmente).
 
@@ -35,14 +37,21 @@ class Agendamento(models.Model):
     # dois campos precisam aceitar exatamente os mesmos valores.
     tipo_atendimento = models.CharField(max_length=20, choices=TipoAtendimentoEncaixe.TIPOS)
     observacoes = models.TextField(blank=True)
-    criado_em = models.DateTimeField(auto_now_add=True)
-    atualizado_em = models.DateTimeField(auto_now=True)
 
     class Meta:
         app_label = "core"
         ordering = ("paciente__nome_completo", "data_agendamento")
         verbose_name = "agendamento"
         verbose_name_plural = "agendamentos"
+        constraints = [
+            models.CheckConstraint(
+                condition=(
+                    models.Q(excluido_em__isnull=True, excluido_por__isnull=True)
+                    | models.Q(excluido_em__isnull=False, excluido_por__isnull=False)
+                ),
+                name="%(class)s_excluido_em_e_por_juntos",
+            )
+        ]
 
     def __str__(self):
         return f"{self.paciente.nome_completo} — {self.data_agendamento}"
