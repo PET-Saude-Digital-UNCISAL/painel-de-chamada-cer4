@@ -7,6 +7,7 @@ from django.core.management.base import BaseCommand
 from django.utils import timezone
 
 from core.models import Agendamento, Paciente
+from core.services.paciente import obter_ou_criar_paciente
 
 
 PACIENTES = [
@@ -97,7 +98,7 @@ class Command(BaseCommand):
             cpf = data["cpf"]
             nome = data["nome_completo"]
 
-            paciente, foi_criado = Paciente.objects.get_or_create(
+            paciente, foi_criado = obter_ou_criar_paciente(
                 cpf=cpf,
                 defaults={
                     "nome_completo": nome,
