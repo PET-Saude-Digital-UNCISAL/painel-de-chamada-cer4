@@ -1,8 +1,10 @@
 from django.db import models
 from django.utils import timezone
 
+from apps.core_domain.auditoria.mixins import AuditoriaMixin, ExclusaoLogicaMixin
 
-class EncaixePaciente(models.Model):
+
+class EncaixePaciente(AuditoriaMixin, ExclusaoLogicaMixin, models.Model):
     """Uma senha na fila de atendimento de um dia especifico.
 
     E o registro central de todo o fluxo de chamada: cada vez que um
@@ -65,7 +67,6 @@ class EncaixePaciente(models.Model):
     # Quantas vezes essa senha foi chamada no painel -- usado pra decidir
     # quando desistir de chamar e marcar como ausente.
     vezes_chamado = models.PositiveSmallIntegerField(default=0)
-    criado_em = models.DateTimeField(auto_now_add=True)
     origem = models.CharField(max_length=10, choices=Origem.choices, default=Origem.ENCAIXE)
 
     class Meta:
@@ -76,6 +77,15 @@ class EncaixePaciente(models.Model):
         # A senha se repete de um dia pro outro (a fila reinicia todo dia),
         # entao a unicidade so faz sentido dentro do mesmo data_atendimento.
         unique_together = ("senha", "data_atendimento")
+        constraints = [
+            models.CheckConstraint(
+                condition=(
+                    models.Q(excluido_em__isnull=True, excluido_por__isnull=True)
+                    | models.Q(excluido_em__isnull=False, excluido_por__isnull=False)
+                ),
+                name="%(class)s_excluido_em_e_por_juntos",
+            )
+        ]
 
     def __str__(self):
         return f"{self.senha} — {self.nome_completo}"
