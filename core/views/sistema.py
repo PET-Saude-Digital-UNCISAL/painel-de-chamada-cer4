@@ -9,6 +9,7 @@ import csv
 
 from django.conf import settings
 from django.db import IntegrityError
+from django.db.models import ProtectedError
 from django.http import Http404, HttpResponse, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
@@ -516,10 +517,14 @@ def configuracoes_view(request):
                 edit_user.save(update_fields=("usuario_ativo", "atualizado_em"))
 
                 return _configuracoes_redirect(request, "status")
-
             elif action == "delete":
 
-                edit_user.delete()
+                try:
+                    edit_user.delete()
+                except ProtectedError:
+                    edit_user.usuario_ativo = False
+                    edit_user.save(update_fields=("usuario_ativo", "atualizado_em"))
+                    return _configuracoes_redirect(request, "desativado")
 
                 return _configuracoes_redirect(request, "excluido")
 

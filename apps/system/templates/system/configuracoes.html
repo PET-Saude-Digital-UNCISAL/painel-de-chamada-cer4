@@ -436,7 +436,7 @@
             {% endif %}
             {% if resultado %}
             const createdToast = document.getElementById("toast");
-            const resultMessages = { criado: "Usuário cadastrado com sucesso.", atualizado: "Usuário atualizado com sucesso.", status: "Status atualizado com sucesso.", excluido: "Usuário excluído com sucesso." };
+            const resultMessages = { criado: "Usuário cadastrado com sucesso.", atualizado: "Usuário atualizado com sucesso.", status: "Status atualizado com sucesso.",excluido: "Usuário excluído com sucesso.", desativado: "Usuário possui registros vinculados e foi desativado em vez de excluído."};
             createdToast.textContent = resultMessages["{{ resultado|escapejs }}"] || "Alteração concluída.";
             createdToast.classList.add("visible");
             window.setTimeout(() => createdToast.classList.remove("visible"), 2200);
