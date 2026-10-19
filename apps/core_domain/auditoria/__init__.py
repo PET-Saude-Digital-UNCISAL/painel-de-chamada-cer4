@@ -14,7 +14,14 @@ from apps.core_domain.auditoria.contexto import (
     definir_ator,
     get_ator_atual_id,
     restaurar_ator,
+    sem_ator,
     usando_ator,
 )
 
-__all__ = ["definir_ator", "get_ator_atual_id", "restaurar_ator", "usando_ator"]
+__all__ = [
+    "definir_ator",
+    "get_ator_atual_id",
+    "restaurar_ator",
+    "sem_ator",
+    "usando_ator",
+]

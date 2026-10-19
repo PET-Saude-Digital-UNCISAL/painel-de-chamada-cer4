@@ -14,6 +14,7 @@ from rest_framework.decorators import action
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 
+from apps.core_domain.auditoria import sem_ator
 from apps.core_domain.models import EncaixePaciente
 from apps.mobile.api.serializers import (
     EncaixeSerializer,
@@ -119,6 +120,7 @@ class PacienteAuthViewSet(viewsets.GenericViewSet):
         })
 
     @action(detail=False, methods=["post"], url_path="cadastro")
+    @sem_ator
     def cadastro(self, request):
         serializer = PacienteCadastroSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)

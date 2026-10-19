@@ -20,6 +20,7 @@ Paciente nunca e ator: sem staff logado o ator fica None e os campos
 
 from contextlib import contextmanager
 from contextvars import ContextVar
+from functools import wraps
 
 _ator_atual_id: ContextVar[int | None] = ContextVar("ator_atual_id", default=None)
 
@@ -57,3 +58,17 @@ def usando_ator(ator):
         yield
     finally:
         restaurar_ator(token)
+
+
+def sem_ator(func):
+    """Decorator pras acoes do paciente: grava os campos "por" vazios
+    mesmo que haja staff logado na mesma sessao (ex.: tablet da recepcao
+    usado pelo paciente pro proprio check-in). Serve pra views e pra
+    metodos de ViewSet."""
+
+    @wraps(func)
+    def _wrapped(*args, **kwargs):
+        with usando_ator(None):
+            return func(*args, **kwargs)
+
+    return _wrapped

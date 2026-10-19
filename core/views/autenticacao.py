@@ -6,6 +6,7 @@ from django.db import IntegrityError
 from django.shortcuts import redirect, render
 from django.views.decorators.clickjacking import xframe_options_sameorigin
 
+from apps.core_domain.auditoria import sem_ator
 from core.forms import CadastroPacienteForm, LoginPacienteForm
 from core.services import get_cadastro_context, get_login_context
 
@@ -63,7 +64,7 @@ def login_view(request):
 
 
 @xframe_options_sameorigin
-
+@sem_ator
 def cadastro_view(request):
 
     """Tela de Cadastro — persiste o paciente no banco com tratamento de erros."""
