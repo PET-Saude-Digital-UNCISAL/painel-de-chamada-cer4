@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ page_title }} - Painel de Chamada</title>
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body class="bg-slate-100 flex justify-center items-center min-h-screen antialiased">
+
+    <div class="w-full max-w-md min-h-screen sm:min-h-[850px] bg-white shadow-2xl sm:rounded-[40px] flex flex-col justify-between p-6 border border-slate-200/50 relative overflow-hidden">
+        
+        <header class="flex justify-between items-center text-slate-400 mb-6">
+            <button class="w-10 h-10 flex items-center justify-center rounded-full hover:bg-slate-100 active:scale-95 transition-all">
+                <i class="fa-solid fa-arrow-left text-lg"></i>
+            </button>
+            <button class="w-10 h-10 flex items-center justify-center rounded-full hover:bg-slate-100 active:scale-95 transition-all">
+                <i class="fa-solid fa-gear text-lg"></i>
+            </button>
+        </header>
+
+        <main class="flex-1 flex flex-col items-center text-center px-3">
+            
+            <div class="w-24 h-24 bg-amber-50 rounded-full flex items-center justify-center mb-6 border border-amber-100/70 shadow-sm">
+                <i class="fa-solid fa-triangle-exclamation text-amber-500 text-4xl"></i>
+            </div>
+
+            <h1 class="text-[22px] font-black text-slate-900 tracking-tight leading-tight uppercase max-w-xs mb-4">
+                Você perdeu a<br>chamada da senha <span class="text-blue-600 block text-3xl mt-1 tracking-normal">{{ atendimento.senha }}</span>
+            </h1>
+
+            <p class="text-xs font-semibold text-slate-500 leading-relaxed mb-8 max-w-[280px]">
+                Identificamos que sua senha foi acionada e ainda não houve confirmação de presença no setor <span class="text-slate-700 font-bold">{{ atendimento.setor }}</span>.
+            </p>
+
+            <div class="w-full bg-blue-50/60 border border-blue-100/80 rounded-2xl p-4 flex items-start text-left mb-4 gap-4">
+                <div class="bg-blue-500 text-white rounded-full w-7 h-7 flex items-center justify-center shrink-0 mt-0.5 shadow-sm shadow-blue-200">
+                    <i class="fa-solid fa-info text-xs"></i>
+                </div>
+                <div class="flex-1">
+                    <p class="text-xs font-medium text-slate-600 leading-relaxed">
+                        Sua senha permanece válida por um tempo limitado. Após esse período, será necessário realizar um novo check-in para atendimento.
+                    </p>
+                </div>
+            </div>
+
+            <div class="w-full bg-amber-50/40 border border-amber-200 rounded-2xl p-4 flex items-start text-left mb-8 gap-4">
+                <div class="text-amber-500 text-3xl pt-1 shrink-0">
+                    <i class="fa-solid fa-user-tie"></i>
+                </div>
+                <div class="flex-1">
+                    <h3 class="text-xs font-bold text-slate-800 mb-1 leading-snug">
+                        Procure a recepção para reativação do atendimento.
+                    </h3>
+                    <p class="text-[11px] text-slate-400 font-medium leading-normal">
+                        Nossa equipe irá verificar e orientar o próximo passo.
+                    </p>
+                </div>
+            </div>
+
+            <div class="w-full mt-auto flex flex-col items-center pt-4 mb-2">
+                <div class="opacity-25 mb-3 text-slate-400 text-5xl flex gap-1 items-end justify-center">
+                    <i class="fa-solid fa-desktop text-xl mb-3 text-slate-500"></i>
+                    <i class="fa-solid fa-chair"></i>
+                    <i class="fa-solid fa-chair text-slate-300"></i>
+                </div>
+                <h2 class="text-sm font-extrabold text-slate-700 tracking-wide">Dirija-se até a recepção</h2>
+            </div>
+
+        </main>
+
+        <footer class="mt-8 pt-4 border-t border-slate-100 flex justify-between items-center text-[10px] font-bold text-slate-400 uppercase tracking-wider">
+            <span class="flex items-center gap-1.5"><i class="fa-solid fa-shield-halved text-slate-300"></i> LGPD Conforme</span>
+            <span class="flex items-center gap-1.5"><i class="fa-solid fa-circle-check text-slate-300"></i> Conexão Segura</span>
+            <div class="flex gap-3 text-sm text-slate-400 normal-case pl-2 border-l border-slate-200">
+                <button class="hover:text-slate-600 transition"><i class="fa-solid fa-circle-half-stroke text-xs"></i></button>
+                <button class="hover:text-slate-600 transition"><i class="fa-solid fa-text-height text-xs"></i></button>
+            </div>
+        </footer>
+
+    </div>
+
+</body>
+</html>

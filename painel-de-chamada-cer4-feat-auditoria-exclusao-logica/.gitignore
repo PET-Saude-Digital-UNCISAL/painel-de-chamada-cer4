@@ -1,0 +1,9 @@
+.venv/
+*.pyc
+__pycache__/
+.env
+staticfiles/
+db.sqlite3
+server.log
+server_err.log
+.ruff_cache/

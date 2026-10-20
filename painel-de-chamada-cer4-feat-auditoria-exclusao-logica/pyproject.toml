@@ -1,0 +1,13 @@
+# Configuracao versionada do ruff usada pelo CI (.github/workflows/ci.yml,
+# job "Lint com ruff" -> `ruff check .`).
+#
+# Propositalmente NAO definimos [tool.ruff.lint] select/extend-select aqui:
+# o objetivo desta fase e apenas tornar explicito o que ja roda hoje (a
+# selecao de regras padrao do ruff), sem mudar nenhum resultado de lint.
+# Validado comparando `ruff check .` sem nenhum arquivo de config com
+# `ruff check .` usando este arquivo: saida identica (258 erros, mesmos
+# arquivos/linhas). Esses 258 erros ja existem hoje e sao pre-existentes;
+# corrigi-los fica para uma fase futura do PLANO_REFATORACAO.md.
+[tool.ruff]
+target-version = "py312"
+line-length = 88

@@ -1,0 +1,508 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Agendamento - Visualizar Atendimento</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Helvetica Neue', Arial, sans-serif;
+            background-color: #f5f7fa;
+            color: #333;
+            padding-bottom: 80px;
+        }
+
+        /* HEADER */
+        .header {
+            background-color: white;
+            padding: 16px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid #e0e6ed;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            flex: 1;
+        }
+
+        .back-btn {
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            color: #333;
+            padding: 0;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .header-title {
+            font-size: 20px;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .settings-btn {
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            color: #666;
+            padding: 0;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* CONTAINER */
+        .container {
+            padding: 20px;
+            max-width: 500px;
+            margin: 0 auto;
+        }
+
+        /* CARD GENÉRICO */
+        .card {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 16px;
+            border: 1px solid #e0e6ed;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+        }
+
+        /* CARD PACIENTE */
+        .card-patient {
+            border: 1px solid #d0d7e3;
+        }
+
+        .card-patient-label {
+            font-size: 12px;
+            font-weight: 600;
+            color: #666;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 8px;
+        }
+
+        .card-patient-name {
+            font-size: 24px;
+            font-weight: 700;
+            color: #1a1a1a;
+            line-height: 1.2;
+            margin-bottom: 16px;
+        }
+
+        .card-patient-age-label {
+            font-size: 12px;
+            font-weight: 600;
+            color: #666;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 6px;
+        }
+
+        .card-patient-age {
+            font-size: 18px;
+            font-weight: 600;
+            color: #333;
+        }
+
+        /* CARD PRIORITÁRIO */
+        .card-priority {
+            background: linear-gradient(135deg, #001a4d 0%, #003d7a 100%);
+            color: white;
+            border: none;
+            display: flex;
+            gap: 16px;
+            align-items: flex-start;
+        }
+
+        .priority-icon {
+            width: 48px;
+            height: 48px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            flex-shrink: 0;
+        }
+
+        .priority-content h3 {
+            font-size: 18px;
+            font-weight: 700;
+            margin-bottom: 8px;
+            line-height: 1.2;
+        }
+
+        .priority-content p {
+            font-size: 14px;
+            line-height: 1.5;
+            opacity: 0.95;
+        }
+
+        /* CARD AGENDAMENTO */
+        .card-appointment {
+            border: 1px solid #d0d7e3;
+        }
+
+        .appointment-title {
+            font-size: 12px;
+            font-weight: 600;
+            color: #666;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 12px;
+        }
+
+        .appointment-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+            padding-bottom: 12px;
+            border-bottom: 1px solid #e0e6ed;
+        }
+
+        .appointment-doctor {
+            font-size: 18px;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .appointment-icon {
+            width: 40px;
+            height: 40px;
+            background-color: #f0f2f5;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            color: #666;
+        }
+
+        .appointment-details {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        .detail-item {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .detail-label {
+            font-size: 11px;
+            font-weight: 700;
+            color: #666;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .detail-value {
+            font-size: 18px;
+            font-weight: 600;
+            color: #333;
+        }
+
+        /* CARD CONFIRMAÇÃO */
+        .card-confirmation {
+            background: #f0f4ff;
+            border: 2px dashed #4a7dd9;
+            display: flex;
+            gap: 12px;
+            align-items: flex-start;
+        }
+
+        .confirmation-icon {
+            color: #4a7dd9;
+            font-size: 20px;
+            flex-shrink: 0;
+            margin-top: 2px;
+        }
+
+        .confirmation-text {
+            font-size: 14px;
+            font-weight: 500;
+            color: #2a5acc;
+            line-height: 1.4;
+        }
+
+        /* BUTTONS */
+        .btn-confirm {
+            display: block;
+            width: 100%;
+            padding: 16px 20px;
+            background-color: #1a1a1a;
+            color: white;
+            border: none;
+            border-radius: 50px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            margin-bottom: 16px;
+            transition: background-color 0.3s ease;
+            text-decoration: none;
+            text-align: center;
+        }
+
+        .btn-confirm:hover {
+            background-color: #0d0d0d;
+        }
+
+        .btn-confirm:active {
+            transform: scale(0.98);
+        }
+
+        .btn-link {
+            display: block;
+            text-align: center;
+            padding: 12px 20px;
+            color: #003d7a;
+            text-decoration: underline;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            background: none;
+            border: none;
+            margin-bottom: 20px;
+        }
+
+        .btn-link:hover {
+            color: #002a55;
+        }
+
+        /* FOOTER */
+        .footer {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: white;
+            border-top: 1px solid #e0e6ed;
+            padding: 12px 20px;
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .footer-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 6px;
+            flex: 1;
+            padding: 8px 0;
+            cursor: pointer;
+            color: #666;
+            text-decoration: none;
+            font-size: 11px;
+            font-weight: 500;
+            text-align: center;
+            transition: color 0.2s ease;
+            background: none;
+            border: none;
+        }
+
+        .footer-item:hover {
+            color: #003d7a;
+        }
+
+        .footer-icon {
+            font-size: 24px;
+        }
+
+        /* RESPONSIVE */
+        @media (max-width: 480px) {
+            .container {
+                padding: 16px;
+            }
+
+            .card {
+                margin-bottom: 12px;
+            }
+
+            .card-patient-name {
+                font-size: 20px;
+            }
+
+            .appointment-details {
+                gap: 16px;
+            }
+        }
+
+        /* UTILIDADES */
+        .text-muted {
+            color: #999;
+        }
+
+        .mt-16 {
+            margin-top: 16px;
+        }
+
+        .divider {
+            height: 1px;
+            background-color: #e0e6ed;
+            margin: 16px 0;
+        }
+    </style>
+</head>
+<body>
+    <!-- HEADER -->
+    <div class="header">
+        <div class="header-left">
+            <button class="back-btn" onclick="history.back()" title="Voltar">
+                ←
+            </button>
+            <h1 class="header-title">Atendimento</h1>
+        </div>
+        <button class="settings-btn" onclick="alert('Configurações')" title="Configurações">
+            ⚙️
+        </button>
+    </div>
+
+    <!-- CONTAINER PRINCIPAL -->
+    <div class="container">
+        <!-- CARD: DADOS DO PACIENTE -->
+        <div class="card card-patient">
+            <div class="card-patient-label">Nome do paciente</div>
+            <div class="card-patient-name">Ricardo Augusto Oliveira</div>
+            <div class="card-patient-age-label">Idade</div>
+            <div class="card-patient-age">81 anos</div>
+        </div>
+
+        <!-- CARD: ATENDIMENTO PRIORITÁRIO -->
+        <div class="card card-priority">
+            <div class="priority-icon">ℹ️</div>
+            <div class="priority-content">
+                <h3>Atendimento Prioritário</h3>
+                <p>Identificamos que você tem 80 anos ou mais. Você terá preferência no atendimento.</p>
+            </div>
+        </div>
+
+        <!-- CARD: AGENDAMENTO -->
+        <div class="card card-appointment">
+            <div class="appointment-title">Seu agendamento</div>
+            <div class="appointment-header">
+                <div class="appointment-doctor">Consulta com Dr. Silva</div>
+                <div class="appointment-icon">👤</div>
+            </div>
+            <div class="appointment-details">
+                <div class="detail-item">
+                    <div class="detail-label">Data</div>
+                    <div class="detail-value">27/04/2026</div>
+                </div>
+                <div class="detail-item">
+                    <div class="detail-label">Horário</div>
+                    <div class="detail-value">14h</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- CARD: CONFIRMAÇÃO -->
+        <div class="card card-confirmation">
+            <div class="confirmation-icon">🛡️</div>
+            <div class="confirmation-text">
+                Confirme para receber novas instruções de atendimento
+            </div>
+        </div>
+
+        <!-- BOTÃO: CONFIRMAR PRESENÇA -->
+        <button class="btn-confirm" onclick="confirmarPresenca()">
+            Confirmar presença →
+        </button>
+
+        <!-- LINK: BUSCAR OUTRO AGENDAMENTO -->
+        <button class="btn-link" onclick="buscarOutroAgendamento()">
+            Buscar outro agendamento
+        </button>
+    </div>
+
+    <!-- FOOTER -->
+    <footer class="footer">
+        <button class="footer-item" onclick="abrirLGPD()" title="LGPD">
+            <span class="footer-icon">🔒</span>
+            <span>LGPD</span>
+        </button>
+        <button class="footer-item" onclick="abrirSeguro()" title="Seguro">
+            <span class="footer-icon">🛡️</span>
+            <span>Seguro</span>
+        </button>
+        <button class="footer-item" onclick="alternarContraste()" title="Contraste">
+            <span class="footer-icon">◐</span>
+            <span>Contraste</span>
+        </button>
+        <button class="footer-item" onclick="ajustarTexto()" title="Ajustar Texto">
+            <span class="footer-icon">Tt</span>
+            <span>Texto</span>
+        </button>
+    </footer>
+
+    <!-- SCRIPTS -->
+    <script>
+        function confirmarPresenca() {
+            alert('✓ Presença confirmada com sucesso!\n\nVocê receberá as instruções de atendimento em breve.');
+        }
+
+        function buscarOutroAgendamento() {
+            if (confirm('Deseja buscar outro agendamento?')) {
+                alert('Redirecionando para busca de agendamentos...');
+                // window.location.href = '/agendamentos';
+            }
+        }
+
+        function abrirLGPD() {
+            alert('LGPD - Lei Geral de Proteção de Dados\n\nSua privacidade é importante para nós.');
+        }
+
+        function abrirSeguro() {
+            alert('Informações sobre seguro de saúde.');
+        }
+
+        function alternarContraste() {
+            document.body.style.filter = 
+                document.body.style.filter === 'contrast(1.5)' ? 'contrast(1)' : 'contrast(1.5)';
+            alert('Contraste alterado.');
+        }
+
+        function ajustarTexto() {
+            const fontSize = window.getComputedStyle(document.body).fontSize;
+            const currentSize = parseInt(fontSize);
+            const newSize = currentSize === 16 ? 18 : 16;
+            document.body.style.fontSize = newSize + 'px';
+            alert(`Tamanho da fonte: ${newSize}px`);
+        }
+
+        // Fechar alerts ao clicar fora (para melhor UX)
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                console.log('ESC pressionado');
+            }
+        });
+    </script>
+</body>
+</html>

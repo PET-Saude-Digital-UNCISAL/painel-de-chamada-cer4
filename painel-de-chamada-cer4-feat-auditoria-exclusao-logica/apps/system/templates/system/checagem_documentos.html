@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ page_title }}</title>
+    <style>
+        @font-face {
+            font-family: "Inter";
+            src: url("{{ inter_font_url }}") format("truetype");
+            font-style: normal;
+            font-weight: 100 900;
+            font-display: swap;
+        }
+        :root {
+            --primary-blue: #002D62;
+            --success-green: #1C8F45;
+            --background-light: #F4F6F8;
+            --border-light: #E0E0E0;
+            --text-color: #002D62;
+            --text-muted: #6F6F6F;
+        }
+
+        *, *::before, *::after {
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: "Inter", Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background-color: #f0f0f0;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 400px;
+            min-height: 100vh;
+            border: 1px solid var(--border-light);
+            overflow: hidden;
+            background-color: white;
+            display: flex;
+            flex-direction: column;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+        }
+
+        .header {
+            padding: 16px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background-color: var(--background-light);
+        }
+
+        .btn-voltar {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 8px 16px;
+            background: var(--primary-blue);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-family: "Inter", Arial, sans-serif;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            text-decoration: none;
+            transition: background-color 180ms ease;
+        }
+
+        .btn-voltar:hover {
+            background-color: #001a4d;
+        }
+
+        .btn-voltar:active {
+            transform: translateY(1px);
+        }
+
+        .icon-settings {
+            font-size: 24px;
+            color: var(--primary-blue);
+            cursor: pointer;
+        }
+
+        .content {
+            flex: 1;
+            padding: 40px 20px;
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-start;
+            align-items: center;
+        }
+
+        .content h1 {
+            color: var(--primary-blue);
+            margin-top: 0;
+            margin-bottom: 20px;
+            font-size: 28px;
+            font-weight: 800;
+        }
+
+        .content p {
+            color: var(--text-color);
+            margin-bottom: 40px;
+            font-size: 16px;
+            line-height: 1.5;
+            max-width: 90%;
+        }
+
+        .content strong {
+            font-weight: bold;
+        }
+
+        .checklist {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+            width: 100%;
+            max-width: 300px;
+            text-align: left;
+        }
+
+        .checklist-item {
+            display: flex;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .icon-status {
+            width: 44px;
+            height: 44px;
+            margin-right: 15px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background-color: white;
+        }
+
+        .icon-check-green {
+            border-radius: 50%;
+            border: 2px solid var(--success-green);
+        }
+
+        .icon-check-green::after {
+            content: '\2714';
+            color: var(--success-green);
+            font-size: 22px;
+            font-weight: bold;
+        }
+
+        .icon-square-empty {
+            border: 2px solid var(--border-light);
+            border-radius: 8px;
+            width: 40px;
+            height: 40px;
+        }
+
+        .checklist-text {
+            color: var(--primary-blue);
+            font-size: 14px;
+            text-transform: uppercase;
+            font-weight: bold;
+        }
+
+        .checklist-item.done .checklist-text s {
+            color: var(--text-muted);
+            text-decoration: line-through;
+        }
+
+        .footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px;
+            background-color: var(--background-light);
+            border-top: 1px solid var(--border-light);
+        }
+
+        .footer-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+            color: var(--primary-blue);
+            font-size: 10px;
+        }
+
+        .footer-icon {
+            font-size: 20px;
+            margin-bottom: 5px;
+        }
+
+        @media (max-width: 430px) {
+            .container {
+                max-width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header class="header">
+            <a class="btn-voltar" href="{% url 'acompanhamento-atendimento' %}">
+                <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+                    <path d="M10 12L6 8L10 4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+                Voltar
+            </a>
+            <span class="icon-settings">&#9881;</span>
+        </header>
+        <main class="content">
+            <h1>Bem-vindo, {{ paciente_nome }}</h1>
+            <p>Identificamos que você veio para o Exame <strong>{{ exame_nome }}</strong>. Por favor, dirija-se à <strong>{{ recepcao }}</strong> e apresente seu pedido médico original.</p>
+            <ul class="checklist">
+                <li class="checklist-item done">
+                    <span class="icon-status icon-check-green"></span>
+                    <span class="checklist-text"><s>PEDIDO MÉDICO</s></span>
+                </li>
+                <li class="checklist-item todo">
+                    <span class="icon-status icon-square-empty"></span>
+                    <span class="checklist-text">DOCUMENTO COM FOTO</span>
+                </li>
+            </ul>
+        </main>
+        <footer class="footer">
+            <div class="footer-item">
+                <span class="footer-icon">&#128274;</span>
+                <span class="footer-text">LGPD<br>Conforme</span>
+            </div>
+            <div class="footer-item">
+                <span class="footer-icon">&#128737;</span>
+                <span class="footer-text">Conexão<br>Segura</span>
+            </div>
+            <div class="footer-item">
+                <span class="footer-icon contrast-icon">&#9681;</span>
+            </div>
+            <div class="footer-item">
+                <span class="footer-icon accessibility-icon">T</span>
+            </div>
+        </footer>
+    </div>
+</body>
+</html>
