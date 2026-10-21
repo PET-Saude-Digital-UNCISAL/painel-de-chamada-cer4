@@ -22,6 +22,7 @@ from django.db import transaction
 from django.utils import timezone
 
 from core.models import Agendamento, Paciente
+from core.services.paciente import obter_ou_criar_paciente
 
 
 # Normaliza varios jeitos de escrever o tipo de atendimento (com/sem
@@ -348,7 +349,7 @@ def process_appointment_file(
             continue
 
         with transaction.atomic():
-            paciente, paciente_criado = Paciente.objects.get_or_create(
+            paciente, paciente_criado = obter_ou_criar_paciente(
                 cpf=linha.cpf,
                 defaults={
                     "nome_completo": linha.nome_completo,

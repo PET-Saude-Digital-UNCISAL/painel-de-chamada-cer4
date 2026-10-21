@@ -7,7 +7,8 @@ Terceira fatia da divisao por dominio da Fase 3.
 from base64 import b64encode
 from dataclasses import dataclass
 from datetime import date, datetime
-from functools import lru_cache
+from functools import lru_cache 
+import logging
 from mimetypes import guess_type
 from pathlib import Path
 from typing import Optional
@@ -16,6 +17,8 @@ from django.utils import timezone
 
 from core.models import EncaixePaciente, Paciente
 from core.websocket_utils import notificar_pacientes_em_espera
+
+logger = logging.getLogger(__name__)
 
 
 # NOTA: este arquivo (core/services/paciente.py) mora um nivel mais fundo
@@ -698,7 +701,7 @@ def registrar_checkin(paciente, data_nasc, nome_mae) -> EncaixePaciente | None:
 
         ultimo = (
 
-            EncaixePaciente.objects.filter(data_atendimento=hoje)
+            EncaixePaciente.all_objects.filter(data_atendimento=hoje)
 
             .order_by("-posicao_fila")
 
@@ -762,3 +765,11 @@ def registrar_checkin(paciente, data_nasc, nome_mae) -> EncaixePaciente | None:
     notificar_pacientes_em_espera()
 
     return encaixe
+
+
+def obter_ou_criar_paciente(cpf, defaults):
+    paciente, criado = Paciente.all_objects.get_or_create(cpf=cpf, defaults=defaults)
+    if not criado and paciente.excluido:
+        paciente.restaurar()
+        logger.warning("Paciente %s restaurado por importação/integração", paciente.pk)
+    return paciente, criado

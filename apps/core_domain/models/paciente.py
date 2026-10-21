@@ -1,5 +1,8 @@
 from django.contrib.auth.hashers import check_password, make_password
 from django.db import models
+from django.db import transaction
+
+from apps.core_domain.auditoria.contexto import get_ator_atual_id
 
 from apps.core_domain.auditoria.mixins import AuditoriaMixin, ExclusaoLogicaMixin
 
@@ -46,7 +49,34 @@ class Paciente(AuditoriaMixin, ExclusaoLogicaMixin, models.Model):
         self.senha_hash = make_password(senha_plana)
 
     def checar_senha(self, senha_plana: str) -> bool:
-        return check_password(senha_plana, self.senha_hash)
+        return check_password(senha_plana, self.senha_hash)   
+    
+    @transaction.atomic
+    def delete(self, using=None, keep_parents=False):
+        if get_ator_atual_id() is None:
+            raise ValueError("Excluir paciente exige um ator (usuário do sistema).")
+        resultado = super().delete(using=using, keep_parents=keep_parents)
+        if resultado[0]:
+            campos = dict(
+                excluido_em=self.excluido_em,
+                excluido_por_id=self.excluido_por_id,
+                atualizado_em=self.excluido_em,
+                atualizado_por_id=self.excluido_por_id,
+            )
+            self.agendamentos.update(**campos)
+            self.encaixes.update(**campos)
+        return resultado
+
+    @transaction.atomic
+    def restaurar(self, using=None):
+        from .agendamento import Agendamento
+        from .encaixe_paciente import EncaixePaciente
+
+        carimbo = self.excluido_em
+        super().restaurar(using=using)
+        if carimbo:
+            Agendamento.all_objects.filter(paciente=self, excluido_em=carimbo).restaurar()
+            EncaixePaciente.all_objects.filter(paciente=self, excluido_em=carimbo).restaurar()
 
     def __str__(self):
         return self.nome_completo

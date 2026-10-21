@@ -31,7 +31,7 @@ def registrar_encaixe(cleaned_data: dict, arquivo=None) -> EncaixePaciente:
 
         ultimo = (
 
-            EncaixePaciente.objects.filter(data_atendimento=hoje)
+           EncaixePaciente.all_objects.filter(data_atendimento=hoje)
 
             .order_by("-posicao_fila")
 

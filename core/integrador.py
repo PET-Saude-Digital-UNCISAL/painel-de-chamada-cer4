@@ -11,10 +11,12 @@ from dataclasses import dataclass, field
 from datetime import date, datetime
 from typing import Optional
 
+
 from django.db import transaction
 from django.utils import timezone
 
 from core.models import Agendamento, Paciente, EncaixePaciente
+from core.services.paciente import obter_ou_criar_paciente
 
 
 @dataclass
@@ -139,7 +141,7 @@ def sincronizar_agendamentos(data_alvo: Optional[date] = None, integrador: Optio
                 erros.append(f"Registro sem CPF: {ext.nome_completo}")
                 continue
 
-            paciente, _ = Paciente.objects.get_or_create(
+            paciente, _ = obter_ou_criar_paciente(
                 cpf=cpf_limpo,
                 defaults={
                     "nome_completo": ext.nome_completo,
