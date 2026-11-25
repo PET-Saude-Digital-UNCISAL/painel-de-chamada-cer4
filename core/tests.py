@@ -738,7 +738,7 @@ class FluxoAtendimentoIntegrationTests(TestCase):
 		from core.services import registrar_checkin
 		encaixe = registrar_checkin(self.paciente, "1990-05-10", "Mae Teste")
 
-		response = self.client.post("/sistema/chamar/", {"senha": encaixe.senha})
+		response = self.client.post("/sistema/chamar/", {"senha": encaixe.senha}, HTTP_X_REQUESTED_WITH="XMLHttpRequest")
 		self.assertEqual(response.status_code, 401)
 
 	def test_chamar_paciente_rejeita_status_invalido(self):
