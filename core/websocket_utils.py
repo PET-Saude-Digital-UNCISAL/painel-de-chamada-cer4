@@ -11,6 +11,7 @@ em apps/display/consumers/.
 from datetime import datetime
 from asgiref.sync import async_to_sync
 from channels.layers import get_channel_layer
+from django.utils import timezone
 
 from core.models import EncaixePaciente
 
@@ -93,7 +94,7 @@ def _notificar_painel(hoje):
             "ticket": c["senha"],
             "room": (c["sala"] or "SALA 01").upper(),
             "patient_name": c["nome_completo"].upper(),
-            "time": c["chamado_em"].strftime("%H:%M") if c["chamado_em"] else "--:--",
+            "time":timezone.localtime(c["chamado_em"]).strftime("%H:%M") if c["chamado_em"] else "--:--",
         }
         for c in chamados_hoje
     ]

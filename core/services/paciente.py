@@ -146,7 +146,7 @@ def get_painel_chamada_context(use_real_data: bool = False) -> dict:
                     "ticket": e.senha,
                     "room": e.sala.upper() if e.sala else "SALA 01",
                     "patient_name": e.nome_completo.upper(),
-                    "time": e.chamado_em.strftime("%H:%M") if e.chamado_em else "--:--",
+                    "time": timezone.localtime(e.chamado_em).strftime("%H:%M") if e.chamado_em else "--:--",
                 }
                 for e in d.chamados_hoje
             ]
